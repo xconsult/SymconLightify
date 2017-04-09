@@ -1,0 +1,11 @@
+{
+  "id": "{2C0FD8E7-345F-4F7A-AF7D-86DFB43FE46A}",
+  "name": "lightifySwitch",
+  "type": 3,
+  "vendor": "OSRAM",
+  "aliases": [ "Lightify Switch" ],
+  "parentRequirements": [ "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}" ],
+  "childRequirements": [],
+  "implemented": [ "{5A4225C7-209E-48B9-82D0-0E0C7C355157}" ],
+  "prefix": "OSR"
+}

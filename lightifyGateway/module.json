@@ -1,0 +1,11 @@
+{
+  "id": "{C3859938-D71C-4714-8B02-F2889A62F481}",
+  "name": "lightifyGateway",
+  "type": 1,
+  "vendor": "OSRAM",
+  "aliases": [ "Lightify Gateway" ],
+  "parentRequirements": [],
+  "childRequirements": [ "EC8C035-D581-4DF2-880D-E3C400F41682}" ],
+  "implemented": [ "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}" ],
+  "prefix": "OSR"
+}

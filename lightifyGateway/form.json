@@ -1,0 +1,27 @@
+{
+  "elements": [
+	  { "type": "CheckBox", "name": "Open", "caption": "Open" },
+    { "name": "Host", "type": "ValidationTextBox", "caption": "Host" },
+    { "type": "Select", "name": "Port", "caption": "Port",
+	    "options": [
+        { "label": "4000", "value": 4000 }
+      ]
+    },
+    { "name": "updateInterval", "type": "IntervalBox", "caption": "seconds" },
+    { "name": "deviceCategory", "type": "SelectCategory", "caption": "Device category" },
+    { "type": "Label", "label": "Gateway firmware version will be filled in automatically on save. Update will only be visible when reopening form." },
+    { "type": "ValidationTextBox", "name": "Firmware", "caption": "Firmware" }
+  ],
+  "actions": [
+    { "type": "Button", "label": "Sync devices", "onClick": "OSR_SyncDevices($id); echo 'Devices successfully synced!\n';" }
+  ],
+  "status": [
+    { "code": 101, "icon": "active", "caption": "Creating gateway interface" },
+    { "code": 102, "icon": "active", "caption": "Gateway is active" },
+    { "code": 103, "icon": "active", "caption": "Deleting gateway interface" },
+    { "code": 104, "icon": "inactive", "caption": "Please enter all required informations!" },
+    { "code": 202, "icon": "error", "caption": "Invalid IP address!" },
+    { "code": 203, "icon": "error", "caption": "Minimum update interval = 10 seconds!" },
+    { "code": 299, "icon": "error", "caption": "Unknown error!" }
+  ]
+}
