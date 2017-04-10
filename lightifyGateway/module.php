@@ -257,11 +257,11 @@ class lightifyGateway extends IPSModule {
 				break;
 				
 			case 16:	//Lightify plug
-				$deviceCapa = "Lightify plug";
+				$deviceCapa = "Lightify plug/power socket";
 				break;
 
 			case 32:	//Lightify motion
-				$deviceCapability = "Lightify motion";
+				$deviceCapability = "Lightify motion sensor";
 				break;
 						
 			case 64:	//Lightify switch - 2 buttons
