@@ -1,12 +1,12 @@
 <?
 
-	function PrintBuffer($buffer) {
-		$String = "";
+	function DecodeData($data) {
+		$Decode = "";
 
-		for ($i = 0; $i < strlen($buffer); $i++)
-			$String = $String." ".sprintf("%02d", ord($buffer{$i}));
+		for ($i = 0; $i < strlen($data); $i++)
+			$Decode = $Decode." ".sprintf("%02d", ord($data{$i}));
 		
-		return $String;
+		return $$Decode;
 	}
 
 

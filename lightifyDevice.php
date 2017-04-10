@@ -6,6 +6,7 @@ require_once(__DIR__.DIRECTORY_SEPARATOR."lightifySocket.php");
 
 abstract class lightifyDevice extends IPSModule {
 	
+	private $ParentID = null;
 	private $socket = null;
 
 
@@ -46,11 +47,11 @@ abstract class lightifyDevice extends IPSModule {
   protected function GetSocket() {
 	  if ($this->socket == null) {
 		  $Instance = IPS_GetInstance($this->InstanceID);
-			$id = ($Instance['ConnectionID'] > 0) ? $Instance['ConnectionID'] : false;
+			$this->ParentID = ($Instance['ConnectionID'] > 0) ? $Instance['ConnectionID'] : false;
     
-			if ($id) {
-	    	$host = IPS_GetProperty($id, "Host");
-				if ($host != "") return new lightifySocket($host, IPS_GetProperty($id, "Port"));
+			if ($this->ParentID) {
+	    	$host = IPS_GetProperty($this->ParentID, "Host");
+				if ($host != "") return new lightifySocket($host, IPS_GetProperty($this->ParentID, "Port"));
 			}
 			return false;
 		}
@@ -292,20 +293,9 @@ abstract class lightifyDevice extends IPSModule {
 	
 		
 	private function SetDeviceInfo($data) {
-		$Online = false;
+		$deviceType = IPS_GetProperty($this->InstanceID, "deviceType");
+		$Online = (strlen($data) == 32) ? true : false;
     $result = false;
-
-		if (strlen($data) == 32) {
-			/*
-			$Type = (ord($data{30}) == 0) ? "Lightify bulb (Tunable White)" : "Lightify bulb (RGBW)";
-
-      if (IPS_GetProperty($this->InstanceID, 'Type') != $Type) {
-        IPS_SetProperty($this->InstanceID, 'Type', $Type);
-        IPS_ApplyChanges($this->InstanceID);
-      }
-			*/
-			$Online = true;
-		}
 
     if (!$StateID = @$this->GetIDForIdent("STATE")) {
       $StateID = $this->RegisterVariableBoolean("STATE", "State", "~Switch", 1);
@@ -318,20 +308,10 @@ abstract class lightifyDevice extends IPSModule {
     }
 
 		if ($Online) {
-			if (!$ColorTempID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
-      	$ColorTempID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTemperature", 4);
-				$this->EnableAction("COLOR_TEMPERATURE");
-   		}
-   	
-	 		if (!$BrightID = @$this->GetIDForIdent("BRIGHTNESS")) {
-      	$BrightID = $this->RegisterVariableInteger("BRIGHTNESS", "Brightness", "~Intensity.100", 5);
-				$this->EnableAction("COLOR_TEMPERATURE");
-   		}
-
 			$data = substr($data, 9);
 			$rgb = ord($data{16}).ord($data{17}).	ord($data{18});
 
-			if (dechex($rgb) != 64) {
+			if ($deviceType == 10) {
 				if (!$HueID = @$this->GetIDForIdent("HUE")) {
 					$HueID = $this->RegisterVariableInteger("HUE", "Hue", "OSR.Hue", 0);
 					$this->EnableAction("HUE");
@@ -358,10 +338,22 @@ abstract class lightifyDevice extends IPSModule {
 				$result = array('HUE' => $Hue, 'COLOR' => $Color, 'SATURATION' => $Saturation);
 			}
 
-			$ColorTemp = hexdec(dechex(ord($data{15})).dechex(ord($data{14})));
-			$Brightness = ord($data{13});
+	 		if ($deviceType == 2 || $deviceType == 10) {
+   			if (!$ColorTempID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
+      		$ColorTempID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTemperature", 4);
+					$this->EnableAction("COLOR_TEMPERATURE");
+   			}
+	
+   			$ColorTemp = hexdec(dechex(ord($data{15})).dechex(ord($data{14})));
+   			$result['COLOR_TEMPERATURE'] = $ColorTemp;
+   		}
 
-			$result['COLOR_TEMPERATURE'] = $ColorTemp;
+	 		if (!$BrightID = @$this->GetIDForIdent("BRIGHTNESS")) {
+      	$BrightID = $this->RegisterVariableInteger("BRIGHTNESS", "Brightness", "~Intensity.100", 5);
+				$this->EnableAction("BRIGHTNESS");
+   		}
+   		
+			$Brightness = ord($data{13});
 			$result['BRIGHTNESS'] = $Brightness;
 		}
 

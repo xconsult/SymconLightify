@@ -6,14 +6,14 @@
         "column": "LightID",
         "direction": "ascending" },
 			"columns": [
-				{ "label": "Instance ID", "name": "InstanceID", "width": "60px", "save": true, "visible": false },
-				{ "label": "ID", "name": "LightID", "width": "30px", "save": true },			 
-				{ "label": "Name", "name": "Name", "width": "auto", "save": true },
-				{ "label": "Hue", "name": "Hue", "width": "35px", "save": true },
-				{ "label": "Color", "name": "Color", "width": "60px", "save": true },
-				{ "label": "ct", "name": "CT", "width": "45px", "save": true },
-				{ "label": "bri", "name": "Brightness", "width": "45px", "save": true },
-				{ "label": "sat", "name": "Saturation", "width": "45px", "save": true }
+				{ "label": "Instance ID", "name": "InstanceID", "width": "60px", "visible": false },
+				{ "label": "ID", "name": "LightID", "width": "30px" },			 
+				{ "label": "Name", "name": "Name", "width": "auto" },
+				{ "label": "Hue", "name": "Hue", "width": "35px" },
+				{ "label": "Color", "name": "Color", "width": "60px" },
+				{ "label": "ct", "name": "CT", "width": "45px" },
+				{ "label": "bri", "name": "Brightness", "width": "45px" },
+				{ "label": "sat", "name": "Saturation", "width": "45px" }
 			]
 		}
   ],

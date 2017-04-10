@@ -39,9 +39,9 @@ class lightifyGroup extends lightifyDevice {
 				if (GetValueBoolean(IPS_GetObjectIDByIdent('STATE', $value['DeviceID'])))
 					//$rowColor = CT2HEX($ColorTemp); //State on
 					//$rowColor = "#".$Color; //State on
-					$rowColor = "#FFFF64"; //State on
+					$rowColor = ($ColorTemp) ? "#FFDA48" : "#FFFCEA"; //State on
 				else
-					$rowColor = "#C8C8C8"; //State off
+					$rowColor = "#D6D6D6"; //State off
 				
 				$data->elements[1]->values[] = array(
 					"InstanceID" => $key,
@@ -64,8 +64,8 @@ class lightifyGroup extends lightifyDevice {
 	
 	
   protected function GetUniqueID() {
-    $id = $this->ReadPropertyString("UniqueID");
-    return $id;
+    $UniqueID = $this->ReadPropertyString("UniqueID");
+    return $UniqueID;
   }
  
 }

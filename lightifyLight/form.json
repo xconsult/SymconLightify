@@ -2,8 +2,8 @@
   "elements": [
     { "type": "ValidationTextBox", "name": "UniqueID", "caption": "Unique ID" }, 
     { "type": "NumberSpinner", "name": "LightID", "caption": "Light" }, 
-    { "type": "ValidationTextBox", "name": "ModelID", "caption": "Model" }, 
-    { "type": "ValidationTextBox", "name": "Type", "caption": "Type" },
+    { "type": "ValidationTextBox", "name": "deviceModel", "caption": "Model" }, 
+    { "type": "ValidationTextBox", "name": "deviceCapability", "caption": "Capability" },
     { "type": "ValidationTextBox", "name": "Firmware", "caption": "Firmware" }
   ],
     "actions": [

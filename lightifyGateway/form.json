@@ -1,6 +1,6 @@
 {
   "elements": [
-	  { "type": "CheckBox", "name": "Open", "caption": "Open" },
+	  { "type": "CheckBox", "name": "Open", "caption": " Open" },
     { "name": "Host", "type": "ValidationTextBox", "caption": "Host" },
     { "type": "Select", "name": "Port", "caption": "Port",
 	    "options": [
@@ -8,7 +8,23 @@
       ]
     },
     { "name": "updateInterval", "type": "IntervalBox", "caption": "seconds" },
-    { "name": "deviceCategory", "type": "SelectCategory", "caption": "Device category" },
+    { "type": "List", "name": "Categories", "caption": "Categories", 
+			"columns": [
+				{ "label": "Device type", "name": "Device", "width": "75px" },
+        { "label": "Device category", "name": "Category", "width": "auto" },
+        { "label": "Category ID", "name": "CategoryID", "width": "60px", "visible": false,
+        	"edit": {
+          	"type": "SelectCategory"
+        	}
+        },
+        { "label": "Sync", "name": "Sync", "width": "40px" },
+				{ "label": "Sync ID", "name": "SyncID", "width": "40px", "visible": false,
+					"edit": {
+          	"type": "CheckBox", "caption": " Synchronise data"
+        	}
+        }
+			]
+		},
     { "type": "Label", "label": "Gateway firmware version will be filled in automatically on save. Update will only be visible when reopening form." },
     { "type": "ValidationTextBox", "name": "Firmware", "caption": "Firmware" }
   ],
@@ -21,7 +37,7 @@
     { "code": 103, "icon": "active", "caption": "Deleting gateway interface" },
     { "code": 104, "icon": "inactive", "caption": "Please enter all required informations!" },
     { "code": 202, "icon": "error", "caption": "Invalid IP address!" },
-    { "code": 203, "icon": "error", "caption": "Minimum update interval = 10 seconds!" },
+    { "code": 203, "icon": "error", "caption": "Minimum update interval 10 seconds!" },
     { "code": 299, "icon": "error", "caption": "Unknown error!" }
   ]
 }

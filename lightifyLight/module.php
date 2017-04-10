@@ -10,15 +10,17 @@ class lightifyLight extends lightifyDevice {
  
 		$this->RegisterPropertyString("UniqueID", "");
     $this->RegisterPropertyInteger("LightID", 0);
-    $this->RegisterPropertyString("Type", "");
-    $this->RegisterPropertyString("ModelID", "");
+    $this->RegisterPropertyString("deviceModel", "");
+    $this->RegisterPropertyString("deviceCapability", "");
     $this->RegisterPropertyString("Firmware", "");
+    
+    $this->RegisterPropertyInteger("deviceType", 0);
   }
     
   
   protected function GetUniqueID() {
-    $id = $this->ReadPropertyString("UniqueID");
-    return $id;
+    $UniqueID = $this->ReadPropertyString("UniqueID");
+    return $UniqueID;
   }
 
 }
