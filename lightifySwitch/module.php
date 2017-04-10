@@ -9,15 +9,15 @@ class lightifySwitch extends lightifyDevice {
     parent::Create();
  
 		$this->RegisterPropertyString("UniqueID", "");
-    $this->RegisterPropertyString("Type", "");
-    $this->RegisterPropertyString("ModelID", "");
+    $this->RegisterPropertyString("deviceModel", "");
+    $this->RegisterPropertyString("deviceCapability", "");
     $this->RegisterPropertyString("Firmware", "");
   }
     
   
   protected function GetUniqueID() {
-    $id = $this->ReadPropertyString("UniqueID");
-    return $id;
+    $UniqueID = $this->ReadPropertyString("UniqueID");
+    return $UniqueID;
   }
 
 }

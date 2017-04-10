@@ -1,8 +1,8 @@
 {
   "elements": [
     { "type": "ValidationTextBox", "name": "UniqueID", "caption": "Unique ID" }, 
-    { "type": "ValidationTextBox", "name": "ModelID", "caption": "Model" }, 
-    { "type": "ValidationTextBox", "name": "Type", "caption": "Type" },
+    { "type": "ValidationTextBox", "name": "deviceModel", "caption": "Model" }, 
+    { "type": "ValidationTextBox", "name": "deviceCapability", "caption": "Type" },
     { "type": "ValidationTextBox", "name": "Firmware", "caption": "Firmware" }
   ],
 }
