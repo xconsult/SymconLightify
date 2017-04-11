@@ -293,7 +293,7 @@ abstract class lightifyDevice extends IPSModule {
 	
 		
 	private function SetDeviceInfo($data) {
-		$deviceType = IPS_GetProperty($this->InstanceID, "deviceType");
+		$deviceIndex = IPS_GetProperty($this->InstanceID, "deviceIndex");
 		$Online = (strlen($data) == 32) ? true : false;
     $result = false;
 
@@ -307,11 +307,11 @@ abstract class lightifyDevice extends IPSModule {
       $this->EnableAction("STATE");
     }
 
-		if ($Online) {
+		if ($deviceIndex != 0 && $Online) {
 			$data = substr($data, 9);
 			$rgb = ord($data{16}).ord($data{17}).	ord($data{18});
 
-			if ($deviceType == 10) {
+			if ($deviceIndex == 10) {
 				if (!$HueID = @$this->GetIDForIdent("HUE")) {
 					$HueID = $this->RegisterVariableInteger("HUE", "Hue", "OSR.Hue", 0);
 					$this->EnableAction("HUE");
@@ -338,7 +338,7 @@ abstract class lightifyDevice extends IPSModule {
 				$result = array('HUE' => $Hue, 'COLOR' => $Color, 'SATURATION' => $Saturation);
 			}
 
-	 		if ($deviceType == 2 || $deviceType == 10) {
+	 		if ($deviceIndex == 2 || $deviceIndex == 10) {
    			if (!$ColorTempID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
       		$ColorTempID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTemperature", 4);
 					$this->EnableAction("COLOR_TEMPERATURE");

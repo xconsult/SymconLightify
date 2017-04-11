@@ -10,8 +10,10 @@ class lightifySwitch extends lightifyDevice {
  
 		$this->RegisterPropertyString("UniqueID", "");
     $this->RegisterPropertyString("deviceModel", "");
-    $this->RegisterPropertyString("deviceCapability", "");
+    $this->RegisterPropertyString("deviceType", "");
     $this->RegisterPropertyString("Firmware", "");
+    
+    $this->RegisterPropertyInteger("deviceIndex", 0);
   }
     
   

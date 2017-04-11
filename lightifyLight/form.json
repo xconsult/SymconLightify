@@ -3,7 +3,7 @@
     { "type": "ValidationTextBox", "name": "UniqueID", "caption": "Unique ID" }, 
     { "type": "NumberSpinner", "name": "LightID", "caption": "Light" }, 
     { "type": "ValidationTextBox", "name": "deviceModel", "caption": "Model" }, 
-    { "type": "ValidationTextBox", "name": "deviceCapability", "caption": "Capability" },
+    { "type": "ValidationTextBox", "name": "deviceType", "caption": "Type" },
     { "type": "ValidationTextBox", "name": "Firmware", "caption": "Firmware" }
   ],
     "actions": [

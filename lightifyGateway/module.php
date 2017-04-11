@@ -236,46 +236,57 @@ class lightifyGateway extends IPSModule {
 		$UniqueID = ChrToUniqueID($MAC);
 		$Firmware = sprintf("%02d%02d%02d%02d", ord($data{11}), ord($data{12}), ord($data{13}), ord($data{14}).ord($data{15}));			
 		$Name = trim(substr($data, 26, 15));
-		$deviceType = ord($data{10});
+		$deviceIndex = ord($data{10});
 
-		//IPS_LogMessage("SymconOSR", "Device type [".$Name."]: ".$deviceType);
 		//IPS_LogMessage("SymconOSR", "Receive data [$Name]: ".DecodeData($data));
 		//IPS_LogMessage("SymconOSR", "Device [$Name] firmware byte [01-".ord($data{11})."] [02-".ord($data{12})."] [03-".ord($data{13})."] [04-".ord($data{14})."] [05-".ord($data{15})."]: ".$Firmware);
 
 			
-		switch ($deviceType) {
+		switch ($deviceIndex) {
+			case 0:
+				$deviceType = "";
+
 			case 2: //Lightify bulb - Tunable white
-				$deviceCapability = "Lightify bulb (Tunable White)";
+				$deviceType = (!isset($deviceType)) ? "Tunable White" : $deviceType;
 							
 			case 4: //Lightify bulb - Clear
-				$deviceCapability = (!isset($deviceCapability)) ? "Lightify bulb (Clear)" : $deviceCapability;
+				$deviceType = (!isset($deviceType)) ? "White Clear" : $deviceType;
 				
 			case 10: ////Lightify bulb - RGBW
 				$ModuleID = $this->ModuleIDs['lightifyLight']; //Lightify light
 				$CategoryID = ($this->lightCategory['SyncID']) ? $this->lightCategory['CategoryID'] : 0;
-				$deviceCapability = (!isset($deviceCapability)) ? "Lightify bulb (RGBW)" : $deviceCapability;
+				
+				$deviceModel = "LIGHTIFY Light";
+				$deviceType = (!isset($deviceType)) ? "RGBW" : $deviceType;
 				break;
 				
 			case 16:	//Lightify plug
-				$deviceCapa = "Lightify plug/power socket";
+				$deviceModel = "LIGHTIFY Plug";
+				$deviceType = "Plug/Power Socket";
 				break;
 
 			case 32:	//Lightify motion
-				$deviceCapability = "Lightify motion sensor";
+				$deviceModel = "LIGHTIFY Motion";
+				$deviceType = "Motion Sensor";
 				break;
 						
 			case 64:	//Lightify switch - 2 buttons
-				$deviceCapa = "Lightify switch (2 buttons)";
+				$deviceType = "2 Button Switch";
 				
 			case 65:	//Lightify switch - 4 buttons
 				$ModuleID = $this->ModuleIDs['lightifySwitch']; //Lightify switch
 				$CategoryID = ($this->switchCategory['SyncID']) ? $this->switchCategory['CategoryID'] : 0;
-				$deviceCapability = (!isset($deviceCapability)) ? "Lightify switch (4 buttons)" : $deviceCapability;
+
+				$deviceModel = "LIGHTIFY Switch";
+				$deviceType = (!isset($deviceType)) ? "4 Button Switch" : $deviceType;
 				break;
 					
 			default:
 				$CategoryID = 0;
 		}
+
+		//IPS_LogMessage("SymconOSR", "Device id [$Name] byte [00-".ord($data{0})."] [01-".ord($data{1})."]");
+		//IPS_LogMessage("SymconOSR", "Device index [$Name]: ".$deviceIndex."  type: ".$deviceType);
 
 		if ($CategoryID > 0) {
 			if (!$DeviceID = $this->GetDeviceByUniqueID($UniqueID, $ModuleID)) {
@@ -293,15 +304,20 @@ class lightifyGateway extends IPSModule {
 				$apply = true;
 			}
 
-			if ($ModuleID == "{42DCB28E-0FC3-4B16-ABDB-ADBF33A69032}") { //Lightify light
+			if ($ModuleID == $this->ModuleIDs['lightifyLight']) { //Lightify light
 				if (@IPS_GetProperty($DeviceID, "LightID") != $idx) {
 					IPS_SetProperty($DeviceID, "LightID", (integer)$idx);
 					$apply = true;
 				}
 			}
 
-			if (@IPS_GetProperty($DeviceID, "deviceCapability") != $deviceCapability) {
-				IPS_SetProperty($DeviceID, "deviceCapability", (string)$deviceCapability);
+			if (@IPS_GetProperty($DeviceID, "deviceModel") != $deviceModel) {
+				IPS_SetProperty($DeviceID, "deviceModel", (string)$deviceModel);
+				$apply = true;
+			}
+
+			if (@IPS_GetProperty($DeviceID, "deviceType") != $deviceType) {
+				IPS_SetProperty($DeviceID, "deviceType", (string)$deviceType);
 				$apply = true;
 			}
 				
@@ -310,8 +326,8 @@ class lightifyGateway extends IPSModule {
 				$apply = true;
 			}
 			
-			if (@IPS_GetProperty($DeviceID, "deviceType") != $deviceType) {
-				IPS_SetProperty($DeviceID, "deviceType", (integer)$deviceType);
+			if (@IPS_GetProperty($DeviceID, "deviceIndex") != $deviceIndex) {
+				IPS_SetProperty($DeviceID, "deviceIndex", (integer)$deviceIndex);
 				$apply = true;
 			}
 
@@ -320,7 +336,9 @@ class lightifyGateway extends IPSModule {
 				@IPS_DisconnectInstance($DeviceID);
 				IPS_ConnectInstance($DeviceID, $this->InstanceID);
 			}
+			
 			if ($apply) IPS_ApplyChanges($DeviceID);
+			$Online = (ord($data{0})-ord($data{1}) > 0) ? true : false;
 
 			if ($ModuleID == $this->ModuleIDs['lightifyLight']) { //Lightify light
 				if (is_array($result = OSR_SendData($DeviceID, $MAC, $ModuleID))) $this->LightIDs[] = array('DeviceID' => $DeviceID, 'UniqueID' => $UniqueID);
