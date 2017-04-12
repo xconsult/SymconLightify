@@ -35,47 +35,31 @@ class lightifySocket {
 	
 
   public function __construct ($host, $port) {
-		$this->Open($host, $port);
+		if (!$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP))
+    	die('Unable to create AF_INET socket!');
+
+		//socket connect
+		if (socket_connect($this->socket, $host, $port) === false)
+			die('Unable to connect to AF_INET socket!');
+
+		//socket options
+		time_nanosleep(0, 500000000);
+		socket_set_block($this->socket);
+		//socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 1, 'usec' => 0));
+		//socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 1, 'usec' => 0));
   }
-
-
-	protected function Open($host, $port) {
-		//$client = "tcp://".$host.":".$port;
-		//$this->socket = stream_socket_client($client, $errno, $errstr, 3, 2);
-		$this->socket = fsockopen($host, $port, $errno, $errstr, 5);
-
-		if (!$this->socket) {
-			throw new Exception($errno .": ".$errstr);
-			return false;
-		}	
-
-		//stream config
-		stream_set_timeout($this->socket, 1);
-		stream_set_blocking($this->socket, true);
-		
-		stream_set_chunk_size($this->socket, 8192);
-		stream_set_write_buffer($this->socket, 0);
-		stream_set_read_buffer($this->socket, 0);
-	}
 	
-	
-	protected function close() {
-		if ($this->socket) fclose($this-socket);
-	}
-
 
 	protected function SendData($flag, $command, $args = null) {
-		//echo stream_get_meta_data($this->socket)['timed_out']."\n";
 		$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
 		if ($args != null) $data .= $args;
-
-		$result = fwrite($this->socket, chr(strlen($data)).chr(0x00).$data);
-		//echo $result."\n";
-		fflush($this->socket);
+		
+		$data = chr(strlen($data)).chr(0x00).$data;
+		$result = socket_write($this->socket, $data, strlen($data));
 
 		if ($result > 0) {
-			$buffer = fread($this->socket, 8192); //Read 8192 bytes block
-			//	$buffer = stream_get_contents($this->socket);
+			if (false === ($buffer = socket_read($this->socket, 4096))) //Read 4096 bytes block
+				die('Unable to read from AF_INET socket!');
 			$length = strlen($buffer);
 
 			if ($length > 9) {
@@ -91,7 +75,6 @@ class lightifySocket {
 	public function AllLights($Value) {
 		$args = str_repeat(chr(0xFF), 8).chr($Value);
 		$buffer = $this->SendData(chr(0x00), OSR_SETDEVICESTATE, $args);
-		//IPS_LogMessage("SymconOSR", "'ALL_LIGHTS' receive buffer length ".strlen($buffer));
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -100,8 +83,7 @@ class lightifySocket {
 	public function State($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value);
 		$buffer = $this->SendData($flag, OSR_SETDEVICESTATE, $args);
-		//IPS_LogMessage("SymconOSR", "'STATE' receive buffer length ".strlen($buffer));
-
+		
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 	
@@ -109,7 +91,6 @@ class lightifySocket {
 	public function Color($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(OSR_TRANSITION).chr(0x00);
 		$buffer = $this->SendData($flag, OSR_SETBULBCOLOR, $args);
-		//IPS_LogMessage("SymconOSR", "'COLOR' receive buffer length ".strlen($buffer));
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -121,7 +102,6 @@ class lightifySocket {
 							
 		$args = $MAC.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(OSR_TRANSITION).chr(0x00);
 		$buffer = $this->SendData($flag, OSR_SETCOLORTEMP, $args);
-		//IPS_LogMessage("SymconOSR", "'COLOR_TEMPERATURE' receive buffer length ".strlen($buffer));
 	
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -130,7 +110,6 @@ class lightifySocket {
 	public function Brightness($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value).chr(OSR_TRANSITION).chr(0x00);
 		$buffer = $this->SendData($flag, OSR_SETBULBBRIGHT, $args);
-		//IPS_LogMessage("SymconOSR", "'BRIGHTNESS' receive buffer length ".strlen($buffer));
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -139,7 +118,6 @@ class lightifySocket {
 	public function Saturation($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(OSR_TRANSITION).chr(0x00);
 		$buffer = $this->SendData($flag, OSR_SETBULBCOLOR, $args);
-		//IPS_LogMessage("SymconOSR", "'SATURATION' receive buffer length ".strlen($buffer));
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -151,7 +129,6 @@ class lightifySocket {
 
 		$args = $MAC.(($Cycle) ? chr(0x01) : chr(0x00)).chr(hexdec(substr($Value, 2, 2))).chr(hexdec(substr($Value, 0, 2)));
 		$buffer = $this->SendData(chr(0x00), OSR_BULBCOLORCYCLE, $args);
-		//IPS_LogMessage("SymconOSR", "'COLOR_CYCLE' receive buffer length ".strlen($buffer));
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -184,7 +161,7 @@ class lightifySocket {
 
 
 	function __desctruct() {
-		$this->Close();
+		if ($this->socket) socket_close($this-socket);
 	}
 
 }

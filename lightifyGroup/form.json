@@ -1,7 +1,7 @@
 {
   "elements": [
     { "type": "ValidationTextBox", "name": "UniqueID", "caption": "Unique ID" },
-		{ "type": "List", "name": "Devices", "caption": "Devices", 
+    { "type": "List", "name": "Devices", "caption": "Devices", 
 			"sort": {
         "column": "LightID",
         "direction": "ascending" },

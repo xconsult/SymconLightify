@@ -1,5 +1,11 @@
 <?
 
+	//Global definitions & functions
+	define('lightifyLight', "{42DCB28E-0FC3-4B16-ABDB-ADBF33A69032}");
+	define('lightifyGroup', "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}");
+	define('lightifySwitch', "{2C0FD8E7-345F-4F7A-AF7D-86DFB43FE46A}");
+
+
 	function DecodeData($data) {
 		$Decode = "";
 
