@@ -1,12 +1,31 @@
 <?
 
-	//Global definitions & functions
-	define('lightifyLight', "{42DCB28E-0FC3-4B16-ABDB-ADBF33A69032}");
-	define('lightifyGroup', "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}");
-	define('lightifySwitch', "{2C0FD8E7-345F-4F7A-AF7D-86DFB43FE46A}");
+//Global types
+class lightifyTypes extends stdClass {
+	
+	const vtNone = -1;
+	const vtBoolean = 0;
+	const vtInteger = 1;
+	const vtFloat = 2;
+	const vtString = 3;
+    
+}
+
+//Global modules
+class lightifyModules extends stdClass {
+	
+	const lightifyGateway = "{C3859938-D71C-4714-8B02-F2889A62F481}";
+	const lightifyLight = "{42DCB28E-0FC3-4B16-ABDB-ADBF33A69032}";
+	const lightifyGroup = "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}";
+	const lightifySwitch = "{2C0FD8E7-345F-4F7A-AF7D-86DFB43FE46A}";
+
+}
 
 
-	function DecodeData($data) {
+//Base functions	
+class lightifyBase extends stdClass {
+	
+	public function DecodeData($data) {
 		$Decode = "";
 
 		for ($i = 0; $i < strlen($data); $i++)
@@ -16,7 +35,7 @@
 	}
 
 
-	function UniqueIDToChr($UniqueID) {
+	public function UniqueIDToChr($UniqueID) {
 		$UniqueID = explode(":", $UniqueID);
 		$result = "";
 
@@ -27,7 +46,7 @@
 	}
 
 
-	function ChrToUniqueID($UniqueID) {
+	public function ChrToUniqueID($UniqueID) {
 		$length = strlen($UniqueID);
 		$result = array();
 	
@@ -46,16 +65,16 @@
 	}
 	
 
- 	function HEX2HSV($hex) {
+ 	public function HEX2HSV($hex) {
 		$r = substr($hex, 0, 2);
 		$g = substr($hex, 2, 2);
 		$b = substr($hex, 4, 2);
 
-		return RGB2HSV(hexdec($r), hexdec($g), hexdec($b));
+		return $this->RGB2HSV(hexdec($r), hexdec($g), hexdec($b));
 	}
 
 
-	function RGB2HSV($r, $g, $b) {
+	public function RGB2HSV($r, $g, $b) {
 		$r /= 255; $g /= 255; $b /= 255;
 
 		$maxRGB = max($r, $g, $b);
@@ -85,8 +104,8 @@
 	}
 
 
-	function HSV2HEX($h, $s, $v) {
-		$rgb = HSV2RGB($h, $s, $v);
+	public function HSV2HEX($h, $s, $v) {
+		$rgb = $this->HSV2RGB($h, $s, $v);
 
 		$r = str_pad(dechex($rgb['r']), 2, 0, STR_PAD_LEFT);
 		$g = str_pad(dechex($rgb['g']), 2, 0, STR_PAD_LEFT);
@@ -96,7 +115,7 @@
 	}
 
 
-	function HSV2RGB($h, $s, $v) {
+	private function HSV2RGB($h, $s, $v) {
 		if ($h < 0)   $h = 0;
 		if ($h > 360) $h = 360;
 		if ($s < 0)   $s = 0;
@@ -149,7 +168,7 @@
 	}
 
 
-	function RGB2HEX($rgb) {
+	public function RGB2HEX($rgb) {
 		$hex = str_pad(dechex($rgb['r']), 2, "0", STR_PAD_LEFT);
 		$hex .= str_pad(dechex($rgb['g']), 2, "0", STR_PAD_LEFT);
 		$hex .= str_pad(dechex($rgb['b']), 2, "0", STR_PAD_LEFT);
@@ -158,7 +177,7 @@
 	}
 
 
-	function HEX2RGB($hex) {
+	public function HEX2RGB($hex) {
 		if(strlen($hex) == 3) {
 			$r = hexdec($hex[0].$hex[0]);
 			$g = hexdec($hex[1].$hex[1]);
@@ -173,7 +192,7 @@
 	}
 
  
-  function CT2HEX($ct){
+  public function CT2HEX($ct){
     $ct = $ct/100;
 
     if ($ct <= 66) { 
@@ -193,5 +212,7 @@
 		if ($b < 0) $b = 0;
 		if ($b > 255) $b = 255;
 		
-		return RGB2HEX(array('r' => $r, 'g' => $g, 'b' => $b));
+		return $this->RGB2HEX(array('r' => $r, 'g' => $g, 'b' => $b));
 	}
+	
+}

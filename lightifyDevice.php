@@ -6,25 +6,27 @@ require_once(__DIR__.DIRECTORY_SEPARATOR."lightifySocket.php");
 
 abstract class lightifyDevice extends IPSModule {
 	
+	private $lightifyBase = null;
+	private $lightifySocket = null;
 	private $ParentID = null;
-	private $socket = null;
-
+	
 
   public function __construct($InstanceID) {
     parent::__construct($InstanceID);
+    $this->lightifyBase = new lightifyBase;
   }
 
 
   public function Create() {
 		if (!IPS_VariableProfileExists("OSR.Hue")) {
-			IPS_CreateVariableProfile("OSR.Hue", 1);
+			IPS_CreateVariableProfile("OSR.Hue", lightifyTypes::vtInteger);
 			IPS_SetVariableProfileDigits("OSR.Hue", 0);
 			IPS_SetVariableProfileText("OSR.Hue", "", "°");
 			IPS_SetVariableProfileValues("OSR.Hue", 0, 360, 1);
 		}
 
 		if (!IPS_VariableProfileExists("OSR.ColorTemperature")) {
-			IPS_CreateVariableProfile("OSR.ColorTemperature", 1);
+			IPS_CreateVariableProfile("OSR.ColorTemperature", lightifyTypes::vtInteger);
 			IPS_SetVariableProfileIcon("OSR.ColorTemperature", "Intensity");
 			IPS_SetVariableProfileDigits("OSR.ColorTemperature", 0);
 			IPS_SetVariableProfileText("OSR.ColorTemperature", "", " K");
@@ -40,12 +42,12 @@ abstract class lightifyDevice extends IPSModule {
 
   public function ApplyChanges() {
     parent::ApplyChanges();
-    $this->ConnectParent("{C3859938-D71C-4714-8B02-F2889A62F481}");
+    $this->ConnectParent(lightifyModules::lightifyGateway);
   }
 
 
   protected function GetSocket() {
-	  if ($this->socket == null) {
+	  if ($this->lightifySocket == null) {
 		  $Instance = IPS_GetInstance($this->InstanceID);
 			$this->ParentID = ($Instance['ConnectionID'] > 0) ? $Instance['ConnectionID'] : false;
     
@@ -56,26 +58,40 @@ abstract class lightifyDevice extends IPSModule {
 			return false;
 		}
 		
-		return $this->socket;
+		return $this->lightifySocket;
   }
   
   
   public function SendData($socket, $MAC, $ModuleID) {
-	  $this->socket = $socket;
+	  $this->lightifySocket = $socket;
 	  
-	  if ($this->socket = $this->GetSocket()) {
+	  if ($this->lightifySocket = $this->GetSocket()) {
 			switch ($ModuleID) {
-				case lightifyLight: //Lightify Light
-					$buffer = $this->socket->DeviceInfo($MAC);
+				case lightifyModules::lightifyLight: //Lightify Light
+					$buffer = $this->lightifySocket->DeviceInfo($MAC);
 					$length = strlen($buffer);
-							
-					if ($length == 20 || $length == 32) return $this->SetDeviceInfo($buffer);
-					return false;
+					
+					if ($length == 2) {
+						IPS_LogMessage("SymconOSR", "Light [$MAC] not registered on gateway!");
+						return false;
+					} elseif ($length == 20 || $length == 32) {
+						return $this->SetDeviceInfo($buffer);
+					} else {
+						return false;
+					}
 
-				case lightifyGroup: //Lightify Group/Zone
-					return $this->socket->GroupInfo($MAC);
+				case lightifyModules::lightifyGroup: //Lightify Group/Zone
+					$buffer = $this->lightifySocket->GroupInfo($MAC);
+					$length = strlen($buffer);
+					
+					if ($length == 2) {
+						IPS_LogMessage("SymconOSR", "Group/Zone [$MAC] not registered on gateway!");
+						return false;
+					} else {
+						return $buffer;
+					}
 				
-				case lightifySwitch; //Lightify Switch
+				case lightifyModules::lightifySwitch; //Lightify Switch
 					return false;
 			}
 		}
@@ -86,16 +102,16 @@ abstract class lightifyDevice extends IPSModule {
 		$ModuleID = IPS_GetInstance($this->InstanceID)['ModuleInfo']['ModuleID'];
 		$result = false;
 
-		if ($ModuleID == lightifyLight || $ModuleID == lightifyGroup) {
+		if ($ModuleID == lightifyModules::lightifyLight || $ModuleID == lightifyModules::lightifyGroup) {
 			$OnlineID = IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
 			$Online = GetValueBoolean($OnlineID);
 
 			if ($Online) {
-				$this->socket = $this->GetSocket();
+				$this->lightifySocket = $this->GetSocket();
 
-				if ($this->socket) {
-					$MAC = UniqueIDToChr(IPS_GetProperty($this->InstanceID, "UniqueID"));
-					$flag = ($ModuleID == lightifyLight) ? chr(0x00) : chr(0x02);
+				if ($this->lightifySocket) {
+					$MAC = $this->lightifyBase->UniqueIDToChr(IPS_GetProperty($this->InstanceID, "UniqueID"));
+					$flag = ($ModuleID == lightifyModules::lightifyLight) ? chr(0x00) : chr(0x02);
 
 					$HueID = @IPS_GetObjectIDByIdent('HUE', $this->InstanceID);
 					$StateID = IPS_GetObjectIDByIdent('STATE', $this->InstanceID);
@@ -114,8 +130,8 @@ abstract class lightifyDevice extends IPSModule {
 					switch ($key) {
 						case "ALL_LIGHTS":
 							if ($Value == 0 || $Value == 1) {
-								if ($this->socket->AllLights(($Value == 0) ? 0 : 1)) {
-									foreach (IPS_GetInstanceListByModuleID("{42DCB28E-0FC3-4B16-ABDB-ADBF33A69032}") as $key) {
+								if ($this->lightifySocket->AllLights(($Value == 0) ? 0 : 1)) {
+									foreach (IPS_GetInstanceListByModuleID(lightifyModules::lightifyLight) as $key) {
 										$StateID = @IPS_GetObjectIDByIdent("STATE", $key);
 										$OnlineID = @IPS_GetObjectIDByIdent("ONLINE", $key);
 										$State = GetValueBoolean($StateID);
@@ -133,7 +149,7 @@ abstract class lightifyDevice extends IPSModule {
 						case "STATE":
 							if ($Value == 0 || $Value == 1) {
 								if ($Value != $State) {
-									if ($this->socket->State($MAC, $flag, $Value)) { 	
+									if ($this->lightifySocket->State($MAC, $flag, $Value)) { 	
 										SetValueBoolean($StateID, $Value);
 										$result = true;
 									}
@@ -144,11 +160,11 @@ abstract class lightifyDevice extends IPSModule {
 						case "COLOR":
 							if ($HueID) {
 								$hex = str_pad(dechex($Value), 6, 0, STR_PAD_LEFT);
-								$rgb = HEX2RGB($hex);
+								$rgb = $this->lightifyBase->HEX2RGB($hex);
 
 								if ($Value != $Color && $hex != 64) {
-									if ($this->socket->Color($MAC, $flag, $rgb)) { 
-										$result = (is_array($this->SendData($this->socket, $MAC, $ModuleID))) ? true : false;
+									if ($this->lightifySocket->Color($MAC, $flag, $rgb)) { 
+										$result = (is_array($this->SendData($this->lightifySocket, $MAC, $ModuleID))) ? true : false;
 									}
 								}
 							}
@@ -167,8 +183,8 @@ abstract class lightifyDevice extends IPSModule {
 							}
 
 							if ($Value != $ColorTemp) {
-								if ($this->socket->ColorTemperature($MAC, $flag, $Value)) { 
-									$result = (is_array($this->SendData($this->socket, $MAC, $ModuleID))) ? true : false;
+								if ($this->lightifySocket->ColorTemperature($MAC, $flag, $Value)) { 
+									$result = (is_array($this->SendData($this->lightifySocket, $MAC, $ModuleID))) ? true : false;
 								}
 							}
 							break;
@@ -183,7 +199,7 @@ abstract class lightifyDevice extends IPSModule {
 							}
 
 							if ($Value != $Bright) {
-								if ($this->socket->Brightness($MAC, $flag, $Value)) {
+								if ($this->lightifySocket->Brightness($MAC, $flag, $Value)) {
 									SetValueInteger($BrightID, $Value);
 									if ($Value == 0 && $State) SetValueBoolean($StateID, $Value);
 									$result = true;
@@ -200,12 +216,12 @@ abstract class lightifyDevice extends IPSModule {
 									IPS_LogMessage("SymconOSR", "Brightness [".$Value."%] out of range. Setting to 100%");
 									$Value = 100;
 								}
-								$hex = HSV2HEX($Hue, $Value, $Bright);
-								$rgb = HEX2RGB($hex);
+								$hex = $this->lightifyBase->HSV2HEX($Hue, $Value, $Bright);
+								$rgb = $this->lightifyBase->HEX2RGB($hex);
 
 								if ($Value != $Saturation && $hex != 64) {
-									if ($this->socket->Saturation($MAC, $flag, $rgb)) {
-										$result = (is_array($this->SendData($this->socket, $MAC, $ModuleID))) ? true : false;
+									if ($this->lightifySocket->Saturation($MAC, $flag, $rgb)) {
+										$result = (is_array($this->SendData($this->lightifySocket, $MAC, $ModuleID))) ? true : false;
 									}
 								}
 							}
@@ -230,14 +246,14 @@ abstract class lightifyDevice extends IPSModule {
 	public function GetValueEx($key) {
 		$ModuleID = IPS_GetInstance($this->InstanceID)['ModuleInfo']['ModuleID'];
 
-		if ($ModuleID == lightifyLight) {
+		if ($ModuleID == lightifyModules::lightifyLight) {
 			$OnlineID = IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
 			$Online = GetValueBoolean($OnlineID);
 
 			if ($Online) {
-				if ($this->socket = $this->GetSocket()) {
-					$MAC = UniqueIDToChr($this->GetUniqueID());
-					$list = $this->SendData($this->socket, $MAC, $ModuleID);
+				if ($this->lightifySocket = $this->GetSocket()) {
+					$MAC = $this->lightifyBase->UniqueIDToChr($this->GetUniqueID());
+					$list = $this->SendData($this->lightifySocket, $MAC, $ModuleID);
 					if (is_array($list) && in_array($key, $list)) return $list[$key];
 				}
 			}
@@ -250,12 +266,12 @@ abstract class lightifyDevice extends IPSModule {
 	public function SetColorCycle($Cycle, $Agility) {
 		$ModuleID = IPS_GetInstance($this->InstanceID)['ModuleInfo']['ModuleID'];
 
-		if ($ModuleID == lightifyLight) {
+		if ($ModuleID == lightifyModules::lightifyLight) {
 			$OnlineID = IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
 			$Online = GetValueBoolean($OnlineID);
 
 			if ($Online) {
-				if ($this->socket = $this->GetSocket()) {
+				if ($this->lightifySocket = $this->GetSocket()) {
 					if (@IPS_GetObjectIDByIdent('HUE', $this->InstanceID)) {
 						if ($Agility < 5) {
 							IPS_LogMessage("SymconOSR", "Color cycle agility [".$Agility." sec] out of range. Setting to 5 sec");
@@ -265,7 +281,7 @@ abstract class lightifyDevice extends IPSModule {
 							$Agility = 65535;
 						}
 
-						if ($this->socket->Saturation(UniqueIDToChr($this->GetUniqueID()), $Cycle, $Agility)) return true;
+						if ($this->lightifySocket->Saturation($this->lightifyBase->UniqueIDToChr($this->GetUniqueID()), $Cycle, $Agility)) return true;
 					}
 				}
 			}
@@ -278,11 +294,11 @@ abstract class lightifyDevice extends IPSModule {
 	public function SyncState() {
 		$ModuleID = IPS_GetInstance($this->InstanceID)['ModuleInfo']['ModuleID'];
 
-		if ($ModuleID == lightifyLight) {
-			if ($this->socket = $this->GetSocket()) {
-				$MAC = UniqueIDToChr($this->GetUniqueID());
+		if ($ModuleID == lightifyModules::lightifyLight) {
+			if ($this->lightifySocket = $this->GetSocket()) {
+				$MAC = $this->lightifyBase->UniqueIDToChr($this->GetUniqueID());
 
-				if (is_array($result = $this->SendData($this->socket, $MAC, $ModuleID))) {
+				if (is_array($result = $this->SendData($this->lightifySocket, $MAC, $ModuleID))) {
 					echo "Light state successfully synced!\n";
 					return $result;
 				}
@@ -332,8 +348,8 @@ abstract class lightifyDevice extends IPSModule {
 
 				if ($deviceIndex == 10) {
 					//$Alpha = ord($data{19});
-					$hex = RGB2HEX(array('r' => ord($data{16}), 'g' => ord($data{17}), 'b' => ord($data{18})));
-					$hsv = HEX2HSV($hex);
+					$hex = $this->lightifyBase->RGB2HEX(array('r' => ord($data{16}), 'g' => ord($data{17}), 'b' => ord($data{18})));
+					$hsv = $this->lightifyBase->HEX2HSV($hex);
 
 					if (!$HueID = @$this->GetIDForIdent("HUE")) {
 						$HueID = $this->RegisterVariableInteger("HUE", "Hue", "OSR.Hue", 0);

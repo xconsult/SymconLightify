@@ -10,6 +10,7 @@ class lightifyLight extends lightifyDevice {
  
 		$this->RegisterPropertyString("UniqueID", "");
     $this->RegisterPropertyInteger("LightID", 0);
+		$this->RegisterPropertyString("Manufacturer", "OSRAM");
     $this->RegisterPropertyString("deviceModel", "");
     $this->RegisterPropertyString("deviceType", "");
     $this->RegisterPropertyString("Firmware", "");

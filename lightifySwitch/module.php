@@ -9,6 +9,7 @@ class lightifySwitch extends lightifyDevice {
     parent::Create();
  
 		$this->RegisterPropertyString("UniqueID", "");
+		$this->RegisterPropertyString("Manufacturer", "OSRAM");
     $this->RegisterPropertyString("deviceModel", "");
     $this->RegisterPropertyString("deviceType", "");
     $this->RegisterPropertyString("Firmware", "");

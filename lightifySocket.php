@@ -13,23 +13,30 @@
 # 6F Gateway Firmware version (broadcast)
 # D5 Cycle group/zone color
 
-define('OSR_GETPAIREDEVICES', 0x13);
-define('OSR_GETGROUPLIST', 0x1E);
-define('OSR_GETGROUPINFO', 0x26);
-define('OSR_SETBULBBRIGHT', 0x31);
-define('OSR_SETDEVICESTATE', 0x32);
-define('OSR_SETCOLORTEMP', 0x33);
-define('OSR_SETBULBCOLOR', 0x36);
-define('OSR_SETDEVICESCENE', 0x52);
-define('OSR_GETDEVICEINFO', 0x68);
-define('OSR_GETGATEWAYFIRMWARE', 0x6F);
-define('OSR_BULBCOLORCYCLE', 0xD5);
 
-define('OSR_TRANSITION', 0x00); //0.0 sec
-define('OSR_TRANSITMAX', 0x50); //8.0 sec
+//Global commands
+class lightifyCommands extends stdClass {
+	
+	const OSR_GETPAIREDEVICES = 0x13;
+	const OSR_GETGROUPLIST = 0x1E;
+	const OSR_GETGROUPINFO = 0x26;
+	const OSR_SETBULBBRIGHT = 0x31;
+	const OSR_SETDEVICESTATE = 0x32;
+	const OSR_SETCOLORTEMP = 0x33;
+	const OSR_SETBULBCOLOR = 0x36;
+	const OSR_SETDEVICESCENE = 0x52;
+	const OSR_GETDEVICEINFO = 0x68;
+	const OSR_GETGATEWAYFIRMWARE = 0x6F;
+	const OSR_BULBCOLORCYCLE = 0xD5;
 
-		
-class lightifySocket {
+	const OSR_TRANSITION = 0x00; //0.0 sec
+	const OSR_TRANSITMAX = 0x50; //8.0 sec
+	
+}
+
+
+//Socket functions		
+class lightifySocket extends stdClass {
 	
 	private $socket = null;
 	
@@ -49,9 +56,21 @@ class lightifySocket {
 		//socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 1, 'usec' => 0));
   }
 	
+	
+	protected function SessionToken() {
+		$random = substr(str_shuffle('ABCDEF0123456789'), 0, 8);
+		$id = "";
+
+		for ($i = 0; $i < 8; $i += 2) {
+			$id .= chr(ord(substr($random, $i, 2)));
+		}
+		return $id;
+	}
+
 
 	protected function SendData($flag, $command, $args = null) {
-		$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
+		//$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
+		$data = $flag.chr($command).$this->SessionToken();
 		if ($args != null) $data .= $args;
 		
 		$data = chr(strlen($data)).chr(0x00).$data;
@@ -74,7 +93,7 @@ class lightifySocket {
 
 	public function AllLights($Value) {
 		$args = str_repeat(chr(0xFF), 8).chr($Value);
-		$buffer = $this->SendData(chr(0x00), OSR_SETDEVICESTATE, $args);
+		$buffer = $this->SendData(chr(0x00), lightifyCommands::OSR_SETDEVICESTATE, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -82,15 +101,15 @@ class lightifySocket {
 
 	public function State($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value);
-		$buffer = $this->SendData($flag, OSR_SETDEVICESTATE, $args);
+		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETDEVICESTATE, $args);
 		
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 	
 
 	public function Color($MAC, $flag, $Value) {
-		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(OSR_TRANSITION).chr(0x00);
-		$buffer = $this->SendData($flag, OSR_SETBULBCOLOR, $args);
+		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
+		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETBULBCOLOR, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -100,24 +119,24 @@ class lightifySocket {
 		$hex = dechex($Value);
 		if (strlen($hex) < 4) $hex = str_repeat("0", 4-strlen($hex)).$hex;
 							
-		$args = $MAC.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(OSR_TRANSITION).chr(0x00);
-		$buffer = $this->SendData($flag, OSR_SETCOLORTEMP, $args);
+		$args = $MAC.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
+		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETCOLORTEMP, $args);
 	
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 
 
 	public function Brightness($MAC, $flag, $Value) {
-		$args = $MAC.chr($Value).chr(OSR_TRANSITION).chr(0x00);
-		$buffer = $this->SendData($flag, OSR_SETBULBBRIGHT, $args);
+		$args = $MAC.chr($Value).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
+		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETBULBBRIGHT, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 
 
 	public function Saturation($MAC, $flag, $Value) {
-		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(OSR_TRANSITION).chr(0x00);
-		$buffer = $this->SendData($flag, OSR_SETBULBCOLOR, $args);
+		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
+		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETBULBCOLOR, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -128,7 +147,7 @@ class lightifySocket {
 		$Value = str_repeat("0", 4-strlen($Value)).$Value;
 
 		$args = $MAC.(($Cycle) ? chr(0x01) : chr(0x00)).chr(hexdec(substr($Value, 2, 2))).chr(hexdec(substr($Value, 0, 2)));
-		$buffer = $this->SendData(chr(0x00), OSR_BULBCOLORCYCLE, $args);
+		$buffer = $this->SendData(chr(0x00), lightifyCommands::OSR_BULBCOLORCYCLE, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
@@ -136,27 +155,27 @@ class lightifySocket {
 								
 	public function PairedDevices() {
 		$args = chr(0x01).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
-		return $this->SendData(chr(0x00), OSR_GETPAIREDEVICES, $args);
+		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETPAIREDEVICES, $args);
 	}
 	
 	
 	public function GroupList() {
-		return $this->SendData(chr(0x00), OSR_GETGROUPLIST);
+		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETGROUPLIST);
 	}
 
 
 	public function DeviceInfo($MAC) {
-		return $this->SendData(chr(0x00), OSR_GETDEVICEINFO, $MAC);
+		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETDEVICEINFO, $MAC);
 	}
 	
 
 	public function GroupInfo($MAC) {
-		return $this->SendData(chr(0x00), OSR_GETGROUPINFO, $MAC);
+		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETGROUPINFO, $MAC);
 	}
 	
 							
 	public function GatewayFirmware() {
-		return $this->SendData(chr(0x00), OSR_GETGATEWAYFIRMWARE);
+		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETGATEWAYFIRMWARE);
 	}
 
 

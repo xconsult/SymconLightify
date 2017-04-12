@@ -35,13 +35,17 @@ class lightifyGroup extends lightifyDevice {
 				$ColorTemp = ($ColorTempID) ? GetValueInteger($ColorTempID) : "";
 				$Bright = ($BrightID) ? GetValueInteger($BrightID)."%" : "";
 				$Saturation = ($SaturationID) ? GetValueInteger($SaturationID)."%" : "";
+				
+				$Online = GetValueBoolean(@IPS_GetObjectIDByIdent('ONLINE', $value['DeviceID']));
+				$State = GetValueBoolean(@IPS_GetObjectIDByIdent('STATE', $value['DeviceID']));
 
-				if (GetValueBoolean(IPS_GetObjectIDByIdent('STATE', $value['DeviceID'])))
+				if ($State)
 					//$rowColor = CT2HEX($ColorTemp); //State on
 					//$rowColor = "#".$Color; //State on
-					$rowColor = ($ColorTemp) ? "#FFDA48" : "#FFFCEA"; //State on
+					$rowColor = ($ColorTemp) ? "#FFDA48" : "#FFFCE0"; //State on
 				else
-					$rowColor = "#D6D6D6"; //State off
+					$rowColor = ($Online) ? "#FFFFFF" : "#D6D6D6"; //State off
+					//$rowColor = "#D6D6D6"; //State off
 				
 				$data->elements[1]->values[] = array(
 					"InstanceID" => $key,
