@@ -19,7 +19,7 @@ class lightifyLight extends lightifyDevice {
   }
     
   
-  protected function GetUniqueID() {
+  protected function getUniqueID() {
     $UniqueID = $this->ReadPropertyString("UniqueID");
     return $UniqueID;
   }

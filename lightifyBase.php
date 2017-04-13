@@ -1,6 +1,6 @@
 <?
 
-//Global types
+//IPS variable types
 class lightifyTypes extends stdClass {
 	
 	const vtNone = -1;
@@ -11,7 +11,7 @@ class lightifyTypes extends stdClass {
     
 }
 
-//Global modules
+//Modules
 class lightifyModules extends stdClass {
 	
 	const lightifyGateway = "{C3859938-D71C-4714-8B02-F2889A62F481}";
@@ -25,17 +25,17 @@ class lightifyModules extends stdClass {
 //Base functions	
 class lightifyBase extends stdClass {
 	
-	public function DecodeData($data) {
+	public function decodeData($data) {
 		$Decode = "";
 
 		for ($i = 0; $i < strlen($data); $i++)
 			$Decode = $Decode." ".sprintf("%02d", ord($data{$i}));
 		
-		return $$Decode;
+		return $Decode;
 	}
 
 
-	public function UniqueIDToChr($UniqueID) {
+	public function uniqueIDToChr($UniqueID) {
 		$UniqueID = explode(":", $UniqueID);
 		$result = "";
 
@@ -46,7 +46,7 @@ class lightifyBase extends stdClass {
 	}
 
 
-	public function ChrToUniqueID($UniqueID) {
+	public function chrToUniqueID($UniqueID) {
 		$length = strlen($UniqueID);
 		$result = array();
 	
@@ -74,7 +74,7 @@ class lightifyBase extends stdClass {
 	}
 
 
-	public function RGB2HSV($r, $g, $b) {
+	private function RGB2HSV($r, $g, $b) {
 		$r /= 255; $g /= 255; $b /= 255;
 
 		$maxRGB = max($r, $g, $b);
@@ -100,7 +100,7 @@ class lightifyBase extends stdClass {
 		}
 
 		$dH = 60*$h;
-		return array('h' => round($dH), 's' => round($dS, 2), 'v' => round($dV));
+		return array('h' => round($dH), 's' => round($dS), 'v' => round($dV));
 	}
 
 
@@ -191,28 +191,4 @@ class lightifyBase extends stdClass {
 		return array('r' => $r, 'g' => $g, 'b' => $b);
 	}
 
- 
-  public function CT2HEX($ct){
-    $ct = $ct/100;
-
-    if ($ct <= 66) { 
-			$r = 255;
-      $g = 99.4708025861*log($ct)-161.1195681661;
-			$b = ($ct <= 19) ? $b = 0 : $b = 138.5177312231*log($ct-10)-305.0447927307;
-    } else {
-			$r = 329.698727446*pow($ct-60, -0.1332047592);   
-			$g = 288.1221695283*pow($ct-60, -0.0755148492);
-      $b = 255;
-    }
-
-		if ($r < 0) $r = 0;
-		if ($r > 255) $r = 255;
-		if ($g < 0) $g = 0;
-		if ($g > 255) $g = 255;
-		if ($b < 0) $b = 0;
-		if ($b > 255) $b = 255;
-		
-		return $this->RGB2HEX(array('r' => $r, 'g' => $g, 'b' => $b));
-	}
-	
 }

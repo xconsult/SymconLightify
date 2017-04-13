@@ -25,7 +25,7 @@ class lightifyGateway extends IPSModule {
     
     $this->RegisterPropertyString("Host", "");
     $this->RegisterPropertyInteger("Port", 4000);
-    $this->RegisterPropertyInteger("updateInterval", 10);
+    $this->RegisterPropertyInteger("updateInterval", 30);
     $this->RegisterPropertyString("Firmware", "");
 		$this->RegisterPropertyBoolean("Open", false);
 		
@@ -38,9 +38,9 @@ class lightifyGateway extends IPSModule {
     $this->Port = 4000;
 
     parent::ApplyChanges();
-		$this->Validate();
+		$this->configCheck();
 
-		$this->RegisterTimer("OSR_TIMER", $this->ReadPropertyInteger("updateInterval"), 'OSR_SyncDevices($_IPS[\'TARGET\'])');
+		$this->registerTimer("OSR_TIMER", $this->ReadPropertyInteger("updateInterval"), 'OSR_SyncDevices($_IPS[\'TARGET\'])');
 		//IPS_LogMessage("SymconOSR", "Device list: ".$this->ReadPropertyString("Categories"));
    }
 
@@ -87,7 +87,7 @@ class lightifyGateway extends IPSModule {
 	}
 
 
-  protected function RegisterTimer($Ident, $Interval, $Script) {
+  protected function registerTimer($Ident, $Interval, $Script) {
     $id = @IPS_GetObjectIDByIdent($Ident, $this->InstanceID);
 
     if ($id && IPS_GetEvent($id)['EventType'] <> 1) {
@@ -104,7 +104,7 @@ class lightifyGateway extends IPSModule {
     IPS_SetName($id, '[Gateway][update]');
     IPS_SetHidden($id, true);
     IPS_SetEventScript($id, "$Script;\n");
-    if (!IPS_EventExists($id)) IPS_LogMessage("SymconOSR", "Ident with name [".$Ident."] used with wrong object type!");
+    if (!IPS_EventExists($id)) IPS_LogMessage("SymconOSR", "Ident with name [$Ident] used with wrong object type!");
 
     if ($Interval < 10) {
       IPS_SetEventCyclic($id, 0, 0, 0, 0, 1, 10);
@@ -116,7 +116,7 @@ class lightifyGateway extends IPSModule {
   }
 
  
-  private function Validate() {
+  private function configCheck() {
 	  if (filter_var($this->ReadPropertyString("Host"), FILTER_VALIDATE_IP) === false) 
 	  	return $this->SetStatus(202);
 	
@@ -127,7 +127,7 @@ class lightifyGateway extends IPSModule {
   }
  
  
-	private function GetCategories() {
+	private function getCategories() {
 		if ($this->lightCategory == null || $this->groupCategory == null || $this->plugCategory == null || $this->switchCategory == null || $this->motionCategory == null) {
 			$deviceCategory = json_decode($this->ReadPropertyString("Categories"), true);
 		
@@ -149,24 +149,23 @@ class lightifyGateway extends IPSModule {
 	}
  
  
-  protected function GetlightifySocket() {
+  protected function openSocket() {
 	  if ($this->lightifySocket == null)  {
 			$host = $this->ReadPropertyString("Host");
 			if ($host != "") return new lightifySocket($host, $this->ReadPropertyInteger("Port"));
+			
 			return false;
 		}
   } 	
 	
 	
-	public function SyncDevices() {
+	public function syncDevices() {
 		if ($this->ReadPropertyBoolean("Open")) {
 			$this->lightifyBase = new lightifyBase;	 			
 
-			if ($this->lightifySocket = $this->GetlightifySocket()) {
-				//Get gateway firmware version
-				$buffer = $this->lightifySocket->GatewayFirmware();
-			
-				if (strlen($buffer) > 8) {
+			if ($this->lightifySocket = $this->openSocket()) {
+				//Get gateway firmware version			
+				if (false !== ($buffer = $this->lightifySocket->getGatewayFirmware()) && strlen($buffer) > 8) {
 					$Firmware = ord($buffer{9}).".".ord($buffer{10}).".".ord($buffer{11}).".".ord($buffer{12});
 					//IPS_LogMessage("SymconOSR", "Gateway firmware byte [01-".ord($buffer{9})."] [02-".ord($buffer{10})."] [03-".ord($buffer{11})."] [04-".ord($buffer{12})."] -> ".$Firmware);
 				
@@ -176,17 +175,16 @@ class lightifyGateway extends IPSModule {
       		}
 				}
 
-				if ($this->GetCategories()) {
+				if ($this->getCategories()) {
 					//Get paired devices
-					$buffer = $this->lightifySocket->PairedDevices();
 					$this->arrayLights = array();
 			
-					if (strlen($buffer) > 60) {
+					if (false !== ($buffer = $this->lightifySocket->getPairedDevices()) && strlen($buffer) > 60) {
 						$cnt = ord($buffer{9})+ord($buffer{10});
 						$buffer = substr($buffer, 11); //Renove 11 byte header
 
 						for ($i = 0; $i < $cnt; $i++) {
-							$this->GetDevices($buffer, $i+1);
+							$this->getDevices($buffer, $i+1);
 							$buffer = substr($buffer, 50); //50 bytes per device
 						}
 					}
@@ -194,14 +192,12 @@ class lightifyGateway extends IPSModule {
 
 				if ($this->groupCategory['CategoryID'] > 0 && $this->groupCategory['SyncID']) {
 					//Get group list
-					$buffer = $this->lightifySocket->GroupList();
-
-					if (strlen($buffer) > 28) {
+					if (false !== ($buffer = $this->lightifySocket->getGroupList()) && strlen($buffer) > 28) {
 						$cnt = ord($buffer{9})+ord($buffer{10});
 						$buffer = substr($buffer, 11); //Renove 11 byte header
 
 						for ($i = 0; $i < $cnt; $i++) {
-							$this->GetGroups($buffer);
+							$this->getGroups($buffer);
 							$buffer = substr($buffer, 18); //18 bytes per group/zone
 						}				
 					}
@@ -216,11 +212,11 @@ class lightifyGateway extends IPSModule {
 	}
 	
 
-	private function GetDevices($data, $idx) {
+	private function getDevices($data, $idx) {
 		$apply = false;
 		
 		$MAC = substr($data, 2, 8);
-		$UniqueID = $this->lightifyBase->ChrToUniqueID($MAC);
+		$UniqueID = $this->lightifyBase->chrToUniqueID($MAC);
 		$Name = trim(substr($data, 26, 15));
 		$Firmware = sprintf("%02d%02d%02d%02d", ord($data{11}), ord($data{12}), ord($data{13}), 0);
 	
@@ -333,13 +329,14 @@ class lightifyGateway extends IPSModule {
 				@IPS_DisconnectInstance($DeviceID);
 				IPS_ConnectInstance($DeviceID, $this->InstanceID);
 			}
+			
 			if ($apply) IPS_ApplyChanges($DeviceID);
+			$result = OSR_SendData($DeviceID, $this->lightifySocket, $MAC, $ModuleID);
 			
 			if ($ModuleID == lightifyModules::lightifyLight) { //Lightify Light
-				$result = OSR_SendData($DeviceID, $this->lightifySocket, $MAC, $ModuleID);
 				$this->arrayLights[] = array('DeviceID' => $DeviceID, 'UniqueID' => $UniqueID);
 			}
-    	
+	  	
     	return true;
     }
 
@@ -347,17 +344,17 @@ class lightifyGateway extends IPSModule {
 	}
 
 
-	private function GetGroups($data) {
+	private function getGroups($data) {
 		$CategoryID = $this->groupCategory['CategoryID'];
 		
 		if ($CategoryID > 0 && IPS_CategoryExists($CategoryID)) {
 			$apply = false;
 
 			$MAC = substr($data, 0, 2);
-			$UniqueID = $this->lightifyBase->ChrToUniqueID($MAC);
+			$UniqueID = $this->lightifyBase->chrToUniqueID($MAC);
 			
 			$Name = trim(substr($data, 2, 15));
-			$DeviceID = $this->GetDeviceByUniqueID($UniqueID, lightifyModules::lightifyGroup); //Lightify Group/Zone
+			$DeviceID = $this->getDeviceByUniqueID($UniqueID, lightifyModules::lightifyGroup); //Lightify Group/Zone
 			
 			if ($DeviceID == 0) {
     		$DeviceID = IPS_CreateInstance(lightifyModules::lightifyGroup); //Lightify Group/Zone
@@ -374,7 +371,7 @@ class lightifyGateway extends IPSModule {
 				IPS_SetProperty($DeviceID, "UniqueID", (string)$UniqueID);
 				$apply = true;
 			}
-			$Instances = $this->SetGroupInfo($DeviceID, $MAC);
+			$Instances = $this->setGroupInfo($DeviceID, $MAC);
 			
 			if (@IPS_GetProperty($DeviceID, "Instances") != $Instances) {
 				IPS_SetProperty($DeviceID, "Instances", (string)$Instances);
@@ -395,16 +392,15 @@ class lightifyGateway extends IPSModule {
 	}
 
 
-	private function SetGroupInfo($DeviceID, $MAC) {
-		$data = OSR_SendData($DeviceID, $this->lightifySocket, $MAC, lightifyModules::lightifyGroup); //Lightify Group/Zone
+	private function setGroupInfo($DeviceID, $MAC) {
 		$Instances = array();
 
-		if (strlen($data) > 10) {
+		if (false !== ($data = OSR_SendData($DeviceID, $this->lightifySocket, $MAC, lightifyModules::lightifyGroup)) && strlen($data) > 10) {
 			$cnt = ord($data{27});
 			$data = substr($data, 28); //Renove 28 byte header
 
 			for ($i = 0; $i < $cnt; $i++) {
-				$UniqueID = $this->lightifyBase->ChrToUniqueID(substr($data, 0, 8));
+				$UniqueID = $this->lightifyBase->chrToUniqueID(substr($data, 0, 8));
 				
 				foreach ($this->arrayLights as $value) {
 					if ($value['UniqueID'] == $UniqueID)
@@ -420,7 +416,7 @@ class lightifyGateway extends IPSModule {
 	}
 	
 	
-  private function GetDeviceByUniqueID(string $UniqueID, $GUID) {
+  private function getDeviceByUniqueID(string $UniqueID, $GUID) {
   	foreach(IPS_GetInstanceListByModuleID($GUID) as $key) {
       if (IPS_GetProperty($key, "UniqueID") == $UniqueID) return $key;
     }

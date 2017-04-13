@@ -14,10 +14,6 @@ class lightifyGroup extends lightifyDevice {
 	}
 
 
-	public function ReceiveData($String) {
-	}
-    
- 
 	public function GetConfigurationForm() {
 		$data = json_decode(file_get_contents(__DIR__.DIRECTORY_SEPARATOR."form.json"));
 		$Instances = json_decode($this->ReadPropertyString("Instances"), true);
@@ -40,7 +36,6 @@ class lightifyGroup extends lightifyDevice {
 				$State = GetValueBoolean(@IPS_GetObjectIDByIdent('STATE', $value['DeviceID']));
 
 				if ($State)
-					//$rowColor = CT2HEX($ColorTemp); //State on
 					//$rowColor = "#".$Color; //State on
 					$rowColor = ($ColorTemp) ? "#FFDA48" : "#FFFCE0"; //State on
 				else
@@ -67,7 +62,7 @@ class lightifyGroup extends lightifyDevice {
 	}
 	
 	
-  protected function GetUniqueID() {
+  protected function getUniqueID() {
     $UniqueID = $this->ReadPropertyString("UniqueID");
     return $UniqueID;
   }

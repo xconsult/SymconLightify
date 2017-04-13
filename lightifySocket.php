@@ -1,21 +1,19 @@
 <?
 
-# Commands
-# 13 List paired devices (broadcast)
-# 1E List configured groups/zones (broadcast)
-# 26 Get group/zone information (group/zone)
-# 31 Set brigthness (device, group/zone)
-# 32 Set power switch on/off (device, group/zone)
-# 33 Set light color temperature (device, group/zone)
-# 36 Set light color (RGBW) (device, group/zone)
-# 52 Activate scene (device, group/zone)
-# 68 Get device information (device)
-# 6F Gateway Firmware version (broadcast)
-# D5 Cycle group/zone color
-
-
-//Global commands
+//Commands
 class lightifyCommands extends stdClass {
+
+	# 13 List paired devices (broadcast)
+	# 1E List configured groups/zones (broadcast)
+	# 26 Get group/zone information (group/zone)
+	# 31 Set brigthness (device, group/zone)
+	# 32 Set power switch on/off (device, group/zone)
+	# 33 Set light color temperature (device, group/zone)
+	# 36 Set light color (RGBW) (device, group/zone)
+	# 52 Activate scene (device, group/zone)
+	# 68 Get device information (device)
+	# 6F Gateway Firmware version (broadcast)
+	# D5 Cycle group/zone color
 	
 	const OSR_GETPAIREDEVICES = 0x13;
 	const OSR_GETGROUPLIST = 0x1E;
@@ -57,7 +55,7 @@ class lightifySocket extends stdClass {
   }
 	
 	
-	protected function SessionToken() {
+	protected function getSessionToken() {
 		$random = substr(str_shuffle('ABCDEF0123456789'), 0, 8);
 		$id = "";
 
@@ -68,9 +66,9 @@ class lightifySocket extends stdClass {
 	}
 
 
-	protected function SendData($flag, $command, $args = null) {
+	protected function sendData($flag, $command, $args = null) {
 		//$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
-		$data = $flag.chr($command).$this->SessionToken();
+		$data = $flag.chr($command).$this->getSessionToken();
 		if ($args != null) $data .= $args;
 		
 		$data = chr(strlen($data)).chr(0x00).$data;
@@ -82,100 +80,105 @@ class lightifySocket extends stdClass {
 			$length = strlen($buffer);
 
 			if ($length > 9) {
-				$errno = ord($buffer{8});
-				if ($errno == false) return $buffer;
+				//$errno = ord($buffer{8});
+				if (0 == ($errno = ord($buffer{8}))) return $buffer;
 			}
 		}
 
-		return $result;
+		return false;
 	}
 	
 
-	public function AllLights($Value) {
+	public function setAllLightsState($Value) {
 		$args = str_repeat(chr(0xFF), 8).chr($Value);
-		$buffer = $this->SendData(chr(0x00), lightifyCommands::OSR_SETDEVICESTATE, $args);
+		$buffer = $this->sendData(chr(0x00), lightifyCommands::OSR_SETDEVICESTATE, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 
 
-	public function State($MAC, $flag, $Value) {
+	public function setState($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value);
-		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETDEVICESTATE, $args);
+		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETDEVICESTATE, $args);
 		
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 	
 
-	public function Color($MAC, $flag, $Value) {
+	public function setColor($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
-		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETBULBCOLOR, $args);
+		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETBULBCOLOR, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 
 
-	public function ColorTemperature($MAC, $flag, $Value) {
+	public function setColorTemperature($MAC, $flag, $Value) {
 		$hex = dechex($Value);
 		if (strlen($hex) < 4) $hex = str_repeat("0", 4-strlen($hex)).$hex;
 							
 		$args = $MAC.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
-		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETCOLORTEMP, $args);
+		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETCOLORTEMP, $args);
 	
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 
 
-	public function Brightness($MAC, $flag, $Value) {
+	public function setBrightness($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
-		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETBULBBRIGHT, $args);
+		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETBULBBRIGHT, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 
 
-	public function Saturation($MAC, $flag, $Value) {
+	public function setSaturation($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
-		$buffer = $this->SendData($flag, lightifyCommands::OSR_SETBULBCOLOR, $args);
+		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETBULBCOLOR, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 
 
-	public function ColorCycle($MAC, $Cycle, $Value) {
+	public function setColorCycle($MAC, $Cycle, $Value) {
 		$Value = dechex($Value); 
 		$Value = str_repeat("0", 4-strlen($Value)).$Value;
 
 		$args = $MAC.(($Cycle) ? chr(0x01) : chr(0x00)).chr(hexdec(substr($Value, 2, 2))).chr(hexdec(substr($Value, 0, 2)));
-		$buffer = $this->SendData(chr(0x00), lightifyCommands::OSR_BULBCOLORCYCLE, $args);
+		$buffer = $this->sendData(chr(0x00), lightifyCommands::OSR_BULBCOLORCYCLE, $args);
 
 		return ((strlen($buffer) == 20) ? true : false);
 	}
 			
 								
-	public function PairedDevices() {
+	public function getPairedDevices() {
 		$args = chr(0x01).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
-		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETPAIREDEVICES, $args);
+		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETPAIREDEVICES, $args);
 	}
 	
 	
-	public function GroupList() {
-		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETGROUPLIST);
+	public function getGroupList() {
+		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETGROUPLIST);
 	}
 
 
-	public function DeviceInfo($MAC) {
-		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETDEVICEINFO, $MAC);
+	public function getDeviceInfo($MAC) {
+		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETDEVICEINFO, $MAC);
 	}
 	
 
-	public function GroupInfo($MAC) {
-		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETGROUPINFO, $MAC);
+	public function getGroupInfo($MAC) {
+		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETGROUPINFO, $MAC);
 	}
 	
 							
-	public function GatewayFirmware() {
-		return $this->SendData(chr(0x00), lightifyCommands::OSR_GETGATEWAYFIRMWARE);
+	public function getGatewayFirmware() {
+		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETGATEWAYFIRMWARE);
+	}
+
+
+	public function getUnknownInfo($command, $MAC) {
+		return $this->sendData(chr(0x00), $command, $MAC);
 	}
 
 
