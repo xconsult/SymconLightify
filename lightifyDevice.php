@@ -6,14 +6,18 @@ require_once(__DIR__.DIRECTORY_SEPARATOR."lightifySocket.php");
 
 abstract class lightifyDevice extends IPSModule {
 
-	private $dvTransition = osrDeviceValue::dvTT_Min;	
+	private $dvTransition = osrDeviceValue::dvTT_Def/10;	
 	private $lightifyBase = null;
 	private $lightifySocket = null;
+	
+	private $Name = "";
 	private $ParentID = null;
 	
 
   public function __construct($InstanceID) {
     parent::__construct($InstanceID);
+    
+    $this->Name = IPS_GetName($this->InstanceID);
     $this->lightifyBase = new lightifyBase;
   }
 
@@ -162,10 +166,10 @@ abstract class lightifyDevice extends IPSModule {
 							if (($ModuleID == osrIPSModule::omLight && $deviceType == osrDeviceType::dtRGBW) || $ModuleID == osrIPSModule::omGroup) {
 								if ($State) {
 									if ($Value < osrDeviceValue::dvColor_Min) {
-										IPS_LogMessage("SymconOSR", IPS_GetName($this->InstanceID)." Color [".$Value."K] out of range. Setting to ".osrDeviceValue::dvColor_Min." #".dechex(osrDeviceValue::dvColor_Min));
+										IPS_LogMessage("SymconOSR", $this->Name." Color [".$Value."K] out of range. Setting to ".osrDeviceValue::dvColor_Min." #".dechex(osrDeviceValue::dvColor_Min));
 										$Value = osrDeviceValue::dvColor_Min;
 									} elseif ($Value > osrDeviceValue::dvColor_Max) {
-										IPS_LogMessage("SymconOSR", IPS_GetName($this->InstanceID)." Color [".$Value."K] out of range. Setting to ".osrDeviceValue::dvColor_Max." #".dechex(osrDeviceValue::dvColor_Max));
+										IPS_LogMessage("SymconOSR", $this->Name." Color [".$Value."K] out of range. Setting to ".osrDeviceValue::dvColor_Max." #".dechex(osrDeviceValue::dvColor_Max));
 										$Value = osrDeviceValue::dvColor_Max;
 									}
 
@@ -187,10 +191,10 @@ abstract class lightifyDevice extends IPSModule {
 									$maxCT = ($deviceType == osrDeviceType::dtRGBW) ? osrDeviceValue::dvCT_RGBW_Max : osrDeviceValue::dvCT_TW_Max;
 
 									if ($Value < $minCT) {
-										IPS_LogMessage("SymconOSR", IPS_GetName($this->InstanceID)." Color Temperature [".$Value."K] out of range. Setting to ".$minCT."K");
+										IPS_LogMessage("SymconOSR", $this->Name." Color Temperature [".$Value."K] out of range. Setting to ".$minCT."K");
 										$Value = $minCT;
 									} elseif ($Value > $maxCT) {
-										IPS_LogMessage("SymconOSR", IPS_GetName($this->InstanceID)." Color Temperature [".$Value."K] out of range. Setting to ".$maxCT."K");
+										IPS_LogMessage("SymconOSR", $this->Name." Color Temperature [".$Value."K] out of range. Setting to ".$maxCT."K");
 										$Value = $maxCT;
 									}
 
@@ -206,10 +210,10 @@ abstract class lightifyDevice extends IPSModule {
 							if ($ModuleID == osrIPSModule::omLight || $ModuleID == osrIPSModule::omGroup) {
 								if ($State) {
 									if ($Value < osrDeviceValue::dvBright_Min) {
-										IPS_LogMessage("SymconOSR", IPS_GetName($this->InstanceID)." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
+										IPS_LogMessage("SymconOSR", $this->Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
 										$Value = osrDeviceValue::dvBright_Min;
 									} elseif ($Value > osrDeviceValue::dvBright_Max) {
-										IPS_LogMessage("SymconOSR", IPS_GetName($this->InstanceID)." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
+										IPS_LogMessage("SymconOSR", $this->Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
 										$Value = osrDeviceValue::dvBright_Max;
 									}
 
@@ -226,10 +230,10 @@ abstract class lightifyDevice extends IPSModule {
 							if (($ModuleID == osrIPSModule::omLight && $deviceType == osrDeviceType::dtRGBW) || $ModuleID == osrIPSModule::omGroup) {
 								if ($State) {
 									if ($Value < osrDeviceValue::dvSat_Min) {
-										IPS_LogMessage("SymconOSR", IPS_GetName($this->InstanceID)." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Min."%");
+										IPS_LogMessage("SymconOSR", $this->Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Min."%");
 										$Value = osrDeviceValue::dvSat_Min;
 									} elseif ($Value > osrDeviceValue::dvSat_Max) {
-										IPS_LogMessage("SymconOSR", IPS_GetName($this->InstanceID)." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Max."%");
+										IPS_LogMessage("SymconOSR", $this->Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Max."%");
 										$Value = osrDeviceValue::dvSat_Max;
 									}
 
@@ -263,7 +267,15 @@ abstract class lightifyDevice extends IPSModule {
 	
 
 	public function SetValueEx(string $key, integer $Value, integer $Transition) {
-		$this->dvTransition = $Transition;
+		if ($Transition < osrDeviceValue::dvTT_Min) {
+			IPS_LogMessage("SymconOSR", $this->Name." Transition [".$Transition."ms] out of range. Setting to ".osrDeviceValue::dvTT_Min."ms");
+			$Transition = osrDeviceValue::dvTT_Min;
+		} elseif ($Transition > osrDeviceValue::dvTT_Max) {
+			IPS_LogMessage("SymconOSR", $this->Name." Transition [".$Transition."ms] out of range. Setting to ".osrDeviceValue::dvTT_Max."ms");
+			$Transition = osrDeviceValue::dvTT_Max;
+		}
+
+		$this->dvTransition = $Transition/10;	
 		return $this->SetValue($key, $Value);
 	}
 	

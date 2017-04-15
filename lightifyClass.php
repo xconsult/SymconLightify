@@ -67,8 +67,9 @@ class osrDeviceValue extends stdClass {
 
 	const dvAS_Min = 5;
 	const dvAS_Max = 65535;
-	const dvTT_Min = 0; //0.0 sec
-	const dvTT_Max = 80; //8.0 sec
+	const dvTT_Def = 50; 	 //0.5 sec
+	const dvTT_Min = 0; 	 //0.0 sec
+	const dvTT_Max = 8000; //8.0 sec
 
 }
 
