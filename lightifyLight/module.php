@@ -9,13 +9,12 @@ class lightifyLight extends lightifyDevice {
     parent::Create();
  
 		$this->RegisterPropertyString("UniqueID", "");
-    $this->RegisterPropertyInteger("LightID", 0);
-		$this->RegisterPropertyString("Manufacturer", "OSRAM");
+    $this->RegisterPropertyInteger("DeviceID", 0);
     $this->RegisterPropertyString("deviceModel", "");
-    $this->RegisterPropertyString("deviceType", "");
+    $this->RegisterPropertyString("deviceLabel", "");
     $this->RegisterPropertyString("Firmware", "");
     
-    $this->RegisterPropertyInteger("deviceIndex", 0);
+    $this->RegisterPropertyInteger("deviceType", 0);
   }
     
   

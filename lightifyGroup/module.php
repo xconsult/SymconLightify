@@ -20,6 +20,8 @@ class lightifyGroup extends lightifyDevice {
 		
 		foreach ($Instances as $key => $value) {
 			if (IPS_InstanceExists($value['DeviceID'])) {
+				$ModuleID = IPS_GetInstance($value['DeviceID'])['ModuleInfo']['ModuleID'];
+				
 				$HueID = @IPS_GetObjectIDByIdent('HUE', $value['DeviceID']);
 				$ColorID = @IPS_GetObjectIDByIdent('COLOR', $value['DeviceID']);
 				$ColorTempID = @IPS_GetObjectIDByIdent('COLOR_TEMPERATURE', $value['DeviceID']);
@@ -35,16 +37,23 @@ class lightifyGroup extends lightifyDevice {
 				$Online = GetValueBoolean(@IPS_GetObjectIDByIdent('ONLINE', $value['DeviceID']));
 				$State = GetValueBoolean(@IPS_GetObjectIDByIdent('STATE', $value['DeviceID']));
 
-				if ($State)
-					//$rowColor = "#".$Color; //State on
-					$rowColor = ($ColorTemp) ? "#FFDA48" : "#FFFCE0"; //State on
-				else
-					$rowColor = ($Online) ? "#FFFFFF" : "#D6D6D6"; //State off
-					//$rowColor = "#D6D6D6"; //State off
-				
+				if ($State) {
+					if ($ModuleID == osrIPSModule::omLight)
+						//$rowColor = "#".$Color; //State on
+						$rowColor = ($ColorTemp) ? "#FFDA48" : "#FFFCE0"; //State on
+					if ($ModuleID == osrIPSModule::omPlug)
+						$rowColor = "#98FF72"; //State on
+				} else {
+					if ($ModuleID == osrIPSModule::omLight)
+						//$rowColor = "#D6D6D6"; //State off
+						$rowColor = ($Online) ? "#FFFFFF" : "#D6D6D6"; //State off
+					if ($ModuleID == osrIPSModule::omPlug)
+						$rowColor = ($Online) ? "#FFA0A0	" : "#D6D6D6"; //State off
+				}
+
 				$data->elements[1]->values[] = array(
 					"InstanceID" => $key,
-					"LightID" => IPS_GetProperty($value['DeviceID'], "LightID"),
+					"LightID" => IPS_GetProperty($value['DeviceID'], "DeviceID"),
 					//"State" => $State,
 					"Name" => IPS_GetName($value['DeviceID']),
 					//"UniqueID" => IPS_GetProperty($value['DeviceID'], "UniqueID"),

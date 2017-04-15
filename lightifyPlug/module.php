@@ -3,12 +3,13 @@
 require_once(__DIR__.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."lightifyDevice.php"); 
 
 
-class lightifySwitch extends lightifyDevice {
+class lightifyPlug extends lightifyDevice {
 
   public function Create() {
     parent::Create();
  
 		$this->RegisterPropertyString("UniqueID", "");
+    $this->RegisterPropertyInteger("DeviceID", 0);
     $this->RegisterPropertyString("deviceModel", "");
     $this->RegisterPropertyString("deviceLabel", "");
     $this->RegisterPropertyString("Firmware", "");

@@ -15,20 +15,17 @@ class lightifyCommands extends stdClass {
 	# 6F Gateway Firmware version (broadcast)
 	# D5 Cycle group/zone color
 	
-	const OSR_GETPAIREDEVICES = 0x13;
-	const OSR_GETGROUPLIST = 0x1E;
-	const OSR_GETGROUPINFO = 0x26;
-	const OSR_SETBULBBRIGHT = 0x31;
-	const OSR_SETDEVICESTATE = 0x32;
-	const OSR_SETCOLORTEMP = 0x33;
-	const OSR_SETBULBCOLOR = 0x36;
-	const OSR_SETDEVICESCENE = 0x52;
-	const OSR_GETDEVICEINFO = 0x68;
-	const OSR_GETGATEWAYFIRMWARE = 0x6F;
-	const OSR_BULBCOLORCYCLE = 0xD5;
-
-	const OSR_TRANSITION = 0x00; //0.0 sec
-	const OSR_TRANSITMAX = 0x50; //8.0 sec
+	const GETPAIREDEVICES = 0x13;
+	const GETGROUPLIST = 0x1E;
+	const GETGROUPINFO = 0x26;
+	const SETBULBBRIGHT = 0x31;
+	const SETDEVICESTATE = 0x32;
+	const SETCOLORTEMP = 0x33;
+	const SETBULBCOLOR = 0x36;
+	const SETDEVICESCENE = 0x52;
+	const GETDEVICEINFO = 0x68;
+	const GETGATEWAYFIRMWARE = 0x6F;
+	const BULBCOLORCYCLE = 0xD5;
 	
 }
 
@@ -48,7 +45,6 @@ class lightifySocket extends stdClass {
 			die('Unable to connect to AF_INET socket!');
 
 		//socket options
-		time_nanosleep(0, 500000000);
 		socket_set_block($this->socket);
 		//socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 1, 'usec' => 0));
 		//socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 1, 'usec' => 0));
@@ -91,89 +87,89 @@ class lightifySocket extends stdClass {
 
 	public function setAllLightsState($Value) {
 		$args = str_repeat(chr(0xFF), 8).chr($Value);
-		$buffer = $this->sendData(chr(0x00), lightifyCommands::OSR_SETDEVICESTATE, $args);
+		$buffer = $this->sendData(chr(0x00), lightifyCommands::SETDEVICESTATE, $args);
 
-		return ((strlen($buffer) == 20) ? true : false);
+		return ((strlen($buffer) == 20) ? $buffer : false);
 	}
 
 
 	public function setState($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value);
-		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETDEVICESTATE, $args);
+		$buffer = $this->sendData($flag, lightifyCommands::SETDEVICESTATE, $args);
 		
-		return ((strlen($buffer) == 20) ? true : false);
+		return ((strlen($buffer) == 20) ? $buffer : false);
 	}
 	
 
-	public function setColor($MAC, $flag, $Value) {
-		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
-		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETBULBCOLOR, $args);
+	public function setColor($MAC, $flag, $Value, $Transition) {
+		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(dechex($Transition)).chr(0x00);
+		$buffer = $this->sendData($flag, lightifyCommands::SETBULBCOLOR, $args);
 
-		return ((strlen($buffer) == 20) ? true : false);
+		return ((strlen($buffer) == 20) ? $buffer : false);
 	}
 
 
-	public function setColorTemperature($MAC, $flag, $Value) {
+	public function setColorTemperature($MAC, $flag, $Value, $Transition) {
 		$hex = dechex($Value);
 		if (strlen($hex) < 4) $hex = str_repeat("0", 4-strlen($hex)).$hex;
 							
-		$args = $MAC.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
-		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETCOLORTEMP, $args);
+		$args = $MAC.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(dechex($Transition)).chr(0x00);
+		$buffer = $this->sendData($flag, lightifyCommands::SETCOLORTEMP, $args);
 	
-		return ((strlen($buffer) == 20) ? true : false);
+		return ((strlen($buffer) == 20) ? $buffer : false);
 	}
 
 
-	public function setBrightness($MAC, $flag, $Value) {
-		$args = $MAC.chr($Value).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
-		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETBULBBRIGHT, $args);
+	public function setBrightness($MAC, $flag, $Value, $Transition) {
+		$args = $MAC.chr($Value).chr(dechex($Transition)).chr(0x00);
+		$buffer = $this->sendData($flag, lightifyCommands::SETBULBBRIGHT, $args);
 
-		return ((strlen($buffer) == 20) ? true : false);
+		return ((strlen($buffer) == 20) ? $buffer : false);
 	}
 
 
-	public function setSaturation($MAC, $flag, $Value) {
-		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(lightifyCommands::OSR_TRANSITION).chr(0x00);
-		$buffer = $this->sendData($flag, lightifyCommands::OSR_SETBULBCOLOR, $args);
+	public function setSaturation($MAC, $flag, $Value, $Transition) {
+		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(dechex($Transition)).chr(0x00);
+		$buffer = $this->sendData($flag, lightifyCommands::SETBULBCOLOR, $args);
 
-		return ((strlen($buffer) == 20) ? true : false);
+		return ((strlen($buffer) == 20) ? $buffer : false);
 	}
 
 
 	public function setColorCycle($MAC, $Cycle, $Value) {
-		$Value = dechex($Value); 
+		$Value = dechex($Value);
 		$Value = str_repeat("0", 4-strlen($Value)).$Value;
 
 		$args = $MAC.(($Cycle) ? chr(0x01) : chr(0x00)).chr(hexdec(substr($Value, 2, 2))).chr(hexdec(substr($Value, 0, 2)));
-		$buffer = $this->sendData(chr(0x00), lightifyCommands::OSR_BULBCOLORCYCLE, $args);
+		$buffer = $this->sendData(chr(0x00), lightifyCommands::BULBCOLORCYCLE, $args);
 
-		return ((strlen($buffer) == 20) ? true : false);
+		return ((strlen($buffer) == 20) ? $buffer : false);
 	}
 			
 								
 	public function getPairedDevices() {
 		$args = chr(0x01).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
-		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETPAIREDEVICES, $args);
+		return $this->sendData(chr(0x00), lightifyCommands::GETPAIREDEVICES, $args);
 	}
 	
 	
 	public function getGroupList() {
-		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETGROUPLIST);
+		return $this->sendData(chr(0x00), lightifyCommands::GETGROUPLIST);
 	}
 
 
 	public function getDeviceInfo($MAC) {
-		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETDEVICEINFO, $MAC);
+		return $this->sendData(chr(0x00), lightifyCommands::GETDEVICEINFO, $MAC);
 	}
 	
 
 	public function getGroupInfo($MAC) {
-		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETGROUPINFO, $MAC);
+		return $this->sendData(chr(0x00), lightifyCommands::GETGROUPINFO, $MAC);
 	}
 	
 							
 	public function getGatewayFirmware() {
-		return $this->sendData(chr(0x00), lightifyCommands::OSR_GETGATEWAYFIRMWARE);
+		return $this->sendData(chr(0x00), lightifyCommands::GETGATEWAYFIRMWARE);
 	}
 
 
