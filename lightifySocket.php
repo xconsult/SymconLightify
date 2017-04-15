@@ -89,7 +89,7 @@ class lightifySocket extends stdClass {
 		$args = str_repeat(chr(0xFF), 8).chr($Value);
 		$buffer = $this->sendData(chr(0x00), lightifyCommands::SETDEVICESTATE, $args);
 
-		return ((strlen($buffer) == 20) ? $buffer : false);
+		return ((strlen($buffer) > 2) ? $buffer : false);
 	}
 
 

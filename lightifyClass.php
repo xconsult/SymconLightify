@@ -52,9 +52,9 @@ class osrDeviceValue extends stdClass {
 	const dvCT_Clear_Min = 2700;
 	const dvCT_Clear_Max = 6500;
 	const dvCT_TW_Min = 2700;
-	const dvCT_TW_Max = 6500;
+	const dvCT_TW_Max = 6535;
 	const dvCT_RGBW_Min = 2000;
-	const dvCT_RGBW_Max = 6500;
+	const dvCT_RGBW_Max = 6535;
 
 	const dvHue_Min = 0;
 	const dvHue_Max = 360;

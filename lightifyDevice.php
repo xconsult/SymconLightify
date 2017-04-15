@@ -101,84 +101,101 @@ abstract class lightifyDevice extends IPSModule {
 		$result = false;
 
 		if ($ModuleID == osrIPSModule::omLight || $ModuleID == osrIPSModule::omPlug || $ModuleID == osrIPSModule::omGroup) {
-			$deviceType = IPS_GetProperty($this->InstanceID, "deviceType");		
-			$OnlineID = IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
-			$Online = GetValueBoolean($OnlineID);
+			$deviceType = ($ModuleID == osrIPSModule::omLight) ? IPS_GetProperty($this->InstanceID, "deviceType") : osrDeviceType::dtRGBW;
 
-			if ($Online) {
+			if (($key != "ALL_DEVICES") && ($ModuleID == osrIPSModule::omLight || $ModuleID == osrIPSModule::omPlug)) {
+				$OnlineID = @IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
+				$Online = ($OnlineID) ? GetValueBoolean($OnlineID) : false;
+			}
+
+			if (($key == "ALL_DEVICES") || $ModuleID == osrIPSModule::omGroup || $Online) {
 				$this->lightifySocket = $this->openSocket();
 
 				if ($this->lightifySocket) {
-					$StateID = IPS_GetObjectIDByIdent('STATE', $this->InstanceID);
-					$State = GetValueBoolean($StateID);
+					if ($key != "ALL_DEVICES" && ($ModuleID == osrIPSModule::omLight || $ModuleID == osrIPSModule::omPlug)) {
+						$StateID = @IPS_GetObjectIDByIdent('STATE', $this->InstanceID);
+						$State = ($StateID) ? GetValueBoolean($StateID) : osrIPSVariable::vtNone;
+					}
 
-					$MAC = $this->lightifyBase->uniqueIDToChr(IPS_GetProperty($this->InstanceID, "UniqueID"));
-					$flag = ($ModuleID == osrIPSModule::omGroup) ? chr(0x02) : chr(0x00);
+					if ($key != "ALL_DEVICES") {
+						$MAC = $this->lightifyBase->uniqueIDToChr(IPS_GetProperty($this->InstanceID, "UniqueID"));
+						$flag = ($ModuleID == osrIPSModule::omGroup) ? chr(0x02) : chr(0x00);
 
-					if ($ModuleID == osrIPSModule::omLight || $ModuleID == osrIPSModule::omGroup) {
-						if ($deviceType == osrDeviceType::dtRGBW) {
-							$HueID = @IPS_GetObjectIDByIdent('HUE', $this->InstanceID);
-							$ColorID = @IPS_GetObjectIDByIdent('COLOR', $this->InstanceID);
-							$SaturationID = @IPS_GetObjectIDByIdent('SATURATION', $this->InstanceID);
+						if ($ModuleID == osrIPSModule::omLight) {
+							if ($deviceType == osrDeviceType::dtRGBW) {
+								$HueID = @IPS_GetObjectIDByIdent('HUE', $this->InstanceID);
+								$ColorID = @IPS_GetObjectIDByIdent('COLOR', $this->InstanceID);
+								$SaturationID = @IPS_GetObjectIDByIdent('SATURATION', $this->InstanceID);
 							
-							$Hue = ($HueID) ? GetValueInteger($HueID) : 0;
-							$Color = ($ColorID) ? GetValueInteger($ColorID) : 0;
-							$Saturation = ($SaturationID) ? GetValueInteger($SaturationID) : 0;
-						}
+								$Hue = ($HueID) ? GetValueInteger($HueID) : 0;
+								$Color = ($ColorID) ? GetValueInteger($ColorID) : 0;
+								$Saturation = ($SaturationID) ? GetValueInteger($SaturationID) : 0;
+							}
 						
-						if ($deviceType != osrDeviceType::dtClear) {
-							$ColorTempID = @IPS_GetObjectIDByIdent('COLOR_TEMPERATURE', $this->InstanceID);
-							$ColorTemp = ($ColorTempID) ? GetValueInteger($ColorTempID) : 0;
-						}
+							if ($deviceType != osrDeviceType::dtClear) {
+								$ColorTempID = @IPS_GetObjectIDByIdent('COLOR_TEMPERATURE', $this->InstanceID);
+								$ColorTemp = ($ColorTempID) ? GetValueInteger($ColorTempID) : 0;
+							}
 
-						$BrightID = @IPS_GetObjectIDByIdent('BRIGHTNESS', $this->InstanceID);
-						$Bright = ($BrightID) ? GetValueInteger($BrightID) : 0;
+							$BrightID = @IPS_GetObjectIDByIdent('BRIGHTNESS', $this->InstanceID);
+							$Bright = ($BrightID) ? GetValueInteger($BrightID) : 0;
+						}
 					}
 
 					switch ($key) {
 						case "ALL_DEVICES":
-							if ($ModuleID == osrIPSModule::omLight) {
-								if ($Value == 0 || $Value == 1) {
-									if (false === ($result = $this->lightifySocket->setAllDevicesState(($Value == 0) ? 0 : 1) )) return false;
-									
-									foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omLight) as $key) {
-										$StateID = @IPS_GetObjectIDByIdent("STATE", $key);
-										$OnlineID = @IPS_GetObjectIDByIdent("ONLINE", $key);
-										$State = GetValueBoolean($StateID);
-										$Online = GetValueBoolean($OnlineID);
+							if ($Value == 0 || $Value == 1) {
+								if (false === ($result = $this->lightifySocket->setAllDevicesState(($Value == 0) ? 0 : 1) )) return false;
+								
+								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omLight) as $k)
+									$arrayDevices[]['DeviceID'] = $k;
 
-										if ($Online) {
-											if ($Value != $State) SetValueBoolean($StateID, (($Value == 0) ? false : true));
-										}
-									}
-								}
-								return true;
+								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omPlug) as $k)
+									$arrayDevices[]['DeviceID'] = $k;
+								
+								$this->setDeviceValue($arrayDevices, "STATE", $Value);
 							}
+							return true;
 									
 						case "STATE":
 							if ($Value == 0 || $Value == 1) {
-								if ($this->lightifySocket->setState($MAC, chr(0x00), $Value) === false) return false;
-								SetValueBoolean($StateID, $Value);
+								if ($this->lightifySocket->setState($MAC, $flag, $Value) === false) return false;
+								
+								switch ($ModuleID) {
+									case osrIPSModule::omLight:
+										//fall-trough
+									case osrIPSModule::omPlug:
+										SetValueBoolean($StateID, (($Value == 0) ? false : true));
+										break;
+										
+									case osrIPSModule::omGroup:
+										$this->setDeviceValue(json_decode($this->ReadPropertyString("Instances"), true), $key, $Value);
+										break;
+								}
 							}
 							return true;
 							
 						case "COLOR":
 							if (($ModuleID == osrIPSModule::omLight && $deviceType == osrDeviceType::dtRGBW) || $ModuleID == osrIPSModule::omGroup) {
-								if ($State) {
-									if ($Value < osrDeviceValue::dvColor_Min) {
-										IPS_LogMessage("SymconOSR", $this->Name." Color [".$Value."K] out of range. Setting to ".osrDeviceValue::dvColor_Min." #".dechex(osrDeviceValue::dvColor_Min));
-										$Value = osrDeviceValue::dvColor_Min;
-									} elseif ($Value > osrDeviceValue::dvColor_Max) {
-										IPS_LogMessage("SymconOSR", $this->Name." Color [".$Value."K] out of range. Setting to ".osrDeviceValue::dvColor_Max." #".dechex(osrDeviceValue::dvColor_Max));
-										$Value = osrDeviceValue::dvColor_Max;
-									}
+								if ($ModuleID == osrIPSModule::omGroup || ($State)) {
+									if ($ModuleID == osrIPSModule::omLight) $Value = getValueRange($this->Name, $key, $value);
 
-									if ($Value != $Color) {
+									if ($ModuleID == osrIPSModule::omGroup || ($Value != $Color)) {
 										$hex = str_pad(dechex($Value), 6, 0, STR_PAD_LEFT);
 										$rgb = $this->lightifyBase->HEX2RGB($hex);
 										
-										if ($this->lightifySocket->setColor($MAC, $flag, $rgb, $this->dvTransition) !== false)
-											if (false === ($result = $this->SendData($this->lightifySocket, $MAC, $ModuleID))) return false;
+										if ($this->lightifySocket->setColor($MAC, $flag, $rgb, $this->dvTransition) !== false) {
+											switch ($ModuleID) {
+												case osrIPSModule::omLight:
+													//fall-trough
+												case osrIPSModule::omPlug:
+													if (false === ($result = $this->SendData($this->lightifySocket, $MAC, $ModuleID))) return false;
+	
+												case osrIPSModule::omGroup:
+													$this->setDeviceValue(json_decode($this->ReadPropertyString("Instances"), true), $key, $Value);
+													break;
+											}
+										}
 									}
 									return true;
 								}
@@ -186,21 +203,23 @@ abstract class lightifyDevice extends IPSModule {
 
 						case "COLOR_TEMPERATURE":
 							if (($ModuleID == osrIPSModule::omLight && $deviceType != osrDeviceType::dtClear) || $ModuleID == osrIPSModule::omGroup) {
-								if ($State) {
-									$minCT = ($deviceType == osrDeviceType::dtRGBW) ? osrDeviceValue::dvCT_RGBW_Min : osrDeviceValue::dvCT_TW_Min;
-									$maxCT = ($deviceType == osrDeviceType::dtRGBW) ? osrDeviceValue::dvCT_RGBW_Max : osrDeviceValue::dvCT_TW_Max;
+								if ($ModuleID == osrIPSModule::omGroup || ($State)) {
+									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $value, $deviceType);
 
-									if ($Value < $minCT) {
-										IPS_LogMessage("SymconOSR", $this->Name." Color Temperature [".$Value."K] out of range. Setting to ".$minCT."K");
-										$Value = $minCT;
-									} elseif ($Value > $maxCT) {
-										IPS_LogMessage("SymconOSR", $this->Name." Color Temperature [".$Value."K] out of range. Setting to ".$maxCT."K");
-										$Value = $maxCT;
-									}
-
-									if ($Value != $ColorTemp) {
+									if ($ModuleID == osrIPSModule::omGroup || ($Value != $ColorTemp)) {
 										if ($this->lightifySocket->setColorTemperature($MAC, $flag, $Value, $this->dvTransition) === false) return false;
-										SetValueInteger($ColorTempID, $Value);
+										
+										switch ($ModuleID) {
+											case osrIPSModule::omLight:
+												//fall-trough
+											case osrIPSModule::omPlug:
+												SetValueInteger($ColorTempID, $Value);
+												break;
+										
+											case osrIPSModule::omGroup:
+												$this->setDeviceValue(json_decode($this->ReadPropertyString("Instances"), true), $key, $Value);
+												break;
+										}
 									}
 									return true;
 								}
@@ -208,19 +227,23 @@ abstract class lightifyDevice extends IPSModule {
 
 						case "BRIGHTNESS":
 							if ($ModuleID == osrIPSModule::omLight || $ModuleID == osrIPSModule::omGroup) {
-								if ($State) {
-									if ($Value < osrDeviceValue::dvBright_Min) {
-										IPS_LogMessage("SymconOSR", $this->Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
-										$Value = osrDeviceValue::dvBright_Min;
-									} elseif ($Value > osrDeviceValue::dvBright_Max) {
-										IPS_LogMessage("SymconOSR", $this->Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
-										$Value = osrDeviceValue::dvBright_Max;
-									}
-
-									if ($Value != $Bright) {
+								if ($ModuleID == osrIPSModule::omGroup || ($State)) {
+									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $value);
+									
+									if ($ModuleID == osrIPSModule::omGroup || ($Value != $Bright)) {
 										if ($this->lightifySocket->setBrightness($MAC, $flag, $Value, $this->dvTransition) === false) return false;
-										if ($Value == 0 && $State) SetValueBoolean($StateID, $Value);
-										SetValueInteger($BrightID, $Value);
+
+										switch ($ModuleID) {
+											case osrIPSModule::omLight:
+												//fall-trough
+											case osrIPSModule::omPlug:
+												SetValueInteger($BrightID, $Value);
+												break;
+										
+											case osrIPSModule::omGroup:
+												$this->setDeviceValue(json_decode($this->ReadPropertyString("Instances"), true), $key, $Value);
+												break;
+										}
 									}
 									return true;
 								}
@@ -228,21 +251,25 @@ abstract class lightifyDevice extends IPSModule {
 
 						case "SATURATION":
 							if (($ModuleID == osrIPSModule::omLight && $deviceType == osrDeviceType::dtRGBW) || $ModuleID == osrIPSModule::omGroup) {
-								if ($State) {
-									if ($Value < osrDeviceValue::dvSat_Min) {
-										IPS_LogMessage("SymconOSR", $this->Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Min."%");
-										$Value = osrDeviceValue::dvSat_Min;
-									} elseif ($Value > osrDeviceValue::dvSat_Max) {
-										IPS_LogMessage("SymconOSR", $this->Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Max."%");
-										$Value = osrDeviceValue::dvSat_Max;
-									}
+								if ($ModuleID == osrIPSModule::omGroup || ($State)) {
+									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $value);
 
-									if ($Value != $Saturation) {
+									if ($ModuleID == osrIPSModule::omGroup || ($Value != $Saturation)) {
 										$hex = $this->lightifyBase->HSV2HEX($Hue, $Value, $Bright);
 										$rgb = $this->lightifyBase->HEX2RGB($hex);
 										
-										if ($this->lightifySocket->setSaturation($MAC, $flag, $rgb, $this->dvTransition) !== false)
-											if (false === ($result = $this->SendData($this->lightifySocket, $MAC, $ModuleID))) return false;
+										if ($this->lightifySocket->setSaturation($MAC, $flag, $rgb, $this->dvTransition) !== false) {
+											switch ($ModuleID) {
+												case osrIPSModule::omLight:
+													//fall-trough
+												case osrIPSModule::omPlug:
+													if (false === ($result = $this->SendData($this->lightifySocket, $MAC, $ModuleID))) return false;
+
+												case osrIPSModule::omGroup:
+													$this->setDeviceValue(json_decode($this->ReadPropertyString("Instances"), true), $key, $Value);
+													break;
+											}
+										}												
 									}
 									return true;
 								}
@@ -256,16 +283,78 @@ abstract class lightifyDevice extends IPSModule {
 	}
 
 
-	protected function setState ($StateID, $MAC, $Value) {
-		if ($this->lightifySocket->setState($MAC, chr(0x00), $Value) !== false) { 	
-			SetValueBoolean($StateID, $Value);
-			return true;
+	private function setDeviceValue($arrayDevices, $key, $Value) {
+		foreach ($arrayDevices as $k => $v) {
+			$ModuleID = IPS_GetInstance($v['DeviceID'])['ModuleInfo']['ModuleID'];
+			
+			if (($key == "STATE") || $ModuleID == osrIPSModule::omLight) {		
+				$OnlineID = @IPS_GetObjectIDByIdent("ONLINE", $v['DeviceID']);
+				$Online = ($OnlineID) ? GetValueBoolean($OnlineID) : false;
+
+				if ($Online) {
+					if ($id = @IPS_GetObjectIDByIdent($key, $v['DeviceID'])) {
+						if ($ModuleID == osrIPSModule::omLight)
+							$valueNew = $this->getValueRange(IPS_GetName($v['DeviceID']), $key, $Value, IPS_GetProperty($v['DeviceID'], "deviceType"));
+
+						$valueSave = GetValue($id);
+						if ($id && $valueSave != $valueNew) SetValue($id, $valueNew);
+					}
+				}
+			}
+		}
+	}
+
+
+	private function getValueRange($Name, $key, $Value, $deviceType = null) {
+		switch ($key) {
+			case "COLOR":
+				if ($Value < osrDeviceValue::dvColor_Min) {
+					IPS_LogMessage("SymconOSR", $Name." Color [".$Value."K] out of range. Setting to ".osrDeviceValue::dvColor_Min." #".dechex(osrDeviceValue::dvColor_Min));
+					$Value = osrDeviceValue::dvColor_Min;
+				} elseif ($Value > osrDeviceValue::dvColor_Max) {
+					IPS_LogMessage("SymconOSR", $Name." Color [".$Value."K] out of range. Setting to ".osrDeviceValue::dvColor_Max." #".dechex(osrDeviceValue::dvColor_Max));
+					$Value = osrDeviceValue::dvColor_Max;
+				}
+				break;
+
+			case "COLOR_TEMPERATURE":
+				$minCT = ($deviceType == osrDeviceType::dtRGBW) ? osrDeviceValue::dvCT_RGBW_Min : osrDeviceValue::dvCT_TW_Min;
+				$maxCT = ($deviceType == osrDeviceType::dtRGBW) ? osrDeviceValue::dvCT_RGBW_Max : osrDeviceValue::dvCT_TW_Max;
+
+				if ($Value < $minCT) {
+					IPS_LogMessage("SymconOSR", $Name." Color Temperature [".$Value."K] out of range. Setting to ".$minCT."K");
+					$Value = $minCT;
+				} elseif ($Value > $maxCT) {
+					IPS_LogMessage("SymconOSR", $Name." Color Temperature [".$Value."K] out of range. Setting to ".$maxCT."K");
+					$Value = $maxCT;
+				}
+				break;
+
+			case "BRIGHTNESS":
+				if ($Value < osrDeviceValue::dvBright_Min) {
+					IPS_LogMessage("SymconOSR", $this->Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
+					$Value = osrDeviceValue::dvBright_Min;
+				} elseif ($Value > osrDeviceValue::dvBright_Max) {
+					IPS_LogMessage("SymconOSR", $this->Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
+					$Value = osrDeviceValue::dvBright_Max;
+				}
+				break;
+
+			case "SATURATION":
+				if ($Value < osrDeviceValue::dvSat_Min) {
+					IPS_LogMessage("SymconOSR", $this->Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Min."%");
+					$Value = osrDeviceValue::dvSat_Min;
+				} elseif ($Value > osrDeviceValue::dvSat_Max) {
+					IPS_LogMessage("SymconOSR", $this->Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Max."%");
+					$Value = osrDeviceValue::dvSat_Max;
+				}
+				break;
 		}
 		
-		return false;
+		return $Value;	
 	}
 	
-
+	
 	public function SetValueEx(string $key, integer $Value, integer $Transition) {
 		if ($Transition < osrDeviceValue::dvTT_Min) {
 			IPS_LogMessage("SymconOSR", $this->Name." Transition [".$Transition."ms] out of range. Setting to ".osrDeviceValue::dvTT_Min."ms");

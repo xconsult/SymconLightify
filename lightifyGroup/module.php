@@ -18,15 +18,15 @@ class lightifyGroup extends lightifyDevice {
 		$data = json_decode(file_get_contents(__DIR__.DIRECTORY_SEPARATOR."form.json"));
 		$Instances = json_decode($this->ReadPropertyString("Instances"), true);
 		
-		foreach ($Instances as $key => $value) {
-			if (IPS_InstanceExists($value['DeviceID'])) {
-				$ModuleID = IPS_GetInstance($value['DeviceID'])['ModuleInfo']['ModuleID'];
+		foreach ($Instances as $k => $v) {
+			if (IPS_InstanceExists($v['DeviceID'])) {
+				$ModuleID = IPS_GetInstance($v['DeviceID'])['ModuleInfo']['ModuleID'];
 				
-				$HueID = @IPS_GetObjectIDByIdent('HUE', $value['DeviceID']);
-				$ColorID = @IPS_GetObjectIDByIdent('COLOR', $value['DeviceID']);
-				$ColorTempID = @IPS_GetObjectIDByIdent('COLOR_TEMPERATURE', $value['DeviceID']);
-				$BrightID = @IPS_GetObjectIDByIdent('BRIGHTNESS', $value['DeviceID']);
-				$SaturationID = @IPS_GetObjectIDByIdent('SATURATION', $value['DeviceID']);
+				$HueID = @IPS_GetObjectIDByIdent('HUE', $v['DeviceID']);
+				$ColorID = @IPS_GetObjectIDByIdent('COLOR', $v['DeviceID']);
+				$ColorTempID = @IPS_GetObjectIDByIdent('COLOR_TEMPERATURE', $v['DeviceID']);
+				$BrightID = @IPS_GetObjectIDByIdent('BRIGHTNESS', $v['DeviceID']);
+				$SaturationID = @IPS_GetObjectIDByIdent('SATURATION', $v['DeviceID']);
 
 				$Hue = ($HueID) ? GetValueInteger($HueID)."°" : "";
 				$Color = ($ColorID) ? strtoupper(str_pad(dechex(GetValueInteger($ColorID)), 6, 0, STR_PAD_LEFT)) : "";			
@@ -34,8 +34,8 @@ class lightifyGroup extends lightifyDevice {
 				$Bright = ($BrightID) ? GetValueInteger($BrightID)."%" : "";
 				$Saturation = ($SaturationID) ? GetValueInteger($SaturationID)."%" : "";
 				
-				$Online = GetValueBoolean(@IPS_GetObjectIDByIdent('ONLINE', $value['DeviceID']));
-				$State = GetValueBoolean(@IPS_GetObjectIDByIdent('STATE', $value['DeviceID']));
+				$Online = GetValueBoolean(@IPS_GetObjectIDByIdent('ONLINE', $v['DeviceID']));
+				$State = GetValueBoolean(@IPS_GetObjectIDByIdent('STATE', $v['DeviceID']));
 
 				if ($State) {
 					if ($ModuleID == osrIPSModule::omLight)
@@ -52,11 +52,11 @@ class lightifyGroup extends lightifyDevice {
 				}
 
 				$data->elements[1]->values[] = array(
-					"InstanceID" => $key,
-					"LightID" => IPS_GetProperty($value['DeviceID'], "DeviceID"),
+					"InstanceID" => $k,
+					"LightID" => IPS_GetProperty($v['DeviceID'], "DeviceID"),
 					//"State" => $State,
-					"Name" => IPS_GetName($value['DeviceID']),
-					//"UniqueID" => IPS_GetProperty($value['DeviceID'], "UniqueID"),
+					"Name" => IPS_GetName($v['DeviceID']),
+					//"UniqueID" => IPS_GetProperty($v['DeviceID'], "UniqueID"),
 					"Hue" => $Hue,
 					"Color" => ($Color != "") ? "#".$Color : "",
 					"CT" => ($ColorTemp != "") ? $ColorTemp."K" : "",
