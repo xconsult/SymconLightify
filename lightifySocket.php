@@ -85,7 +85,7 @@ class lightifySocket extends stdClass {
 	}
 	
 
-	public function setAllLightsState($Value) {
+	public function setAllDevicesState($Value) {
 		$args = str_repeat(chr(0xFF), 8).chr($Value);
 		$buffer = $this->sendData(chr(0x00), lightifyCommands::SETDEVICESTATE, $args);
 

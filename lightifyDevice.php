@@ -136,10 +136,10 @@ abstract class lightifyDevice extends IPSModule {
 					}
 
 					switch ($key) {
-						case "ALL_LIGHTS":
+						case "ALL_DEVICES":
 							if ($ModuleID == osrIPSModule::omLight) {
 								if ($Value == 0 || $Value == 1) {
-									if (false === ($result = $this->lightifySocket->setAllLightsState(($Value == 0) ? 0 : 1) )) return false;
+									if (false === ($result = $this->lightifySocket->setAllDevicesState(($Value == 0) ? 0 : 1) )) return false;
 									
 									foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omLight) as $key) {
 										$StateID = @IPS_GetObjectIDByIdent("STATE", $key);
