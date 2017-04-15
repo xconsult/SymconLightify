@@ -25,7 +25,7 @@ class lightifyGateway extends IPSModule {
     
     $this->RegisterPropertyString("Host", "");
     $this->RegisterPropertyInteger("Port", 4000);
-    $this->RegisterPropertyInteger("updateInterval", 30);
+    $this->RegisterPropertyInteger("updateInterval", 10);
     $this->RegisterPropertyString("Firmware", "");
 		$this->RegisterPropertyBoolean("Open", false);
 		
@@ -120,7 +120,7 @@ class lightifyGateway extends IPSModule {
 	  if (filter_var($this->ReadPropertyString("Host"), FILTER_VALIDATE_IP) === false) 
 	  	return $this->SetStatus(202);
 	
-    if ($this->ReadPropertyInteger("updateInterval") < 10)
+    if ($this->ReadPropertyInteger("updateInterval") < 5)
       return $this->SetStatus(203);
     
 		return $this->SetStatus(102);
