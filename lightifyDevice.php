@@ -146,7 +146,8 @@ abstract class lightifyDevice extends IPSModule {
 						case "ALL_DEVICES":
 							if ($Value == 0 || $Value == 1) {
 								if (false === ($result = $this->lightifySocket->setAllDevicesState(($Value == 0) ? 0 : 1) )) return false;
-								
+								//IPS_LogMessage("SymconOSR", $this->lightifyBase->decodeData($result));
+
 								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omLight) as $k)
 									$arrayDevices[]['DeviceID'] = $k;
 
@@ -159,7 +160,7 @@ abstract class lightifyDevice extends IPSModule {
 									
 						case "STATE":
 							if ($Value == 0 || $Value == 1) {
-								if ($this->lightifySocket->setState($MAC, $flag, $Value) === false) return false;
+								if (false === ($result = $this->lightifySocket->setState($MAC, $flag, $Value))) return false;
 								
 								switch ($ModuleID) {
 									case osrIPSModule::omLight:
@@ -184,7 +185,7 @@ abstract class lightifyDevice extends IPSModule {
 										$hex = str_pad(dechex($Value), 6, 0, STR_PAD_LEFT);
 										$rgb = $this->lightifyBase->HEX2RGB($hex);
 										
-										if ($this->lightifySocket->setColor($MAC, $flag, $rgb, $this->dvTransition) !== false) {
+										if (false !== ($result = $this->lightifySocket->setColor($MAC, $flag, $rgb, $this->dvTransition))) {
 											switch ($ModuleID) {
 												case osrIPSModule::omLight:
 													//fall-trough
@@ -207,7 +208,7 @@ abstract class lightifyDevice extends IPSModule {
 									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $value, $deviceType);
 
 									if ($ModuleID == osrIPSModule::omGroup || ($Value != $ColorTemp)) {
-										if ($this->lightifySocket->setColorTemperature($MAC, $flag, $Value, $this->dvTransition) === false) return false;
+										if (false === ($result = $this->lightifySocket->setColorTemperature($MAC, $flag, $Value, $this->dvTransition))) return false;
 										
 										switch ($ModuleID) {
 											case osrIPSModule::omLight:
@@ -228,10 +229,10 @@ abstract class lightifyDevice extends IPSModule {
 						case "BRIGHTNESS":
 							if ($ModuleID == osrIPSModule::omLight || $ModuleID == osrIPSModule::omGroup) {
 								if ($ModuleID == osrIPSModule::omGroup || ($State)) {
-									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $value);
+									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $Value);
 									
 									if ($ModuleID == osrIPSModule::omGroup || ($Value != $Bright)) {
-										if ($this->lightifySocket->setBrightness($MAC, $flag, $Value, $this->dvTransition) === false) return false;
+										if (false === ($result = $this->lightifySocket->setBrightness($MAC, $flag, $Value, $this->dvTransition))) return false;
 
 										switch ($ModuleID) {
 											case osrIPSModule::omLight:
@@ -252,13 +253,13 @@ abstract class lightifyDevice extends IPSModule {
 						case "SATURATION":
 							if (($ModuleID == osrIPSModule::omLight && $deviceType == osrDeviceType::dtRGBW) || $ModuleID == osrIPSModule::omGroup) {
 								if ($ModuleID == osrIPSModule::omGroup || ($State)) {
-									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $value);
+									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $Value);
 
 									if ($ModuleID == osrIPSModule::omGroup || ($Value != $Saturation)) {
 										$hex = $this->lightifyBase->HSV2HEX($Hue, $Value, $Bright);
 										$rgb = $this->lightifyBase->HEX2RGB($hex);
 										
-										if ($this->lightifySocket->setSaturation($MAC, $flag, $rgb, $this->dvTransition) !== false) {
+										if (false !== ($result = $this->lightifySocket->setSaturation($MAC, $flag, $rgb, $this->dvTransition))) {
 											switch ($ModuleID) {
 												case osrIPSModule::omLight:
 													//fall-trough
