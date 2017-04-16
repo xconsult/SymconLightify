@@ -45,7 +45,7 @@ class lightifySocket extends stdClass {
 		//socket options
 		stream_set_timeout($this->socket, 1);
 		stream_set_blocking($this->socket, 1);
-		stream_set_chunk_size($this->socket, 4096);
+		//stream_set_chunk_size($this->socket, 4096);
   }
 	
 	
