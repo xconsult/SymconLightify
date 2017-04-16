@@ -40,7 +40,7 @@ class lightifyGateway extends IPSModule {
     parent::ApplyChanges();
 		$this->configCheck();
 
-		$this->registerTimer("OSR_TIMER", $this->ReadPropertyInteger("updateInterval"), 'OSR_SyncDevices($_IPS[\'TARGET\'])');
+		$this->RegisterTimer("OSR_TIMER", $this->ReadPropertyInteger("updateInterval"), 'OSR_SyncGateway($_IPS[\'TARGET\'])');
 		//IPS_LogMessage("SymconOSR", "Device list: ".$this->ReadPropertyString("Categories"));
    }
 
@@ -87,7 +87,7 @@ class lightifyGateway extends IPSModule {
 	}
 
 
-  protected function registerTimer($Ident, $Interval, $Script) {
+ protected function RegisterTimer($Ident, $updateInterval, $Script) {
     $id = @IPS_GetObjectIDByIdent($Ident, $this->InstanceID);
 
     if ($id && IPS_GetEvent($id)['EventType'] <> 1) {
@@ -106,10 +106,10 @@ class lightifyGateway extends IPSModule {
     IPS_SetEventScript($id, "$Script;\n");
     if (!IPS_EventExists($id)) IPS_LogMessage("SymconOSR", "Ident with name [$Ident] used with wrong object type!");
 
-    if ($Interval < 10) {
-      IPS_SetEventCyclic($id, 0, 0, 0, 0, 1, 10);
+    if ($updateInterval < 10) {
+      return IPS_SetEventActive($id, false);
     } else {
-      IPS_SetEventCyclic($id, 0, 0, 0, 0, 1, $Interval);
+      IPS_SetEventCyclic($id, 0, 0, 0, 0, 1, $updateInterval);
     }
 
     IPS_SetEventActive($id, $this->ReadPropertyBoolean("Open"));
@@ -127,24 +127,33 @@ class lightifyGateway extends IPSModule {
   }
  
  
-	private function getCategories() {
+	private function getCategories($Mode = 0) {
 		if ($this->lightCategory == null || $this->plugCategory == null || $this->groupCategory == null || $this->switchCategory == null || $this->motionCategory == null) {
-			$deviceCategory = json_decode($this->ReadPropertyString("Categories"), true);
-		
+			$Instances = json_decode($this->ReadPropertyString("Categories"), true);
+	
 			list(
 				$this->lightCategory,
 				$this->plugCategory,  
 				$this->groupCategory, 
 				$this->switchCategory,
 				$this->motionCategory
-			) = $deviceCategory;
+			) = $Instances;
 		}
 		
-		if ($this->lightCategory['CategoryID'] > 0 && $this->lightCategory['SyncID']) return true;
-		if ($this->plugCategory['CategoryID'] > 0 && $this->plugCategory['SyncID']) return true;
-		if ($this->switchCategory['CategoryID'] > 0 && $this->switchCategory['SyncID']) return true;
-		if ($this->motionCategory['CategoryID'] > 0 && $this->motionCategory['SyncID']) return true;
-	
+		switch ($Mode) {
+			case 0:
+				return true;
+
+			case 1:		
+				if ($this->lightCategory['CategoryID'] > 0 && $this->lightCategory['SyncID']) return true;
+				if ($this->plugCategory['CategoryID'] > 0 && $this->plugCategory['SyncID']) return true;
+				if ($this->switchCategory['CategoryID'] > 0 && $this->switchCategory['SyncID']) return true;
+				if ($this->motionCategory['CategoryID'] > 0 && $this->motionCategory['SyncID']) return true;
+				
+			case 2:		
+				if ($this->groupCategory['CategoryID'] > 0 && $this->groupCategory['SyncID']) return true;
+		}
+		
 		return false;
 	}
  
@@ -159,7 +168,7 @@ class lightifyGateway extends IPSModule {
   } 	
 	
 	
-	public function syncDevices() {
+	public function SyncGateway() {
 		if ($this->ReadPropertyBoolean("Open")) {
 			$this->lightifyBase = new lightifyBase;	 			
 
@@ -175,7 +184,7 @@ class lightifyGateway extends IPSModule {
       		}
 				}
 
-				if ($this->getCategories()) {
+				if ($this->getCategories(1)) {
 					//Get paired devices
 					$this->arrayDevices = array();
 			
@@ -190,7 +199,7 @@ class lightifyGateway extends IPSModule {
 					}
 				}
 
-				if ($this->groupCategory['CategoryID'] > 0 && $this->groupCategory['SyncID']) {
+				if ($this->getCategories(2)) {
 					//Get group list
 					if (false !== ($buffer = $this->lightifySocket->getGroupList()) && strlen($buffer) > 28) {
 						$cnt = ord($buffer{9})+ord($buffer{10});

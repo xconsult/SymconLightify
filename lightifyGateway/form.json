@@ -29,7 +29,7 @@
     { "type": "ValidationTextBox", "name": "Firmware", "caption": "Firmware" }
   ],
   "actions": [
-    { "type": "Button", "label": "Sync devices", "onClick": "OSR_SyncDevices($id); echo 'Devices successfully synced!\n';" }
+    { "type": "Button", "label": "Sync devices", "onClick": "OSR_SyncGateway($id); echo 'Gateway data successfully synced!\n';" }
   ],
   "status": [
     { "code": 101, "icon": "active", "caption": "Creating gateway interface" },

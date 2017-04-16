@@ -19,7 +19,7 @@ abstract class lightifyDevice extends IPSModule {
     
     $this->Name = IPS_GetName($this->InstanceID);
     $this->lightifyBase = new lightifyBase;
-  }
+	}
 
 
   public function Create() {

@@ -37,15 +37,17 @@ class lightifySocket extends stdClass {
 	
 
   public function __construct ($host, $port) {
-		$this->socket = fsockopen($host, $port, $errno, $errstr, 5);
-		
-		if (!$this->socket)
-    	die("Unable to open socket: $errstr [$errno]");
+		if (!$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP))
+    	die('Unable to create AF_INET socket!');
+
+		//socket connect
+		if (socket_connect($this->socket, $host, $port) === false)
+			die('Unable to connect to AF_INET socket!');
 
 		//socket options
-		stream_set_timeout($this->socket, 1);
-		stream_set_blocking($this->socket, 1);
-		//stream_set_chunk_size($this->socket, 4096);
+		socket_set_block($this->socket);
+		//socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 1, 'usec' => 0));
+		//socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 1, 'usec' => 0));
   }
 	
 	
@@ -66,12 +68,11 @@ class lightifySocket extends stdClass {
 		if ($args != null) $data .= $args;
 		
 		$data = chr(strlen($data)).chr(0x00).$data;
-		$result = fwrite($this->socket, $data, strlen($data));
-		fflush($this->socket);
+		$result = socket_write($this->socket, $data, strlen($data));
 
 		if ($result > 0) {
-			if (false === ($buffer = fread($this->socket, 4096))) //Read 4096 bytes block
-				die("Unable to read from socket!");
+			if (false === ($buffer = socket_read($this->socket, 2048))) //Read 2048 bytes block
+				die('Unable to read from AF_INET socket!');
 			$length = strlen($buffer);
 
 			if ($length > 9) {
@@ -178,12 +179,8 @@ class lightifySocket extends stdClass {
 
 
 	function __desctruct() {
-		if ($this->socket) fclose($this-socket);
+		if ($this->socket) socket_close($this-socket);
 	}
 
 }
-
-
-
-
 
