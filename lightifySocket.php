@@ -44,6 +44,8 @@ class lightifySocket extends stdClass {
 
 		//socket options
 		stream_set_timeout($this->socket, 1);
+		stream_set_blocking($this->socket, 1);
+		stream_set_chunk_size($this->socket, 4096);
   }
 	
 	
@@ -65,9 +67,10 @@ class lightifySocket extends stdClass {
 		
 		$data = chr(strlen($data)).chr(0x00).$data;
 		$result = fwrite($this->socket, $data, strlen($data));
+		fflush($this->socket);
 
 		if ($result > 0) {
-			if (false === ($buffer = fread($this->socket, 2048))) //Read 2048 bytes block
+			if (false === ($buffer = fread($this->socket, 4096))) //Read 4096 bytes block
 				die("Unable to read from socket!");
 			$length = strlen($buffer);
 
