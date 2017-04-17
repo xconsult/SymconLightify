@@ -52,26 +52,37 @@ abstract class lightifyDevice extends IPSModule {
   }
 
 
+	public function ReceiveData(string $jsonString) { 	 
+		//$buffer = json_decode($jsonString);
+		//$data = utf8_decode($buffer->Buffer);
+		
+		IPS_LogMessage("SymconOSR", "Receive data: ");
+	}
+	
+	
   protected function openSocket() {
 		if ($this->ParentID) {
 			$host = IPS_GetProperty($this->ParentID, "Host");
 			$timeOut = IPS_GetProperty($this->ParentID, "TimeOut");
              
-			if ($timeOut && Sys_Ping($host, $timeOut) == true) {
-	  		if ($this->lightifySocket == null)  {
-					if ($host != "") return new lightifySocket($host, 4000);
-				}
-				
-				return $this->lightifySocket;
+			if ($timeOut > 0 && Sys_Ping($host, $timeOut) == true) {
+				IPS_LogMessage("SymconOSR", "Gateway is not reachable!");
+				return false;
 			}
+	  	
+	  	if ($this->lightifySocket == null)  {
+				if ($host != "") return new lightifySocket($host, 4000);
+			}
+				
+			return $this->lightifySocket;
 		}
 		
-		IPS_LogMessage("SymconOSR", "Gateway is not reachable!");
 		return false;
   }
   
   
-  public function SendData($socket, $MAC, $ModuleID) {
+  public function SendData($socket, $MAC, $ModuleID, $data = null, $syncGateway = false) {
+	  if ($syncGateway) return $this->SetDeviceInfo($data, $syncGateway);
 	  $this->lightifySocket = $socket;
 	  
 	  if ($this->lightifySocket = $this->openSocket()) {
@@ -149,14 +160,13 @@ abstract class lightifyDevice extends IPSModule {
 					switch ($key) {
 						case "ALL_DEVICES":
 							if ($Value == 0 || $Value == 1) {
-								if (false === ($result = $this->lightifySocket->setAllDevicesState(($Value == 0) ? 0 : 1) )) return false;
-								//IPS_LogMessage("SymconOSR", $this->lightifyBase->decodeData($result));
+								if (false !== ($result = $this->lightifySocket->setAllDevicesState(($Value == 0) ? 0 : 1) )) return false;
+								
+								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omLight) as $ids)
+									$arrayDevices[]['DeviceID'] = $ids;
 
-								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omLight) as $k)
-									$arrayDevices[]['DeviceID'] = $k;
-
-								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omPlug) as $k)
-									$arrayDevices[]['DeviceID'] = $k;
+								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omPlug) as $ids)
+									$arrayDevices[]['DeviceID'] = $ids;
 								
 								$this->setDeviceValue($arrayDevices, "STATE", $Value);
 							}
@@ -289,17 +299,17 @@ abstract class lightifyDevice extends IPSModule {
 
 
 	private function setDeviceValue($arrayDevices, $key, $Value) {
-		foreach ($arrayDevices as $k => $v) {
+		foreach ($arrayDevices as $index => $item) {
 			$ModuleID = IPS_GetInstance($v['DeviceID'])['ModuleInfo']['ModuleID'];
 			
 			if (($key == "STATE") || $ModuleID == osrIPSModule::omLight) {		
-				$OnlineID = @IPS_GetObjectIDByIdent("ONLINE", $v['DeviceID']);
+				$OnlineID = @IPS_GetObjectIDByIdent("ONLINE", $item['DeviceID']);
 				$Online = ($OnlineID) ? GetValueBoolean($OnlineID) : false;
 
 				if ($Online) {
-					if ($id = @IPS_GetObjectIDByIdent($key, $v['DeviceID'])) {
+					if ($id = @IPS_GetObjectIDByIdent($key, $item['DeviceID'])) {
 						if ($ModuleID == osrIPSModule::omLight)
-							$valueNew = $this->getValueRange(IPS_GetName($v['DeviceID']), $key, $Value, IPS_GetProperty($v['DeviceID'], "deviceType"));
+							$valueNew = $this->getValueRange(IPS_GetName($item['DeviceID']), $key, $Value, IPS_GetProperty($item['DeviceID'], "deviceType"));
 
 						$valueSave = GetValue($id);
 						if ($id && $valueSave != $valueNew) SetValue($id, $valueNew);
@@ -451,99 +461,105 @@ abstract class lightifyDevice extends IPSModule {
 	}
 	
 		
-	private function setDeviceInfo($data) {
-		//IPS_LogMessage("SymconOSR", IPS_GetName($this->InstanceID)." buffer length: ".strlen($data)."  online: ".ord($data{19})."  state: ".((ord($data{19}) == 0) ? ord($data{21}) : "0"));
-		$Mode = ord($data{19});
+	private function setDeviceInfo($data, $syncGateway = false) {
+		if ($syncGateway) {
+			$Mode = !((bool)ord($data{15})); //Online: 2 - Offline: 0
+			$byteShift = 6;
+			$byteSate = 3;
+		} else {
+			$Mode = ord($data{19});
+			$byteShift = $byteSate = 0;
+		}		
 		$result = false;
 			
-		if ($Mode == osrDeviceMode::dmOnline || $Mode == osrDeviceMode::dmOffline) {
-			$deviceType = IPS_GetProperty($this->InstanceID, "deviceType");
-			$Online = ($Mode == osrDeviceMode::dmOnline) ? true : false; //Online: 0 - Offline: 255
-			$State = ($Online) ? ord($data{21}) : false;
+		$deviceType = IPS_GetProperty($this->InstanceID, "deviceType");
+		$Online = ($Mode == osrDeviceMode::dmOnline) ? true : false; //Online: 0 - Offline: 255			
+		$State = ($Online) ? ord($data{21-$byteSate}) : false;
 			
-			if (!$OnlineID = @$this->GetIDForIdent("ONLINE")) {
-    		$OnlineID = $this->RegisterVariableBoolean("ONLINE", "Online", "", 1);
-				$this->EnableAction("ONLINE");
-    	}
+		if (!$OnlineID = @$this->GetIDForIdent("ONLINE")) {
+    	$OnlineID = $this->RegisterVariableBoolean("ONLINE", "Online", "", 1);
+			$this->EnableAction("ONLINE");
+    }
 
-			if (isset($OnlineID)) {
-				if (GetValueBoolean($OnlineID) != $Online) SetValueBoolean($OnlineID, $Online);
-				$result['ONLINE'] = $Online;
-		 	}
+		if (isset($OnlineID)) {
+			if (GetValueBoolean($OnlineID) != $Online) SetValueBoolean($OnlineID, $Online);
+			$result['ONLINE'] = $Online;
+		}
 		
-		 	if (!$StateID = @$this->GetIDForIdent("STATE")) {
-    		$StateID = $this->RegisterVariableBoolean("STATE", "State", "~Switch", 2);
-				$this->EnableAction("STATE");
-    	}
+		if (!$StateID = @$this->GetIDForIdent("STATE")) {
+    	$StateID = $this->RegisterVariableBoolean("STATE", "State", "~Switch", 2);
+			$this->EnableAction("STATE");
+    }
 
-			if (isset($StateID)) {
-				if (GetValueBoolean($StateID) != $State) SetValueBoolean($StateID, $State);
-				$result['STATE'] = $State;
-			}
+		if (isset($StateID)) {
+			if (GetValueBoolean($StateID) != $State) SetValueBoolean($StateID, $State);
+			$result['STATE'] = $State;
+		}
 
-			if (($deviceType == osrDeviceType::dtTW || $deviceType == osrDeviceType::dtClear || $deviceType == osrDeviceType::dtRGBW) && $Online) {
-				$data = substr($data, 9);
-				$rgb = ord($data{16}).ord($data{17}).	ord($data{18});
+		if (($syncGateway || $Online) && ($deviceType == osrDeviceType::dtTW || $deviceType == osrDeviceType::dtClear || $deviceType == osrDeviceType::dtRGBW)) {
+			if (!$syncGateway) $data = substr($data, 9);
+			$rgb = ord($data{16+$byteShift}).ord($data{17+$byteShift}).ord($data{18+$byteShift});
 
-				if ($deviceType == osrDeviceType::dtRGBW) {
-					//$Alpha = ord($data{19});
-					$hex = $this->lightifyBase->RGB2HEX(array('r' => ord($data{16}), 'g' => ord($data{17}), 'b' => ord($data{18})));
-					$hsv = $this->lightifyBase->HEX2HSV($hex);
+			if ($deviceType == osrDeviceType::dtRGBW) {
+				//$Alpha = ord($data{19});
+				$hex = $this->lightifyBase->RGB2HEX(array('r' => ord($data{16+$byteShift}), 'g' => ord($data{17+$byteShift}), 'b' => ord($data{18+$byteShift})));
+				$hsv = $this->lightifyBase->HEX2HSV($hex);
 
-					if (!$HueID = @$this->GetIDForIdent("HUE")) {
-						$HueID = $this->RegisterVariableInteger("HUE", "Hue", "OSR.Hue", 0);
-						$this->EnableAction("HUE");
-   				}
+				if (!$HueID = @$this->GetIDForIdent("HUE")) {
+					$HueID = $this->RegisterVariableInteger("HUE", "Hue", "OSR.Hue", 0);
+					$this->EnableAction("HUE");
+   			}
    			
-	 				if (isset($HueID)) {
-	   				if (GetValueInteger($HueID) != ($Hue = $hsv['h'])) SetValueInteger($HueID, $Hue);
-		 				$result['HUE'] = $Hue;
-	 				}
+	 			if (isset($HueID)) {
+	   			if (GetValueInteger($HueID) != ($Hue = $hsv['h'])) SetValueInteger($HueID, $Hue);
+		 			$result['HUE'] = $Hue;
+	 			}
    	
-	 				if (!$ColorID = @$this->GetIDForIdent("COLOR")) {
-	 					$ColorID = $this->RegisterVariableInteger("COLOR", "Color", "~HexColor", 3);
-	 					$this->EnableAction("COLOR");
-	 				}
+	 			if (!$ColorID = @$this->GetIDForIdent("COLOR")) {
+	 				$ColorID = $this->RegisterVariableInteger("COLOR", "Color", "~HexColor", 3);
+	 				$this->EnableAction("COLOR");
+	 			}
 
-	 				if (isset($ColorID)) {
-		 				if (GetValueInteger($ColorID) != ($Color = hexdec($hex))) SetValueInteger($ColorID, $Color);
-		 				$result['COLOR'] = $Color;
-	 				}
+	 			if (isset($ColorID)) {
+		 			if (GetValueInteger($ColorID) != ($Color = hexdec($hex))) SetValueInteger($ColorID, $Color);
+		 			$result['COLOR'] = $Color;
+	 			}
 	 			
-	 				if (!$SaturationID = @$this->GetIDForIdent("SATURATION")) {
-	 					$SaturationID = $this->RegisterVariableInteger("SATURATION", "Saturation", "~Intensity.100", 6);
-	 					$this->EnableAction("SATURATION");
-	 				}
+	 			if (!$SaturationID = @$this->GetIDForIdent("SATURATION")) {
+	 				$SaturationID = $this->RegisterVariableInteger("SATURATION", "Saturation", "~Intensity.100", 6);
+	 				$this->EnableAction("SATURATION");
+	 			}
 	 				
-	 				if (isset($SaturationID)) {
-						if (GetValueInteger($SaturationID) != ($Saturation = $hsv['s'])) SetValueInteger($SaturationID, $Saturation);
-						$result['SATURATION'] = $Saturation;
-	 				}
-				}
-
-				if ($deviceType == 2 || $deviceType == 10) {
-   				if (!$ColorTempID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
-      			$ColorTempID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTemperature", 4);
-						$this->EnableAction("COLOR_TEMPERATURE");
-   				}
-	
-	 				if (isset($ColorTempID)) {
-		 				if (GetValueInteger($ColorTempID) != ($ColorTemp = hexdec(dechex(ord($data{15})).dechex(ord($data{14}))))) SetValueInteger($ColorTempID, $ColorTemp);  
-		 				$result['COLOR_TEMPERATURE'] = $ColorTemp;
-	 				}
-   			}
-
-	 			if (!$BrightID = @$this->GetIDForIdent("BRIGHTNESS")) {
-      		$BrightID = $this->RegisterVariableInteger("BRIGHTNESS", "Brightness", "~Intensity.100", 5);
-					$this->EnableAction("BRIGHTNESS");
-   			}
-
-	 			if (isset($BrightID)) {
-	 				//$Bright = ($deviceType == osrDeviceType::dtRGBW) ? $hsv['v'] : ord($data{13});
-	 				if (GetValueInteger($BrightID) != ($Bright = ($deviceType == osrDeviceType::dtRGBW) ? $hsv['v'] : ord($data{13}))) SetValueInteger($BrightID, $Bright);
-	 				$result['BRIGHTNESS'] = $Bright;
- 				}
+	 			if (isset($SaturationID)) {
+					if (GetValueInteger($SaturationID) != ($Saturation = $hsv['s'])) SetValueInteger($SaturationID, $Saturation);
+					$result['SATURATION'] = $Saturation;
+	 			}
 			}
+
+			if ($deviceType == 2 || $deviceType == 10) {
+   			if (!$ColorTempID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
+      		$ColorTempID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTemperature", 4);
+					$this->EnableAction("COLOR_TEMPERATURE");
+   			}
+	
+	 			if (isset($ColorTempID)) {
+		 			$ColorTemp = hexdec(dechex(ord($data{15+$byteShift})).dechex(ord($data{14+$byteShift})));				
+		 			if (GetValueInteger($ColorTempID) != $ColorTemp) SetValueInteger($ColorTempID, $ColorTemp); 
+		 				 
+		 			$result['COLOR_TEMPERATURE'] = $ColorTemp;
+	 			}
+   		}
+
+	 		if (!$BrightID = @$this->GetIDForIdent("BRIGHTNESS")) {
+      	$BrightID = $this->RegisterVariableInteger("BRIGHTNESS", "Brightness", "~Intensity.100", 5);
+				$this->EnableAction("BRIGHTNESS");
+   		}
+
+	 		if (isset($BrightID)) {
+	 			$Bright = ($deviceType == osrDeviceType::dtRGBW) ? $hsv['v'] : ord($data{13+$byteShift});
+	 			if (GetValueInteger($BrightID) != $Bright) SetValueInteger($BrightID, $Bright);
+	 			$result['BRIGHTNESS'] = $Bright;
+ 			}
 		}
 	
 		return $result;

@@ -38,11 +38,11 @@ class lightifySocket extends stdClass {
 
   public function __construct ($host, $port) {
 		if (!$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP))
-    	die("Unable to create socket: ".socket_strerror(socket_last_error()));
+    	die("Unable to create socket: ".socket_strerror(socket_last_error())."\n");
 
 		//socket connect
 		if (socket_connect($this->socket, $host, $port) === false)
-			die("Unable to connect to socket: ".socket_strerror(socket_last_error($this->socket)));
+			die("Unable to connect to socket: ".socket_strerror(socket_last_error($this->socket))."\n");
 
 		//socket options
 		socket_set_block($this->socket);
@@ -75,11 +75,11 @@ class lightifySocket extends stdClass {
 						if (0 == ($errno = ord($buffer{8}))) return $buffer;
 					}
 				} else {
-					echo "Error reading from socket: ".socket_strerror(socket_last_error($this->socket));
+					echo "Error reading from socket: ".socket_strerror(socket_last_error($this->socket))."\n";
 				}
 			}
 		} else {
-			echo "Error writing to socket: ".socket_strerror(socket_last_error($this->socket));
+			echo "Error writing to socket: ".socket_strerror(socket_last_error($this->socket))."\n";
 		}
 
 		return false;
@@ -98,7 +98,7 @@ class lightifySocket extends stdClass {
 		$args = $MAC.chr($Value);
 		$buffer = $this->sendData($flag, lightifyCommands::SETDEVICESTATE, $args);
 		
-		return ((strlen($buffer) == 20) ? $buffer : false);
+		return (($buffer !== false && strlen($buffer) == 20) ? $buffer : false);
 	}
 	
 
@@ -106,7 +106,7 @@ class lightifySocket extends stdClass {
 		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(dechex($Transition)).chr(0x00);
 		$buffer = $this->sendData($flag, lightifyCommands::SETBULBCOLOR, $args);
 
-		return ((strlen($buffer) == 20) ? $buffer : false);
+		return (($buffer !== false && strlen($buffer) == 20) ? $buffer : false);
 	}
 
 
@@ -117,7 +117,7 @@ class lightifySocket extends stdClass {
 		$args = $MAC.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(dechex($Transition)).chr(0x00);
 		$buffer = $this->sendData($flag, lightifyCommands::SETCOLORTEMP, $args);
 	
-		return ((strlen($buffer) == 20) ? $buffer : false);
+		return (($buffer !== false && strlen($buffer) == 20) ? $buffer : false);
 	}
 
 
@@ -125,7 +125,7 @@ class lightifySocket extends stdClass {
 		$args = $MAC.chr($Value).chr(dechex($Transition)).chr(0x00);
 		$buffer = $this->sendData($flag, lightifyCommands::SETBULBBRIGHT, $args);
 
-		return ((strlen($buffer) == 20) ? $buffer : false);
+		return (($buffer !== false && strlen($buffer) == 20) ? $buffer : false);
 	}
 
 
@@ -133,7 +133,7 @@ class lightifySocket extends stdClass {
 		$args = $MAC.chr($Value['r']).chr($Value['g']).chr($Value['b']).chr(0xFF).chr(dechex($Transition)).chr(0x00);
 		$buffer = $this->sendData($flag, lightifyCommands::SETBULBCOLOR, $args);
 
-		return ((strlen($buffer) == 20) ? $buffer : false);
+		return (($buffer !== false && strlen($buffer) == 20) ? $buffer : false);
 	}
 
 
@@ -144,7 +144,7 @@ class lightifySocket extends stdClass {
 		$args = $MAC.(($Cycle) ? chr(0x01) : chr(0x00)).chr(hexdec(substr($Value, 2, 2))).chr(hexdec(substr($Value, 0, 2)));
 		$buffer = $this->sendData(chr(0x00), lightifyCommands::BULBCOLORCYCLE, $args);
 
-		return ((strlen($buffer) == 20) ? $buffer : false);
+		return (($buffer !== false && strlen($buffer) == 20) ? $buffer : false);
 	}
 			
 								
