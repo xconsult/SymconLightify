@@ -1,24 +1,20 @@
 {
   "elements": [
-	  { "type": "CheckBox", "name": "Open", "caption": " Open" },
-    { "name": "Host", "type": "ValidationTextBox", "caption": "Host" },
-    { "type": "Select", "name": "Port", "caption": "Port",
-	    "options": [
-        { "label": "4000", "value": 4000 }
-      ]
-    },
-    { "name": "updateInterval", "type": "IntervalBox", "caption": "seconds" },
-    { "type": "List", "name": "Categories", "caption": "Categories", 
+	  { "type": "CheckBox", 			"name": "Open", 							"caption": " Open" },
+    { "name": "Host", 					"type": "ValidationTextBox",	"caption": "IP address/Host" },
+		{ "name": "TimeOut", 				"type": "NumberSpinner",			"caption": "Maximal ping timeout" },
+    { "name": "updateInterval", "type": "IntervalBox", 				"caption": "seconds" },
+    { "type": "List", 					"name": "Categories", 				"caption": "Categories", 
 			"columns": [
-				{ "label": "Device type", "name": "Device", "width": "75px" },
-        { "label": "Device category", "name": "Category", "width": "auto" },
-        { "label": "Category ID", "name": "CategoryID", "width": "60px", "visible": false,
+				{ "label": "Device type", 		"name": "Device", 		"width": "75px" },
+        { "label": "Device category",	"name": "Category", 	"width": "auto" },
+        { "label": "Category ID", 		"name": "CategoryID",	"width": "60px", "visible": false,
         	"edit": {
           	"type": "SelectCategory"
         	}
         },
-        { "label": "Sync", "name": "Sync", "width": "40px" },
-				{ "label": "Sync ID", "name": "SyncID", "width": "40px", "visible": false,
+        { "label": "Sync",		"name": "Sync",		"width": "40px" },
+				{ "label": "Sync ID",	"name": "SyncID",	"width": "40px", "visible": false,
 					"edit": {
           	"type": "CheckBox", "caption": " Synchronise data"
         	}
@@ -26,18 +22,18 @@
 			]
 		},
     { "type": "Label", "label": "Gateway firmware version will be filled in automatically on save. Update will only be visible when reopening form." },
-    { "type": "ValidationTextBox", "name": "Firmware", "caption": "Firmware" }
+    { "type": "ValidationTextBox",	"name": "Firmware", "caption": "Firmware" }
   ],
   "actions": [
-    { "type": "Button", "label": "Sync devices", "onClick": "OSR_SyncGateway($id); echo 'Gateway data successfully synced!\n';" }
+    { "type": "Button", "label": "Sync Gateway data", "onClick": "OSR_SyncGateway($id); echo 'Gateway data successfully synced!\n';" }
   ],
   "status": [
-    { "code": 101, "icon": "active", "caption": "Creating gateway interface" },
-    { "code": 102, "icon": "active", "caption": "Gateway is active" },
-    { "code": 103, "icon": "active", "caption": "Deleting gateway interface" },
-    { "code": 104, "icon": "inactive", "caption": "Please enter all required informations!" },
-    { "code": 202, "icon": "error", "caption": "Invalid IP address!" },
-    { "code": 203, "icon": "error", "caption": "Minimum update interval 10 seconds!" },
-    { "code": 299, "icon": "error", "caption": "Unknown error!" }
+    { "code": 101, "icon": "active",		"caption": "Creating gateway interface" },
+    { "code": 102, "icon": "active",		"caption": "Gateway is active" },
+    { "code": 103, "icon": "active",		"caption": "Deleting gateway interface" },
+    { "code": 104, "icon": "inactive",	"caption": "Please enter all required informations!" },
+    { "code": 202, "icon": "error",			"caption": "Invalid IP address!" },
+    { "code": 203, "icon": "error",			"caption": "Minimum update interval 10 seconds!" },
+    { "code": 299, "icon": "error",			"caption": "Unknown error!" }
   ]
 }

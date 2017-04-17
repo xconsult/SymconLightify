@@ -17,6 +17,7 @@ abstract class lightifyDevice extends IPSModule {
   public function __construct($InstanceID) {
     parent::__construct($InstanceID);
     
+    $this->ParentID = IPS_GetInstance($this->InstanceID)['ConnectionID'];
     $this->Name = IPS_GetName($this->InstanceID);
     $this->lightifyBase = new lightifyBase;
 	}
@@ -52,18 +53,21 @@ abstract class lightifyDevice extends IPSModule {
 
 
   protected function openSocket() {
-	  if ($this->lightifySocket == null) {
-		  $Instance = IPS_GetInstance($this->InstanceID);
-			$this->ParentID = ($Instance['ConnectionID'] > 0) ? $Instance['ConnectionID'] : false;
-    
-			if ($this->ParentID) {
-	    	$host = IPS_GetProperty($this->ParentID, "Host");
-				if ($host != "") return new lightifySocket($host, IPS_GetProperty($this->ParentID, "Port"));
+		if ($this->ParentID) {
+			$host = IPS_GetProperty($this->ParentID, "Host");
+			$timeOut = IPS_GetProperty($this->ParentID, "TimeOut");
+             
+			if ($timeOut && Sys_Ping($host, $timeOut) == true) {
+	  		if ($this->lightifySocket == null)  {
+					if ($host != "") return new lightifySocket($host, 4000);
+				}
+				
+				return $this->lightifySocket;
 			}
-			return false;
 		}
 		
-		return $this->lightifySocket;
+		IPS_LogMessage("SymconOSR", "Gateway is not reachable!");
+		return false;
   }
   
   
@@ -426,20 +430,20 @@ abstract class lightifyDevice extends IPSModule {
 	}
 	
 
-	public function SyncState() {
+	public function SyncDevice() {
 		$ModuleID = IPS_GetInstance($this->InstanceID)['ModuleInfo']['ModuleID'];
 
-		if ($ModuleID == osrIPSModule::omLight) {
+		if ($ModuleID == osrIPSModule::omLight || $ModuleID == osrIPSModule::omPlug) {
 			if ($this->lightifySocket = $this->openSocket()) {
 				$MAC = $this->lightifyBase->uniqueIDToChr($this->getUniqueID());
 
 				if (false !== ($result = $this->sendData($this->lightifySocket, $MAC, $ModuleID))) {
-					echo "Light state successfully synced!\n";
+					echo "Device state successfully synced!\n";
 					return $result;
 				}
 			}
 		
-			echo "Light state sync failed!";
+			echo "Device state sync failed!";
 			IPS_LogMessage("SymconOSR", "Light state sync failed!");
 		}
 		

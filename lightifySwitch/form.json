@@ -1,8 +1,8 @@
 {
   "elements": [
-    { "type": "ValidationTextBox", "name": "UniqueID", "caption": "Unique ID" },
-    { "type": "ValidationTextBox", "name": "deviceModel", "caption": "Model" }, 
-    { "type": "ValidationTextBox", "name": "deviceLabel", "caption": "Type" },
-    { "type": "ValidationTextBox", "name": "Firmware", "caption": "Firmware" }
+    { "type": "ValidationTextBox",	"name": "UniqueID",			"caption": "Unique ID" },
+    { "type": "ValidationTextBox",	"name": "deviceModel",	"caption": "Model" }, 
+    { "type": "ValidationTextBox",	"name": "deviceLabel",	"caption": "Type" },
+    { "type": "ValidationTextBox",	"name": "Firmware",			"caption": "Firmware" }
   ],
 }

@@ -38,16 +38,16 @@ class lightifySocket extends stdClass {
 
   public function __construct ($host, $port) {
 		if (!$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP))
-    	die('Unable to create AF_INET socket!');
+    	die("Unable to create socket: ".socket_strerror(socket_last_error()));
 
 		//socket connect
 		if (socket_connect($this->socket, $host, $port) === false)
-			die('Unable to connect to AF_INET socket!');
+			die("Unable to connect to socket: ".socket_strerror(socket_last_error($this->socket)));
 
 		//socket options
 		socket_set_block($this->socket);
-		//socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 1, 'usec' => 0));
-		//socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 1, 'usec' => 0));
+		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 3, 'usec' => 0));
+		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 3, 'usec' => 0));
   }
 	
 	
@@ -65,20 +65,21 @@ class lightifySocket extends stdClass {
 	protected function sendData($flag, $command, $args = null) {
 		//$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
 		$data = $flag.chr($command).$this->getSessionToken();
-		if ($args != null) $data .= $args;
-		
+		if ($args != null) $data .= $args;	
 		$data = chr(strlen($data)).chr(0x00).$data;
-		$result = socket_write($this->socket, $data, strlen($data));
-
-		if ($result > 0) {
-			if (false === ($buffer = socket_read($this->socket, 2048))) //Read 2048 bytes block
-				die('Unable to read from AF_INET socket!');
-			$length = strlen($buffer);
-
-			if ($length > 9) {
-				//$errno = ord($buffer{8});
-				if (0 == ($errno = ord($buffer{8}))) return $buffer;
+		
+		if (false !== ($bytes = socket_write($this->socket, $data, strlen($data)))) {
+			if ($bytes > 0) {
+				if (false !== ($buffer = socket_read($this->socket, 4096)))  { //Read 4096 bytes block
+					if (strlen($buffer) > 9) {
+						if (0 == ($errno = ord($buffer{8}))) return $buffer;
+					}
+				} else {
+					echo "Error reading from socket: ".socket_strerror(socket_last_error($this->socket));
+				}
 			}
+		} else {
+			echo "Error writing to socket: ".socket_strerror(socket_last_error($this->socket));
 		}
 
 		return false;
