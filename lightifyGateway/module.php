@@ -213,6 +213,11 @@ class lightifyGateway extends IPSModule {
 		$this->arrayDevices = array();
 
 		for ($indexDevice = 1; $indexDevice <= $countDevice; $indexDevice++) {
+			unset($deviceModel);
+			unset($deviceLabel);
+
+			$ModuleID = "";
+			$CategoryID = 0;
 			$apply = false;
 		
 			$MAC = substr($data, 2, 8);
@@ -246,7 +251,7 @@ class lightifyGateway extends IPSModule {
 					}
 					break;
 				
-				case osrDeviceType::dtPlug:	//Lightify plug
+				case osrDeviceType::dtPlug:	//Lightify Plug
 					if ($sync = $this->plugCategory['SyncID']) {
 						$ModuleID = osrIPSModule::omPlug; //Lightify Plug
 						$CategoryID = ($this->plugCategory['SyncID']) ? $this->plugCategory['CategoryID'] : 0;
@@ -256,19 +261,19 @@ class lightifyGateway extends IPSModule {
 					}
 					break;
 
-				case osrDeviceType::dtMotion:	//Lightify motion
+				case osrDeviceType::dtMotion:	//Lightify Motion
 					if ($sync = $this->motionCategory['SyncID']) {
 						$deviceModel = "Lightify Motion";
 						$deviceLabel = "Osram Motion Sensor";
 					}
 					break;
 						
-				case osrDeviceType::dtDimmer:	//Lightify dimmer - 2 buttons
+				case osrDeviceType::dtDimmer:	//Lightify Dimmer - 2 buttons
 					$deviceModel = "Osram Lightify Dimmer";
 					$deviceLabel = "2 Button Dimmer";
 					//fall-through 65
 				
-				case osrDeviceType::dtSwitch:	//Lightify switch - 4 buttons
+				case osrDeviceType::dtSwitch:	//Lightify Switch - 4 buttons
 					if ($sync = $this->switchCategory['SyncID']) {
 						$ModuleID = osrIPSModule::omSwitch; //Lightify Switch
 						$CategoryID = ($this->switchCategory['SyncID']) ? $this->switchCategory['CategoryID'] : 0;
@@ -394,7 +399,9 @@ class lightifyGateway extends IPSModule {
 	private function setGroupInfo($DeviceID, $MAC) {
 		$Instances = array();
 
-		if (false !== ($data = OSR_SendData($DeviceID, $this->lightifySocket, $MAC, osrIPSModule::omGroup))) {
+		if (false !== ($data = OSR_SendData($DeviceID, $this->lightifySocket, $MAC, osrIPSModule::omGroup, null, false))) {
+			//IPS_LogMessage("SymconOSR", "Receive data : ".$this->lightifyBase->decodeData($data));
+
 			if (strlen($data) > 27) {
 				$countDevice = ord($data{27});
 				$data = substr($data, 28); //Renove 28 byte header
