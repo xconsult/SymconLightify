@@ -339,8 +339,6 @@ class lightifyGateway extends IPSModule {
 				if ($apply) IPS_ApplyChanges($DeviceID);
 
 				if ($ModuleID == osrIPSModule::omLight || $ModuleID == osrIPSModule::omPlug) {
-					$this->SendDataToChildren(json_encode(array("DataID" => osrIPSModule::omGateway, "Buffer" => utf8_decode($data))));		
-
 					$result = OSR_SendData($DeviceID, null, null, null, $data, true);
 					$this->arrayDevices[] = array('DeviceID' => $DeviceID, 'UniqueID' => $UniqueID);
 				}
@@ -429,3 +427,4 @@ class lightifyGateway extends IPSModule {
   }
 
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
