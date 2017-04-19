@@ -88,7 +88,7 @@ abstract class lightifyDevice extends IPSModule {
 					
 					if ($buffer !== false) {
 						if ($length == 20 || $length == 32) {
-							return $this->setDeviceInfo($buffer);
+							return $this->setDeviceInfo($buffer, $syncGateway);
 						}
 					}
 					return false;
