@@ -2,19 +2,19 @@
 
 //IPS variable types
 class osrIPSVariable extends stdClass {
-	
+
 	const vtNone = -1;
 	const vtBoolean = 0;
 	const vtInteger = 1;
 	const vtFloat = 2;
 	const vtString = 3;
-    
+
 }
 
 
 //IPS device modules
 class osrIPSModule extends stdClass {
-	
+
 	const omGateway = "{C3859938-D71C-4714-8B02-F2889A62F481}";
 	const omLight = "{42DCB28E-0FC3-4B16-ABDB-ADBF33A69032}";
 	const omPlug = "{80AC7E4B-E3A2-475C-8D54-12802F14DD80}";
@@ -26,7 +26,7 @@ class osrIPSModule extends stdClass {
 
 //Device types
 class osrDeviceType extends stdClass {
-	
+
 	const dtTW = 2;
 	const dtClear = 4;
 	const dtRGBW = 10;
@@ -40,7 +40,7 @@ class osrDeviceType extends stdClass {
 
 //Device modes
 class osrDeviceMode extends stdClass {
-	
+
 	const dmOnline = 0;
 	const dmOffline = 255;
 
@@ -76,13 +76,13 @@ class osrDeviceValue extends stdClass {
 
 //Base functions	
 class lightifyBase extends stdClass {
-	
+
 	public function decodeData($data) {
 		$Decode = "";
 
 		for ($i = 0; $i < strlen($data); $i++)
 			$Decode = $Decode." ".sprintf("%02d", ord($data{$i}));
-		
+
 		return $Decode;
 	}
 
@@ -101,7 +101,7 @@ class lightifyBase extends stdClass {
 	public function chrToUniqueID($UniqueID) {
 		$length = strlen($UniqueID);
 		$result = array();
-	
+
 		for ($i = 0; $i < $length; $i++) {
 			$hex = dechex(ord(substr($UniqueID, $i, 1)));
 			if (strlen($hex) == 1) $hex = "0".$hex;
@@ -115,9 +115,9 @@ class lightifyBase extends stdClass {
 
 		return implode(":", array_reverse($result));
 	}
-	
 
- 	public function HEX2HSV($hex) {
+
+	public function HEX2HSV($hex) {
 		$r = substr($hex, 0, 2);
 		$g = substr($hex, 2, 2);
 		$b = substr($hex, 4, 2);
@@ -137,7 +137,7 @@ class lightifyBase extends stdClass {
 		if ($chroma == 0)
 			return array('h' => 0, 's' => 0, 'v' => round($dV));
 		$dS = ($chroma/$maxRGB)*100;
-    
+
 		switch ($minRGB) {
 			case $r:
 				$h = 3-(($g-$b)/$chroma);
@@ -194,7 +194,7 @@ class lightifyBase extends stdClass {
 				break;
 
 			case 2:
-				$r = 0; $g = $dC; $b = $dX; 
+				$r = 0; $g = $dC; $b = $dX;
 				break;
 
 			case 3:
