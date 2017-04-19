@@ -51,20 +51,12 @@ abstract class lightifyDevice extends IPSModule {
     $this->ConnectParent(osrIPSModule::omGateway);
   }
 
-
-	public function ReceiveData(string $jsonString) { 	 
-		//$buffer = json_decode($jsonString);
-		//$data = utf8_decode($buffer->Buffer);
-		
-		IPS_LogMessage("SymconOSR", "Receive data: ");
-	}
-	
 	
   protected function openSocket() {
 		if ($this->ParentID) {
 			$host = IPS_GetProperty($this->ParentID, "Host");
 			$timeOut = IPS_GetProperty($this->ParentID, "TimeOut");
-             
+			
 			if ($timeOut > 0 && Sys_Ping($host, $timeOut) == true) {
 				IPS_LogMessage("SymconOSR", "Gateway is not reachable!");
 				return false;
@@ -566,3 +558,4 @@ abstract class lightifyDevice extends IPSModule {
 	}
 
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                
