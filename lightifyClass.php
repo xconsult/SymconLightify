@@ -138,9 +138,13 @@ class lightifyBase extends stdClass {
 
 		return implode(":", array_reverse($result));
 	}
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/master
 
 
- 	public function HEX2HSV($hex) {
+	public function HEX2HSV($hex) {
 		$r = substr($hex, 0, 2);
 		$g = substr($hex, 2, 2);
 		$b = substr($hex, 4, 2);
@@ -217,7 +221,7 @@ class lightifyBase extends stdClass {
 				break;
 
 			case 2:
-				$r = 0; $g = $dC; $b = $dX; 
+				$r = 0; $g = $dC; $b = $dX;
 				break;
 
 			case 3:

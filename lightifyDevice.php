@@ -17,15 +17,24 @@ abstract class lightifyDevice extends IPSModule {
 	public function __construct($InstanceID) {
 		parent::__construct($InstanceID);
 
+<<<<<<< HEAD
 		if (@IPS_InstanceExists($InstanceID)) {
 			$this->ParentID = @IPS_GetInstance($InstanceID)['ConnectionID'];
 			$this->Name = @IPS_GetName($InstanceID);
 			$this->lightifyBase = new lightifyBase;
+=======
+		if (@IPS_InstanceExists($this->InstanceID)) {
+			$this->ParentID = @IPS_GetInstance($this->InstanceID)['ConnectionID'];
+			$this->Name = @IPS_GetName($this->InstanceID);
+			$this->lightifyBase = new lightifyBase;
+		} else {
+			throw new Exception(" Instance [".$this->InstanceID."] does not exist. Exiting...");
+>>>>>>> origin/master
 		}
 	}
 
 
-  public function Create() {
+	public function Create() {
 		if (!IPS_VariableProfileExists("OSR.Hue")) {
 			IPS_CreateVariableProfile("OSR.Hue", osrIPSVariable::vtInteger);
 			IPS_SetVariableProfileDigits("OSR.Hue", 0);
@@ -43,6 +52,7 @@ abstract class lightifyDevice extends IPSModule {
 
 		parent::Create();
 	}
+<<<<<<< HEAD
 
 
 	abstract protected function getUniqueID();
@@ -76,6 +86,16 @@ abstract class lightifyDevice extends IPSModule {
 					break;
 			}
 		}
+=======
+
+
+	abstract protected function getUniqueID();
+
+
+	public function ApplyChanges() {
+		parent::ApplyChanges();
+		$this->ConnectParent(osrIPSModule::omGateway);
+>>>>>>> origin/master
 	}
 
 
@@ -89,7 +109,11 @@ abstract class lightifyDevice extends IPSModule {
 				return false;
 			}
 
+<<<<<<< HEAD
 			if ($this->lightifySocket == null)  {
+=======
+	  	if ($this->lightifySocket == null)  {
+>>>>>>> origin/master
 				if ($host != "") return new lightifySocket($host, 4000);
 			}
 
@@ -97,10 +121,18 @@ abstract class lightifyDevice extends IPSModule {
 		}
 
 		return false;
+<<<<<<< HEAD
 }
 
 
 	public function SendData($socket, $MAC, $ModuleID) {
+=======
+	}
+
+
+	public function SendData($socket, $MAC, $ModuleID, $data = null, $syncGateway = false) {
+		if ($syncGateway) return $this->SetDeviceInfo($data, $syncGateway);
+>>>>>>> origin/master
 		$this->lightifySocket = $socket;
 
 		if ($this->lightifySocket = $this->openSocket()) {
@@ -111,18 +143,32 @@ abstract class lightifyDevice extends IPSModule {
 				case osrIPSModule::omPlug: //Lightify Plug
 					$buffer = $this->lightifySocket->getDeviceInfo($MAC);
 					$length = strlen($buffer);
+<<<<<<< HEAD
 					
 					if ($buffer !== false && ($length == 20 || $length == 32))
 						return $this->setDeviceInfo($buffer, IPS_GetProperty($this->InstanceID, "deviceType"));
 					return false;
 
+=======
+
+					if ($buffer !== false) {
+						if ($length == 20 || $length == 32) {
+							return $this->setDeviceInfo($buffer, $syncGateway);
+						}
+					}
+					return false;
+
+				case osrIPSModule::omGroup: //Lightify Group/Zone
+					return $this->lightifySocket->getGroupInfo($MAC);
+
+>>>>>>> origin/master
 				case osrIPSModule::omSwitch; //Lightify Switch
 					return false;
 			}
 		}
 	}
 
-	
+
 	public function SetValue(string $key, integer $Value) {
 		$ModuleID = IPS_GetInstance($this->InstanceID)['ModuleInfo']['ModuleID'];
 		$result = false;
@@ -153,7 +199,7 @@ abstract class lightifyDevice extends IPSModule {
 								$HueID = @IPS_GetObjectIDByIdent('HUE', $this->InstanceID);
 								$ColorID = @IPS_GetObjectIDByIdent('COLOR', $this->InstanceID);
 								$SaturationID = @IPS_GetObjectIDByIdent('SATURATION', $this->InstanceID);
-							
+
 								$Hue = ($HueID) ? GetValueInteger($HueID) : 0;
 								$Color = ($ColorID) ? GetValueInteger($ColorID) : 0;
 								$Saturation = ($SaturationID) ? GetValueInteger($SaturationID) : 0;
@@ -172,7 +218,11 @@ abstract class lightifyDevice extends IPSModule {
 					switch ($key) {
 						case "ALL_DEVICES":
 							if ($Value == 0 || $Value == 1) {
+<<<<<<< HEAD
 								if (false == ($result = $this->lightifySocket->setAllDevicesState(($Value == 0) ? 0 : 1))) return false;
+=======
+								if (false !== ($result = $this->lightifySocket->setAllDevicesState(($Value == 0) ? 0 : 1) )) return false;
+>>>>>>> origin/master
 
 								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omLight) as $ids)
 									$arrayDevices[]['DeviceID'] = $ids;
@@ -191,6 +241,7 @@ abstract class lightifyDevice extends IPSModule {
 								switch ($ModuleID) {
 									case osrIPSModule::omLight:
 										//fall-trough
+
 									case osrIPSModule::omPlug:
 										SetValueBoolean($StateID, (($Value == 0) ? false : true));
 										break;
@@ -245,6 +296,7 @@ abstract class lightifyDevice extends IPSModule {
 										switch ($ModuleID) {
 											case osrIPSModule::omLight:
 												//fall-trough
+												
 											case osrIPSModule::omPlug:
 												SetValueInteger($ColorTempID, $Value);
 												break;
@@ -295,6 +347,7 @@ abstract class lightifyDevice extends IPSModule {
 											switch ($ModuleID) {
 												case osrIPSModule::omLight:
 													//fall-trough
+													
 												case osrIPSModule::omPlug:
 													if (false === ($result = $this->SendData($this->lightifySocket, $MAC, $ModuleID))) return false;
 
@@ -318,9 +371,15 @@ abstract class lightifyDevice extends IPSModule {
 
 	private function setDeviceValue($arrayDevices, $key, $Value) {
 		foreach ($arrayDevices as $index => $item) {
+<<<<<<< HEAD
 			$ModuleID = IPS_GetInstance($item['DeviceID'])['ModuleInfo']['ModuleID'];
 
 			if ($key == "STATE" || ($ModuleID == osrIPSModule::omLight)) {
+=======
+			$ModuleID = IPS_GetInstance($v['DeviceID'])['ModuleInfo']['ModuleID'];
+
+			if (($key == "STATE") || $ModuleID == osrIPSModule::omLight) {		
+>>>>>>> origin/master
 				$OnlineID = @IPS_GetObjectIDByIdent("ONLINE", $item['DeviceID']);
 				$Online = ($OnlineID) ? GetValueBoolean($OnlineID) : false;
 
@@ -470,15 +529,25 @@ abstract class lightifyDevice extends IPSModule {
 					return $result;
 				}
 			}
+<<<<<<< HEAD
+=======
+
+			echo "Device state sync failed!";
+			IPS_LogMessage("SymconOSR", "Light state sync failed!");
+>>>>>>> origin/master
 		}
 
 		return false;
 	}
 
 
+<<<<<<< HEAD
 	private function setDeviceInfo($data, $deviceType, $syncGateway = false) {
 		//IPS_LogMessage("SymconOSR", "Receive data: ".$this->lightifyBase->decodeData($data));
 
+=======
+	private function setDeviceInfo($data, $syncGateway = false) {
+>>>>>>> origin/master
 		if ($syncGateway) {
 			$deviceOnline = !((bool)ord($data{15})); //Online: 2 - Offline: 0
 			$byteShift = 6;
@@ -487,10 +556,18 @@ abstract class lightifyDevice extends IPSModule {
 			$deviceOnline = ord($data{19});
 			$byteShift = $byteSate = 0;
 		}
+<<<<<<< HEAD
 
 		$Online = ($deviceOnline == osrDeviceMode::dmOnline) ? true : false; //Online: 0 - Offline: 255			
 		$State = ($Online) ? ord($data{21-$byteSate}) : false;
 		$result = false;
+=======
+		$result = false;
+
+		$deviceType = IPS_GetProperty($this->InstanceID, "deviceType");
+		$Online = ($Mode == osrDeviceMode::dmOnline) ? true : false; //Online: 0 - Offline: 255			
+		$State = ($Online) ? ord($data{21-$byteSate}) : false;
+>>>>>>> origin/master
 
 		if (!$OnlineID = @$this->GetIDForIdent("ONLINE")) {
 			$OnlineID = $this->RegisterVariableBoolean("ONLINE", "Online", "", 1);
@@ -501,7 +578,7 @@ abstract class lightifyDevice extends IPSModule {
 			if (GetValueBoolean($OnlineID) != $Online) SetValueBoolean($OnlineID, $Online);
 			$result['ONLINE'] = $Online;
 		}
-		
+
 		if (!$StateID = @$this->GetIDForIdent("STATE")) {
 			$StateID = $this->RegisterVariableBoolean("STATE", "State", "~Switch", 2);
 			$this->EnableAction("STATE");
@@ -560,7 +637,11 @@ abstract class lightifyDevice extends IPSModule {
 
 				if (isset($ColorTempID)) {
 					$ColorTemp = hexdec(dechex(ord($data{15+$byteShift})).dechex(ord($data{14+$byteShift})));
+<<<<<<< HEAD
 					if (GetValueInteger($ColorTempID) != $ColorTemp) SetValueInteger($ColorTempID, $ColorTemp); 
+=======
+					if (GetValueInteger($ColorTempID) != $ColorTemp) SetValueInteger($ColorTempID, $ColorTemp);
+>>>>>>> origin/master
 
 					$result['COLOR_TEMPERATURE'] = $ColorTemp;
 				}
@@ -581,6 +662,7 @@ abstract class lightifyDevice extends IPSModule {
 		return $result;
 	}
 
+<<<<<<< HEAD
 
 	private function setGroupInfo($MAC, $arrayDevices) {
 		$Instances = array();
@@ -612,3 +694,6 @@ abstract class lightifyDevice extends IPSModule {
 	}
 
 }
+=======
+}
+>>>>>>> origin/master

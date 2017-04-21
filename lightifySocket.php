@@ -14,7 +14,7 @@ class lightifyCommands extends stdClass {
 	# 68 Get device information (device)
 	# 6F Gateway Firmware version (broadcast)
 	# D5 Cycle group/zone color
-	
+
 	const GETPAIREDEVICES = 0x13;
 	const GETGROUPLIST = 0x1E;
 	const GETGROUPINFO = 0x26;
@@ -26,20 +26,25 @@ class lightifyCommands extends stdClass {
 	const GETDEVICEINFO = 0x68;
 	const GETGATEWAYFIRMWARE = 0x6F;
 	const BULBCOLORCYCLE = 0xD5;
-	
+
 }
 
 
-//Socket functions		
+//Socket functions
 class lightifySocket extends stdClass {
 
 	private $socket = null;
 
 
 	public function __construct ($host, $port) {
+<<<<<<< HEAD
 		/*
 		if (false == ($this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)))
 		die("Unable to create socket: ".socket_strerror(socket_last_error())."\n");
+=======
+		if (!$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP))
+			die("Unable to create socket: ".socket_strerror(socket_last_error())."\n");
+>>>>>>> origin/master
 
 		//socket connect
 		if (socket_connect($this->socket, $host, $port) === false)
@@ -49,6 +54,7 @@ class lightifySocket extends stdClass {
 		socket_set_block($this->socket);
 		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 3, 'usec' => 0));
 		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 3, 'usec' => 0));
+<<<<<<< HEAD
 		*/
 
 		if (false === ($this->socket = $this->socket = fsockopen($host, $port, $errno, $errstr, 5)))
@@ -58,6 +64,8 @@ class lightifySocket extends stdClass {
 		stream_set_timeout($this->socket, 3);
 		stream_set_blocking($this->socket, 1);
 		//stream_set_chunk_size($this->socket, 4096);
+=======
+>>>>>>> origin/master
 	}
 
 
@@ -79,6 +87,7 @@ class lightifySocket extends stdClass {
 		$data = $flag.chr($command).$sessionToken;
 		if ($args != null) $data .= $args;	
 
+<<<<<<< HEAD
 		$data = chr(strlen($data)).chr(0x00).$data;
 		$length = strlen($data);
 
@@ -101,6 +110,14 @@ class lightifySocket extends stdClass {
 					break;
 				}
 
+=======
+		$length = strlen($data);
+		$data = chr($length).chr(0x00).$data;
+
+		if (false !== ($bytes = socket_write($this->socket, $data, $length))) {
+			if ($bytes > 0) {
+				if (false !== ($buffer = socket_read($this->socket, 4096)))  { //Read 4096 bytes block
+>>>>>>> origin/master
 					if (strlen($buffer) > 9) {
 						if (0 == ($errno = ord($buffer{8}))) return $buffer;
 					}
@@ -130,7 +147,7 @@ class lightifySocket extends stdClass {
 	public function setState($MAC, $flag, $Value) {
 		$args = $MAC.chr($Value);
 		$buffer = $this->sendData($flag, lightifyCommands::SETDEVICESTATE, $args);
-		
+
 		return (($buffer !== false && strlen($buffer) == 20) ? $buffer : false);
 	}
 	
@@ -195,7 +212,7 @@ class lightifySocket extends stdClass {
 	public function getDeviceInfo($MAC) {
 		return $this->sendData(chr(0x00), lightifyCommands::GETDEVICEINFO, $MAC);
 	}
-	
+
 
 	public function getGroupInfo($MAC) {
 		return $this->sendData(chr(0x00), lightifyCommands::GETGROUPINFO, $MAC);
@@ -217,4 +234,3 @@ class lightifySocket extends stdClass {
 	}
 
 }
-
