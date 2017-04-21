@@ -2,31 +2,54 @@
 
 //IPS variable types
 class osrIPSVariable extends stdClass {
-	
+
 	const vtNone = -1;
 	const vtBoolean = 0;
 	const vtInteger = 1;
 	const vtFloat = 2;
 	const vtString = 3;
-    
+
 }
 
 
 //IPS device modules
 class osrIPSModule extends stdClass {
-	
+
 	const omGateway = "{C3859938-D71C-4714-8B02-F2889A62F481}";
 	const omLight = "{42DCB28E-0FC3-4B16-ABDB-ADBF33A69032}";
 	const omPlug = "{80AC7E4B-E3A2-475C-8D54-12802F14DD80}";
 	const omGroup = "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}";
 	const omSwitch = "{2C0FD8E7-345F-4F7A-AF7D-86DFB43FE46A}";
 
+	const omGatewayTX = "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}";
+	const omDeviceTX = "{0EC8C035-D581-4DF2-880D-E3C400F41682}";
+	const omGroupTX = "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}";
+
+}
+
+
+//Buffer bytes
+class osrBufferBytes extends stdClass {
+
+	const bbFirmwareHeader = 8;
+	const bbDeviceHeader = 11;
+	const bbGroupHeader = 11;
+	const bbGroupInfo = 28;
+
+	const bbDeviceString = 50;
+	const bbGroupString = 18;
+
+	const bbDeviceName = 15;
+	const bbGroupName = 15;
+
+	const bbDeviceMAC = 8;
+	const bbGroupMAC = 2;
 }
 
 
 //Device types
 class osrDeviceType extends stdClass {
-	
+
 	const dtTW = 2;
 	const dtClear = 4;
 	const dtRGBW = 10;
@@ -40,7 +63,7 @@ class osrDeviceType extends stdClass {
 
 //Device modes
 class osrDeviceMode extends stdClass {
-	
+
 	const dmOnline = 0;
 	const dmOffline = 255;
 
@@ -76,13 +99,13 @@ class osrDeviceValue extends stdClass {
 
 //Base functions	
 class lightifyBase extends stdClass {
-	
+
 	public function decodeData($data) {
 		$Decode = "";
 
 		for ($i = 0; $i < strlen($data); $i++)
 			$Decode = $Decode." ".sprintf("%02d", ord($data{$i}));
-		
+
 		return $Decode;
 	}
 
@@ -101,7 +124,7 @@ class lightifyBase extends stdClass {
 	public function chrToUniqueID($UniqueID) {
 		$length = strlen($UniqueID);
 		$result = array();
-	
+
 		for ($i = 0; $i < $length; $i++) {
 			$hex = dechex(ord(substr($UniqueID, $i, 1)));
 			if (strlen($hex) == 1) $hex = "0".$hex;
@@ -115,7 +138,7 @@ class lightifyBase extends stdClass {
 
 		return implode(":", array_reverse($result));
 	}
-	
+
 
  	public function HEX2HSV($hex) {
 		$r = substr($hex, 0, 2);
@@ -137,7 +160,7 @@ class lightifyBase extends stdClass {
 		if ($chroma == 0)
 			return array('h' => 0, 's' => 0, 'v' => round($dV));
 		$dS = ($chroma/$maxRGB)*100;
-    
+
 		switch ($minRGB) {
 			case $r:
 				$h = 3-(($g-$b)/$chroma);
@@ -165,7 +188,7 @@ class lightifyBase extends stdClass {
 
 		return $r.$g.$b;
 	}
-	
+
  
  	private function HSV2RGB($h, $s, $v) {
 		if ($h < 0)   $h = 0;

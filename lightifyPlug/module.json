@@ -6,6 +6,6 @@
   "aliases": [ "Lightify Plug" ],
   "parentRequirements": [ "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}" ],
   "childRequirements": [],
-  "implemented": [ "{DCFACB5E-FFF5-4992-94A7-2D1B2DB91704}" ],
+  "implemented": [ "{0EC8C035-D581-4DF2-880D-E3C400F41682}" ],
   "prefix": "OSR"
 }

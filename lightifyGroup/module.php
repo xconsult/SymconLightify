@@ -1,12 +1,12 @@
 <?
 
-require_once(__DIR__.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."lightifyDevice.php"); 
+require_once(__DIR__.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."lightifyDevice.php");
 
 
 class lightifyGroup extends lightifyDevice {
 
-  public function Create() {
-    parent::Create();
+	public function Create() {
+		parent::Create();
 
 		$this->RegisterPropertyString("UniqueID", "");
 		$this->RegisterPropertyString("Devices", "");
@@ -17,7 +17,7 @@ class lightifyGroup extends lightifyDevice {
 	public function GetConfigurationForm() {
 		$data = json_decode(file_get_contents(__DIR__.DIRECTORY_SEPARATOR."form.json"));
 		$Instances = json_decode($this->ReadPropertyString("Instances"), true);
-		
+
 		foreach ($Instances as $index => $item) {
 			if (IPS_InstanceExists($item['DeviceID'])) {
 				$ModuleID = IPS_GetInstance($item['DeviceID'])['ModuleInfo']['ModuleID'];
@@ -29,7 +29,7 @@ class lightifyGroup extends lightifyDevice {
 				$SaturationID = @IPS_GetObjectIDByIdent('SATURATION', $item['DeviceID']);
 
 				$Hue = ($HueID) ? GetValueInteger($HueID)."°" : "";
-				$Color = ($ColorID) ? strtoupper(str_pad(dechex(GetValueInteger($ColorID)), 6, 0, STR_PAD_LEFT)) : "";			
+				$Color = ($ColorID) ? strtoupper(str_pad(dechex(GetValueInteger($ColorID)), 6, 0, STR_PAD_LEFT)) : "";
 				$ColorTemp = ($ColorTempID) ? GetValueInteger($ColorTempID) : "";
 				$Bright = ($BrightID) ? GetValueInteger($BrightID)."%" : "";
 				$Saturation = ($SaturationID) ? GetValueInteger($SaturationID)."%" : "";
@@ -66,14 +66,14 @@ class lightifyGroup extends lightifyDevice {
 				);
 			}
 		}
-		
+
 		return json_encode($data);
 	}
-	
-	
-  protected function getUniqueID() {
-    $UniqueID = $this->ReadPropertyString("UniqueID");
-    return $UniqueID;
-  }
- 
+
+
+	protected function getUniqueID() {
+		$UniqueID = $this->ReadPropertyString("UniqueID");
+		return $UniqueID;
+	}
+
 }

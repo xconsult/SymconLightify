@@ -32,13 +32,14 @@ class lightifyCommands extends stdClass {
 
 //Socket functions		
 class lightifySocket extends stdClass {
-	
-	private $socket = null;
-	
 
-  public function __construct ($host, $port) {
-		if (!$this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP))
-    	die("Unable to create socket: ".socket_strerror(socket_last_error())."\n");
+	private $socket = null;
+
+
+	public function __construct ($host, $port) {
+		/*
+		if (false == ($this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)))
+		die("Unable to create socket: ".socket_strerror(socket_last_error())."\n");
 
 		//socket connect
 		if (socket_connect($this->socket, $host, $port) === false)
@@ -48,9 +49,18 @@ class lightifySocket extends stdClass {
 		socket_set_block($this->socket);
 		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 3, 'usec' => 0));
 		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 3, 'usec' => 0));
-  }
-	
-	
+		*/
+
+		if (false === ($this->socket = $this->socket = fsockopen($host, $port, $errno, $errstr, 5)))
+			die("Unable to open socket: $errstr [$errno]");
+
+		//socket options
+		stream_set_timeout($this->socket, 3);
+		stream_set_blocking($this->socket, 1);
+		//stream_set_chunk_size($this->socket, 4096);
+	}
+
+
 	protected function getSessionToken() {
 		$random = substr(str_shuffle('ABCDEF0123456789'), 0, 8);
 		$id = "";
@@ -58,33 +68,56 @@ class lightifySocket extends stdClass {
 		for ($i = 0; $i < 8; $i += 2) {
 			$id .= chr(ord(substr($random, $i, 2)));
 		}
+
 		return $id;
 	}
 
 
 	protected function sendData($flag, $command, $args = null) {
 		//$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
-		$data = $flag.chr($command).$this->getSessionToken();
+		$sessionToken = $this->getSessionToken();
+		$data = $flag.chr($command).$sessionToken;
 		if ($args != null) $data .= $args;	
+
 		$data = chr(strlen($data)).chr(0x00).$data;
-		
-		if (false !== ($bytes = socket_write($this->socket, $data, strlen($data)))) {
-			if ($bytes > 0) {
-				if (false !== ($buffer = socket_read($this->socket, 4096)))  { //Read 4096 bytes block
+		$length = strlen($data);
+
+		//if (false !== ($bytes = socket_write($this->socket, $data, $length))) {
+		if (false !== ($bytes = fwrite($this->socket, $data, $length))) {
+			if ($bytes == $length) {
+				//if (false !== ($buffer = socket_read($this->socket, 4096))) { //Read 4096 bytes block
+				//if (false !== ($buffer = fread($this->socket, 4096))) { //Read 4096 bytes block
+				$buffer = "";
+
+				while(!feof($this->socket)) {
+					if (false !== ($buffer .= fread($this->socket, 1024))) { //Read 1024 bytes block
+						$metaData = stream_get_meta_data($this->socket);
+						if ($metaData['unread_bytes'] > 0) continue;
+					} else {
+						//echo "Error reading from socket: ".socket_strerror(socket_last_error($this->socket))."\n";
+						die("Unable to read from socket!");
+					}
+
+					break;
+				}
+
 					if (strlen($buffer) > 9) {
 						if (0 == ($errno = ord($buffer{8}))) return $buffer;
 					}
-				} else {
-					echo "Error reading from socket: ".socket_strerror(socket_last_error($this->socket))."\n";
-				}
+
+					$error = "Receive buffer error [$errno]";
 			}
+
+			$error = "Write returned wrong byte count!";
 		} else {
-			echo "Error writing to socket: ".socket_strerror(socket_last_error($this->socket))."\n";
+			//echo "Error writing to socket: ".socket_strerror(socket_last_error($this->socket))."\n";
+			$error = "Unable to write to socket!";
 		}
 
-		return false;
+		die($error);
+;
 	}
-	
+
 
 	public function setAllDevicesState($Value) {
 		$args = str_repeat(chr(0xFF), 8).chr($Value);
@@ -113,10 +146,10 @@ class lightifySocket extends stdClass {
 	public function setColorTemperature($MAC, $flag, $Value, $Transition) {
 		$hex = dechex($Value);
 		if (strlen($hex) < 4) $hex = str_repeat("0", 4-strlen($hex)).$hex;
-							
+
 		$args = $MAC.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(dechex($Transition)).chr(0x00);
 		$buffer = $this->sendData($flag, lightifyCommands::SETCOLORTEMP, $args);
-	
+
 		return (($buffer !== false && strlen($buffer) == 20) ? $buffer : false);
 	}
 
@@ -146,14 +179,14 @@ class lightifySocket extends stdClass {
 
 		return (($buffer !== false && strlen($buffer) == 20) ? $buffer : false);
 	}
-			
-								
+
+
 	public function getPairedDevices() {
 		$args = chr(0x01).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
 		return $this->sendData(chr(0x00), lightifyCommands::GETPAIREDEVICES, $args);
 	}
-	
-	
+
+
 	public function getGroupList() {
 		return $this->sendData(chr(0x00), lightifyCommands::GETGROUPLIST);
 	}
@@ -167,8 +200,8 @@ class lightifySocket extends stdClass {
 	public function getGroupInfo($MAC) {
 		return $this->sendData(chr(0x00), lightifyCommands::GETGROUPINFO, $MAC);
 	}
-	
-							
+
+
 	public function getGatewayFirmware() {
 		return $this->sendData(chr(0x00), lightifyCommands::GETGATEWAYFIRMWARE);
 	}
