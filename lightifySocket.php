@@ -74,9 +74,9 @@ class lightifySocket extends stdClass {
 
 
 	protected function sendData($flag, $command, $args = null) {
-		//$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
-		$sessionToken = $this->getSessionToken();
-		$data = $flag.chr($command).$sessionToken;
+		//$sessionToken = $this->getSessionToken();
+		$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
+		//$data = $flag.chr($command).$sessionToken;
 		if ($args != null) $data .= $args;	
 
 		$data = chr(strlen($data)).chr(0x00).$data;
@@ -89,7 +89,7 @@ class lightifySocket extends stdClass {
 				$buffer = "";
 
 				while(!feof($this->socket)) {
-					if (false !== ($buffer .= fread($this->socket, 2048))) { //Read 2048 bytes block
+					if (false !== ($buffer .= fread($this->socket, 1024))) { //Read 1024 bytes block
 						$metaData = stream_get_meta_data($this->socket);
 						if ($metaData['unread_bytes'] > 0) continue;
 					} else {
@@ -100,18 +100,14 @@ class lightifySocket extends stdClass {
 					break;
 				}
 
-				if (substr($buffer, 4, osrBufferByte::bbToken) == $sessionToken) {
-					if (strlen($buffer) >  (osrBufferByte::bbHeader+1)) {
-						if (0 == ($errno = ord($buffer{8}))) return $buffer;
-						$error = "Receive buffer error [$errno]";
-					} else {
-						$error = "Receive buffer has wrong size!";
-					}
+				if (($length = strlen($buffer)) >  (osrBufferByte::bbHeader+1)) {
+					if (0 == ($errno = ord($buffer{8}))) return $buffer;
+					$error = "Receive buffer error [".$errno."]";
 				} else {
-					$error = "Receive session token does not match!";
+					$error = "Receive buffer has wrong size [".$length."]";
 				}
 			} else {
-				$error = "Write returned wrong byte count!";
+				$error = "Write returned wrong byte count [".$bytes."]";
 			}
 		} else {
 			//echo "Error writing to socket: ".socket_strerror(socket_last_error($this->socket))."\n";
