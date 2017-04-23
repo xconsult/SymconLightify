@@ -321,7 +321,7 @@ class lightifyGateway extends IPSModule {
 						"DeviceID" => $DeviceID,
 						"deviceType" => $deviceType,
 						"arrayDevices" => null,
-						"Buffer" => utf8_decode(substr($data, 0, $length))))
+						"Buffer" => utf8_encode(substr($data, 0, $length))))
 					);
 
 					$this->arrayDevices[] = array('DeviceID' => $DeviceID, 'UniqueID' => $UniqueID);
@@ -376,7 +376,7 @@ class lightifyGateway extends IPSModule {
 				"DeviceID" => $DeviceID,
 				"deviceType" => null,
 				"arrayDevices" => json_encode($this->arrayDevices),
-				"Buffer" => utf8_decode(substr($data, 0, $length))))
+				"Buffer" => utf8_encode(substr($data, 0, $length))))
 			);
 
 			$data = substr($data, $length);

@@ -57,6 +57,7 @@ abstract class lightifyDevice extends IPSModule {
 	public function ReceiveData(string $jsonString) {
 		$buffer = json_decode($jsonString);
 		$data = utf8_decode($buffer->Buffer);
+		//IPS_LogMessage("SymconOSR", "Receive data: ".$this->lightifyBase->decodeData($data));
 
 		if ($buffer->DeviceID == $this->InstanceID) {
 			switch ($buffer->ModuleID) {
@@ -122,7 +123,7 @@ abstract class lightifyDevice extends IPSModule {
 		}
 	}
 
-	
+
 	public function SetValue(string $key, integer $Value) {
 		$ModuleID = IPS_GetInstance($this->InstanceID)['ModuleInfo']['ModuleID'];
 		$result = false;
