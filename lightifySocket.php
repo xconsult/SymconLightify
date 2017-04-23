@@ -14,7 +14,7 @@ class lightifyCommands extends stdClass {
 	# 68 Get device information (device)
 	# 6F Gateway Firmware version (broadcast)
 	# D5 Cycle group/zone color
-	
+
 	const GETPAIREDEVICES = 0x13;
 	const GETGROUPLIST = 0x1E;
 	const GETGROUPINFO = 0x26;
@@ -26,11 +26,11 @@ class lightifyCommands extends stdClass {
 	const GETDEVICEINFO = 0x68;
 	const GETGATEWAYFIRMWARE = 0x6F;
 	const BULBCOLORCYCLE = 0xD5;
-	
+
 }
 
 
-//Socket functions		
+//Socket functions
 class lightifySocket extends stdClass {
 
 	private $socket = null;
@@ -63,13 +63,13 @@ class lightifySocket extends stdClass {
 
 	protected function getSessionToken() {
 		$random = substr(str_shuffle('ABCDEF0123456789'), 0, 8);
-		$id = "";
+		$token = "";
 
 		for ($i = 0; $i < 8; $i += 2) {
-			$id .= chr(ord(substr($random, $i, 2)));
+			$token .= chr(ord(substr($random, $i, 2)));
 		}
 
-		return $id;
+		return $token;
 	}
 
 
@@ -86,36 +86,39 @@ class lightifySocket extends stdClass {
 		if (false !== ($bytes = fwrite($this->socket, $data, $length))) {
 			if ($bytes == $length) {
 				//if (false !== ($buffer = socket_read($this->socket, 4096))) { //Read 4096 bytes block
-				//if (false !== ($buffer = fread($this->socket, 4096))) { //Read 4096 bytes block
 				$buffer = "";
 
 				while(!feof($this->socket)) {
-					if (false !== ($buffer .= fread($this->socket, 1024))) { //Read 1024 bytes block
+					if (false !== ($buffer .= fread($this->socket, 2048))) { //Read 2048 bytes block
 						$metaData = stream_get_meta_data($this->socket);
 						if ($metaData['unread_bytes'] > 0) continue;
 					} else {
 						//echo "Error reading from socket: ".socket_strerror(socket_last_error($this->socket))."\n";
-						die("Unable to read from socket!");
+						die("Unable to read buffer from socket!");
 					}
 
 					break;
 				}
 
-					if (strlen($buffer) > 9) {
+				if (substr($buffer, 4, osrBufferByte::bbToken) == $sessionToken) {
+					if (strlen($buffer) >  (osrBufferByte::bbHeader+1)) {
 						if (0 == ($errno = ord($buffer{8}))) return $buffer;
+						$error = "Receive buffer error [$errno]";
+					} else {
+						$error = "Receive buffer has wrong size!";
 					}
-
-					$error = "Receive buffer error [$errno]";
+				} else {
+					$error = "Receive session token does not match!";
+				}
+			} else {
+				$error = "Write returned wrong byte count!";
 			}
-
-			$error = "Write returned wrong byte count!";
 		} else {
 			//echo "Error writing to socket: ".socket_strerror(socket_last_error($this->socket))."\n";
-			$error = "Unable to write to socket!";
+			$error = "Unable to write data to socket!";
 		}
 
 		die($error);
-;
 	}
 
 

@@ -174,11 +174,11 @@ abstract class lightifyDevice extends IPSModule {
 							if ($Value == 0 || $Value == 1) {
 								if (false == ($result = $this->lightifySocket->setAllDevicesState(($Value == 0) ? 0 : 1))) return false;
 
-								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omLight) as $ids)
-									$arrayDevices[]['DeviceID'] = $ids;
+								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omLight) as $id)
+									$arrayDevices[]['DeviceID'] = $id;
 
-								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omPlug) as $ids)
-									$arrayDevices[]['DeviceID'] = $ids;
+								foreach (IPS_GetInstanceListByModuleID(osrIPSModule::omPlug) as $id)
+									$arrayDevices[]['DeviceID'] = $id;
 
 								$this->setDeviceValue($arrayDevices, "STATE", $Value);
 							}
@@ -205,7 +205,7 @@ abstract class lightifyDevice extends IPSModule {
 						case "COLOR":
 							if (($ModuleID == osrIPSModule::omLight && $deviceType == osrDeviceType::dtRGBW) || $ModuleID == osrIPSModule::omGroup) {
 								if ($ModuleID == osrIPSModule::omGroup || ($State)) {
-									if ($ModuleID == osrIPSModule::omLight) $Value = getValueRange($this->Name, $key, $value);
+									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $Value);
 
 									if ($ModuleID == osrIPSModule::omGroup || ($Value != $Color)) {
 										$hex = str_pad(dechex($Value), 6, 0, STR_PAD_LEFT);
@@ -219,13 +219,7 @@ abstract class lightifyDevice extends IPSModule {
 													if (false === ($result = $this->SendData($this->lightifySocket, $MAC, $ModuleID))) return false;
 
 												case osrIPSModule::omGroup:
-													$this->setDeviceValue(json_decode($this->ReadPropertyString("Instances"), true), $key, $Value);
-													/*
-													$this->SendDataToParent(json_encode(array(
-														"DataID" => "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}",
-														"ModuleID" => $ModuleID,
-														"Buffer" => utf8_encode($result)))
-													);*/
+													//$this->setDeviceValue(json_decode($this->ReadPropertyString("Instances"), true), $key, $Value);
 													break;
 											}
 										}
@@ -237,7 +231,7 @@ abstract class lightifyDevice extends IPSModule {
 						case "COLOR_TEMPERATURE":
 							if (($ModuleID == osrIPSModule::omLight && $deviceType != osrDeviceType::dtClear) || $ModuleID == osrIPSModule::omGroup) {
 								if ($ModuleID == osrIPSModule::omGroup || ($State)) {
-									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $value, $deviceType);
+									if ($ModuleID == osrIPSModule::omLight) $Value = $this->getValueRange($this->Name, $key, $Value, $deviceType);
 
 									if ($ModuleID == osrIPSModule::omGroup || ($Value != $ColorTemp)) {
 										if (false === ($result = $this->lightifySocket->setColorTemperature($MAC, $flag, $Value, $this->dvTransition))) return false;
@@ -299,7 +293,7 @@ abstract class lightifyDevice extends IPSModule {
 													if (false === ($result = $this->SendData($this->lightifySocket, $MAC, $ModuleID))) return false;
 
 												case osrIPSModule::omGroup:
-													$this->setDeviceValue(json_decode($this->ReadPropertyString("Instances"), true), $key, $Value);
+													//$this->setDeviceValue(json_decode($this->ReadPropertyString("Instances"), true), $key, $Value);
 													break;
 											}
 										}
@@ -329,8 +323,7 @@ abstract class lightifyDevice extends IPSModule {
 						if ($ModuleID == osrIPSModule::omLight)
 							$Value = $this->getValueRange(IPS_GetName($item['DeviceID']), $key, $Value, IPS_GetProperty($item['DeviceID'], "deviceType"));
 
-						$valueSave = GetValue($id);
-						if ($id && ($valueSave != $Value)) SetValue($id, $Value);
+						if ($id && (GetValue($id) != $Value)) SetValue($id, (($key == "STATE") ? (bool)$Value : (integer)$Value));
 					}
 				}
 			}
@@ -365,21 +358,31 @@ abstract class lightifyDevice extends IPSModule {
 
 			case "BRIGHTNESS":
 				if ($Value < osrDeviceValue::dvBright_Min) {
-					IPS_LogMessage("SymconOSR", $this->Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
+					IPS_LogMessage("SymconOSR", $Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
 					$Value = osrDeviceValue::dvBright_Min;
 				} elseif ($Value > osrDeviceValue::dvBright_Max) {
-					IPS_LogMessage("SymconOSR", $this->Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
+					IPS_LogMessage("SymconOSR", $Name." Brightness [".$Value."%] out of range. Setting to ".osrDeviceValue::dvBright_Min."%");
 					$Value = osrDeviceValue::dvBright_Max;
 				}
 				break;
 
 			case "SATURATION":
 				if ($Value < osrDeviceValue::dvSat_Min) {
-					IPS_LogMessage("SymconOSR", $this->Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Min."%");
+					IPS_LogMessage("SymconOSR", $Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Min."%");
 					$Value = osrDeviceValue::dvSat_Min;
 				} elseif ($Value > osrDeviceValue::dvSat_Max) {
-					IPS_LogMessage("SymconOSR", $this->Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Max."%");
+					IPS_LogMessage("SymconOSR", $Name." Saturation [".$Value."%] out of range. Setting to ".osrDeviceValue::dvSat_Max."%");
 					$Value = osrDeviceValue::dvSat_Max;
+				}
+				break;
+
+			case "TRANSITION_TIME":
+				if ($Value < osrDeviceValue::dvTT_Min) {
+					IPS_LogMessage("SymconOSR", $Name." Transition [".$Value."ms] out of range. Setting to ".osrDeviceValue::dvTT_Min."ms");
+					$Value = osrDeviceValue::dvTT_Min;
+				} elseif ($Value > osrDeviceValue::dvTT_Max) {
+					IPS_LogMessage("SymconOSR", $Name." Transition [".$Value."ms] out of range. Setting to ".osrDeviceValue::dvTT_Max."ms");
+					$Value = osrDeviceValue::dvTT_Max;
 				}
 				break;
 		}
@@ -388,16 +391,8 @@ abstract class lightifyDevice extends IPSModule {
 	}
 
 
-	public function SetValueEx(string $key, integer $Value, integer $Transition) {
-		if ($Transition < osrDeviceValue::dvTT_Min) {
-			IPS_LogMessage("SymconOSR", $this->Name." Transition [".$Transition."ms] out of range. Setting to ".osrDeviceValue::dvTT_Min."ms");
-			$Transition = osrDeviceValue::dvTT_Min;
-		} elseif ($Transition > osrDeviceValue::dvTT_Max) {
-			IPS_LogMessage("SymconOSR", $this->Name." Transition [".$Transition."ms] out of range. Setting to ".osrDeviceValue::dvTT_Max."ms");
-			$Transition = osrDeviceValue::dvTT_Max;
-		}
-
-		$this->dvTransition = $Transition/10;	
+	public function SetValueEx(string $key, integer $Value, integer $transTime) {
+		$this->dvTransition = $this->getValueRange("TRANSITION_TIME", $transTime)/10;
 		return $this->SetValue($key, $Value);
 	}
 
@@ -589,20 +584,20 @@ abstract class lightifyDevice extends IPSModule {
 			if (false !== ($data = $this->lightifySocket->getGroupInfo($MAC))) {
 				//IPS_LogMessage("SymconOSR", "Receive data : ".$this->lightifyBase->decodeData($data));
 
-				if (strlen($data) > osrBufferBytes::bbGroupInfo) {
+				if (strlen($data) > osrBufferByte::bbGroupInfo) {
 					$countDevice = ord($data{27});
-					$data = substr($data, osrBufferBytes::bbGroupInfo);
+					$data = substr($data, osrBufferByte::bbGroupInfo);
 
 					for ($indexDevice = 1; $indexDevice <= $countDevice; $indexDevice++) {
-						$UniqueID = $this->lightifyBase->chrToUniqueID(substr($data, 0, osrBufferBytes::bbDeviceMAC));
+						$UniqueID = $this->lightifyBase->chrToUniqueID(substr($data, 0, osrBufferByte::bbDeviceMAC));
 
 						foreach ($arrayDevices as $item) {
 							if ($item['UniqueID'] == $UniqueID)
 								$Instances[] = array('DeviceID' => $item['DeviceID']);
 						}
 
-						$length = strlen($data);
-						$data = ($length < osrBufferBytes::bbDeviceMAC) ? substr($data, $length) : substr($data, osrBufferBytes::bbDeviceMAC);
+						if (($length = strlen($data)) > osrBufferByte::bbDeviceMAC) $length = osrBufferByte::bbDeviceMAC;
+						$data = substr($data, $length);
 					}
 				}
 			}

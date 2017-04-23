@@ -29,15 +29,14 @@ class osrIPSModule extends stdClass {
 
 
 //Buffer bytes
-class osrBufferBytes extends stdClass {
+class osrBufferByte extends stdClass {
 
-	const bbFirmwareHeader = 8;
-	const bbDeviceHeader = 11;
-	const bbGroupHeader = 11;
-	const bbGroupInfo = 28;
+	const bbHeader = 8;
+	const bbToken = 4;
 
 	const bbDeviceString = 50;
 	const bbGroupString = 18;
+	const bbGroupInfo = 28;
 
 	const bbDeviceName = 15;
 	const bbGroupName = 15;
@@ -67,7 +66,8 @@ class osrDeviceMode extends stdClass {
 	const dmOnline = 0;
 	const dmOffline = 255;
 
-}	
+}
+
 
 //Device values
 class osrDeviceValue extends stdClass {
@@ -82,7 +82,7 @@ class osrDeviceValue extends stdClass {
 	const dvHue_Min = 0;
 	const dvHue_Max = 360;
 	const dvColor_Min = 0;
-	const dvColor_Max = 16777255;
+	const dvColor_Max = 16777215;
 	const dvBright_Min = 0;
 	const dvBright_Max = 100;
 	const dvSat_Min = 0;
