@@ -1,0 +1,15 @@
+{
+	"translations": {
+		"de": {
+			"Class"                : "Klasse",
+			"Group [id]"           : "Gruppen [id]",
+			"Devices"              : "Geräte",
+			"Color"                : "Farbe",
+			"CCT"                  : "CCT",
+			"Level"                : "Level",
+			"Intens"               : "Intens",
+			"time"                 : "Zeit",
+			"Scene [id]"           : "Szenen [id]"
+		}
+	}
+}

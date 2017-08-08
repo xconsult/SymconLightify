@@ -1,0 +1,12 @@
+{
+	"translations": {
+		"de": {
+			"Class"                : "Klasse",
+			"Device [id]"          : "Geräte [id]",
+			"Manufacturer"         : "Hersteller",
+			"Model"                : "Modell",
+			"Capabilities"         : "Eigenschaften",
+			"Group [id]"           : "Gruppen [id]"
+		}
+	}
+}

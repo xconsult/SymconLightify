@@ -1,0 +1,41 @@
+{
+	"translations": {
+		"de": {
+			" Open"                                                                                          : " Aktiv",
+			"Connection"                                                                                     : "Verbindung",
+			"Local only"                                                                                     : "Lokal",
+			"Local and Cloud"                                                                                : "Lokal und Cloud",
+			"Username"                                                                                       : "Benutzername",
+			"Password"                                                                                       : "Passwort",
+			"Serial number"                                                                                  : "Seriennummer",
+			"Update interval [s]"                                                                            : "Aktualisierung [s]",
+			" Direct upload of settings"                                                                     : " Direkter upload der Einstellungen",
+			"IP address"                                                                                     : "IP Addresse",
+			"Devices"                                                                                        : "Geräte",
+			"Model"                                                                                          : "Modell",
+			"Capabilities"                                                                                   : "Eigenschaften",
+			"Groups"                                                                                         : "Gruppen",
+			"Class"                                                                                          : "Klasse",
+			"Categories"                                                                                     : "Kategorien",
+			"Type"                                                                                           : "Typ",
+			"Category"                                                                                       : "Kategorien",
+			" Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" : " Geräte Informationen anzeigen (UUID, Hersteller, Modell, Eigenschaften, ZigBee, Firmware)",
+			"State"                                                                                          : "Status",
+			" Synchronise values"                                                                            : " Werte aktualisieren",
+			"Disabled"                                                                                       : "Inaktiv",
+			"Send buffer"                                                                                    : "Sende Buffer",
+			"Receive buffer"                                                                                 : "Empfangs Buffer",
+			"Send/Receive buffer"                                                                            : "Sende/Empfangs Buffer",
+			"Detailed error log"                                                                             : "Detaillierte Meldungen",
+			" Messages"                                                                                      : "Meldungen",
+			"Devices successfully synced!"                                                                   : "Geräte wurden erfolgreich synchronisiert",
+			"Create / Update"                                                                                : "Erstellen / Aktualisieren",
+			"Gateway is open"                                                                                : "Gateway ist aktiv",
+			"Please enter all required informations!"                                                        : "Bitte alle notwendigen Informationen eingeben",
+			"Gateway is closed"                                                                              : "Gateway ist inaktiv",
+			"Invalid IP address!"                                                                            : "Ungültige IP Addresse!",
+			"Minimum update interval = 5 seconds!"                                                           : "Minimum Wert Aktualisierungs Interval = 5 Sekunden!",
+			"Unknown error!"                                                                                 : "Unbekannter Fehler!"
+		}
+	}
+}
