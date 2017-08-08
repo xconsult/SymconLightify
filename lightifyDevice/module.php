@@ -474,10 +474,12 @@ class lightifyDevice extends lightifyControl {
 				}
 
 				//Create and update zigBee
-				if (false === ($zigBeeID = @$this->GetIDForIdent("ZIGBEE")))
-					$zigBeeID = $this->RegisterVariableString("ZIGBEE", "ZigBee", "", 321);
+				if (false === ($zigBeeID = @$this->GetIDForIdent("ZIGBEE"))) {
+					if ($method == osrConstant::METHOD_CREATE_CHILD)
+						$zigBeeID = $this->RegisterVariableString("ZIGBEE", "ZigBee", "", 321);
+				}
 
-				if (isset($zigBeeID)) {
+				if ($zigBeeID !== false) {
 					if ($zigBee == "FFFF" || GetValueString($zigBeeID) != $zigBee) {
 						SetValueString($zigBeeID, $zigBee);
 						IPS_SetDisabled($zigBeeID, true);
@@ -486,10 +488,12 @@ class lightifyDevice extends lightifyControl {
 				}
 
 				//Create and update firmware version
-				if (false === ($firmwareID = @$this->GetIDForIdent("FIRMWARE")))
-					$firmwareID = $this->RegisterVariableString("FIRMWARE", "Firmware", "", 322);
+				if (false === ($firmwareID = @$this->GetIDForIdent("FIRMWARE"))) {
+					if ($method == osrConstant::METHOD_CREATE_CHILD)
+						$firmwareID = $this->RegisterVariableString("FIRMWARE", "Firmware", "", 322);
+				}
 
-				if (isset($firmwareID)) {
+				if ($firmwareID !== false) {
 					if (GetValueString($firmwareID) != $firmwareVersion) {
 						SetValueString($firmwareID, $firmwareVersion);
 						IPS_SetDisabled($firmwareID, true);
