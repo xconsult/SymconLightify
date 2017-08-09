@@ -87,9 +87,13 @@ class osrConstant extends stdClass {
 	const MODE_GROUP_SCENE       = 1406;
 	const MODE_SCENE_CLOUD       = 1407;
 
-	const MODE_DEVICE_INFO       = 1408;
-	const MODE_MAINTAIN_ACTION   = 1409;
-	const MODE_DELETE_VARIABLE   = 1410;
+	const MODE_CREATE_DEVICE     = 1408;
+	const MODE_CREATE_GROUP      = 1409;
+	const MODE_CREATE_SCENE      = 1410;
+
+	const MODE_DEVICE_INFO       = 1411;
+	const MODE_MAINTAIN_ACTION   = 1412;
+	const MODE_DELETE_VARIABLE   = 1413;
 
 	const SET_DEVICE_DUMMY       = 1601;
 	const SET_GROUP_DUMMY        = 1602;
