@@ -1,15 +1,21 @@
 {
 	"translations": {
 		"de": {
-			"Class"                : "Klasse",
-			"Group [id]"           : "Gruppen [id]",
-			"Devices"              : "Geräte",
-			"Color"                : "Farbe",
-			"CCT"                  : "CCT",
-			"Level"                : "Level",
-			"Intens"               : "Intens",
-			"time"                 : "Zeit",
-			"Scene [id]"           : "Szenen [id]"
+			"Group/Scene [id]"                  : "Gruppen/Szenen [id]",
+			"Class"                             : "Klasse",
+			"Group"                             : "Gruppe",
+			"Scene"                             : "Szene",
+			"Devices"                           : "Geräte",
+			"Color"                             : "Farbe",
+			"CCT"                               : "CCT",
+			"Level"                             : "Level",
+			"Intens"                            : "Intens",
+			"time"                              : "Zeit",
+			"On"                                : "An",
+			"Off"                               : "Aus",
+			"Group/Scene is active"             : "Gruppe/Szene ist aktiv",
+			"Lightify gateway is not connected" : "Lightify gateway ist nicht verbunden",
+			"Invalid Group/Scene [id]"          : "Ungültige Gruppen/Szenen [id]"
 		}
 	}
 }

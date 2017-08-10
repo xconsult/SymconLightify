@@ -98,22 +98,8 @@ class lightifyGroup extends lightifyControl {
 						{ "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" }
 					],
 					"actions": [
-						{ "type": "Button", "label": "An",  "onClick": "OSR_SetValue($id, \"STATE\", true)" },
-						{ "type": "Button", "label": "Aus", "onClick": "OSR_SetValue($id, \"STATE\", false)" }
-					]
-				}';
-				return $formJSON;
-
-			case osrConstant::TYPE_GROUP_SCENE:
-				$formJSON ='{
-					"elements": [
-						{ "type": "NumberSpinner",    "name": "sceneID",   "caption": "Scene [id]" },
-						{ "type": "Select",           "name": "itemClass", "caption": "Class",
-							"options": [
-								{ "label": "Scene", "value": 2007 }
-							]
-						},
-						{ "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" }
+						{ "type": "Button", "label": "On",  "onClick": "OSR_SetValue($id, \"STATE\", true)"  },
+						{ "type": "Button", "label": "Off", "onClick": "OSR_SetValue($id, \"STATE\", false)" }
 					]
 				}';
 				return $formJSON;
@@ -124,20 +110,19 @@ class lightifyGroup extends lightifyControl {
 					{ "type": "List",  "name":  "deviceList", "caption": "Devices",
 						"columns": [
 							{ "label": "Instance ID", "name": "InstanceID",  "width": "60px", "visible": false },
-							{ "label": "ID",          "name": "deviceID",    "width": "30px" },
-							{ "label": "Name",        "name": "name",        "width": "auto" },
-							{ "label": "Hue",         "name": "hue",         "width": "35px" },
-							{ "label": "Color",       "name": "color",       "width": "54px" },
-							{ "label": "CCT",         "name": "temperature", "width": "44px" },
-							{ "label": "Level",       "name": "level",       "width": "42px" },
-							{ "label": "Intens",      "name": "saturation",  "width": "44px" },
-							{ "label": "time",        "name": "transition",  "width": "38px" }
+							{ "label": "ID",          "name": "deviceID",    "width": "35px"  },
+							{ "label": "Name",        "name": "name",        "width": "120px" },
+							{ "label": "Hue",         "name": "hue",         "width": "35px"  },
+							{ "label": "Color",       "name": "color",       "width": "60px"  },
+							{ "label": "CCT",         "name": "temperature", "width": "45px"  },
+							{ "label": "Level",       "name": "level",       "width": "45px"  },
+							{ "label": "Intens",      "name": "saturation",  "width": "45px"  }
 						]
 				},' : "";
 
 				$formJSON = '{
 					"elements": [
-						{ "type": "NumberSpinner",    "name": "groupID",   "caption": "Group [id]" },
+						{ "type": "NumberSpinner",    "name": "groupID",   "caption": "Group/Scene [id]" },
 						{ "type": "Select",           "name": "itemClass", "caption": "Class",
 							"options": [
 								{ "label": "Group", "value": 2006 }
@@ -147,13 +132,13 @@ class lightifyGroup extends lightifyControl {
 						{ "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" }
 					],
 					"actions": [
-						{ "type": "Button", "label": "An",  "onClick": "OSR_SetValue($id, \"STATE\", true)" },
-						{ "type": "Button", "label": "Aus", "onClick": "OSR_SetValue($id, \"STATE\", false)" }
+						{ "type": "Button", "label": "On",  "onClick": "OSR_SetValue($id, \"STATE\", true)"  },
+						{ "type": "Button", "label": "Off", "onClick": "OSR_SetValue($id, \"STATE\", false)" }
 					],
 					"status": [
-						{ "code": 102, "icon": "active", "caption": "Group/Zone is active" },
+						{ "code": 102, "icon": "active", "caption": "Group/Scene is active"             },
 						{ "code": 201, "icon": "error",  "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",  "caption": "Please enter a valid Group/Zone [id]" }
+						{ "code": 202, "icon": "error",  "caption": "Invalid Group/Scene [id]"          }
 					]
 				}';
 		}
@@ -175,6 +160,18 @@ class lightifyGroup extends lightifyControl {
 					$state         = ($stateID) ? GetValueBoolean($stateID) : osrConstant::NO_STRING;
 
 					$deviceID      = @IPS_GetProperty($instanceID, "deviceID");
+					$itemClass     = @IPS_GetProperty($instanceID, "itemClass");
+
+					switch ($itemClass) {
+						case osrConstant::CLASS_LIGHTIFY_LIGHT:
+							$classInfo = "Lampe";
+							break;
+
+						case osrConstant::CLASS_LIGHTIFY_PLUG:
+							$classInfo = "Steckdose";
+							break;
+					} 
+
 					$hueID         = @IPS_GetObjectIDByIdent("HUE", $instanceID);
 					$colorID       = @IPS_GetObjectIDByIdent("COLOR", $instanceID);
 					$temperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $instanceID);
@@ -204,11 +201,10 @@ class lightifyGroup extends lightifyControl {
 						"deviceID"    => $deviceID,
 						"name"        => IPS_GetName($instanceID),
 						"hue"         => $hue,
-						"color"       => ($color != osrConstant::NO_STRING) ? "#".$color : osrConstant::NO_STRING,
+						"color"       => ($color != osrConstant::NO_STRING) ? "#".strtoupper($color) : osrConstant::NO_STRING,
 						"temperature" => $temperature,
 						"level"       => $level,
 						"saturation"  => $saturation,
-						"transition"  => sprintf("%.1f", @IPS_GetProperty($instanceID, "transition"))."s",
 						"rowColor"    => $rowColor
 					);
 				}

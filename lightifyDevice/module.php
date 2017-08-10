@@ -32,7 +32,7 @@ class lightifyDevice extends lightifyControl {
 	public function Create() {
 		parent::Create();
 
-		$this->SetBuffer("deviceBuffer", osrConstant::NO_STRING);
+		$this->SetBuffer("localDevice", osrConstant::NO_STRING);
 		$this->SetBuffer("cloudDevice", osrConstant::NO_STRING);
 		$this->SetBuffer("saveID", serialize(osrConstant::NO_VALUE));
 
@@ -71,13 +71,13 @@ class lightifyDevice extends lightifyControl {
 
 
 	public function GetConfigurationForm() {
-		$connectMode  = IPS_GetProperty($this->parentID, "connectMode");
-		$deviceInfo   = IPS_GetProperty($this->parentID, "deviceInfo");
-		$deviceBuffer = $this->GetBuffer("deviceBuffer");
-		$itemType     = $this->ReadPropertyInteger("itemType");
+		$connectMode = IPS_GetProperty($this->parentID, "connectMode");
+		$deviceInfo  = IPS_GetProperty($this->parentID, "deviceInfo");
+		$localDevice = $this->GetBuffer("localDevice");
+		$itemType    = $this->ReadPropertyInteger("itemType");
 
-		$infoText     = ($deviceInfo && empty($deviceBuffer) === false) ? '
-			{ "type": "Label", "label": "----------------------------------------------------- Optional informations -----------------------------------------------------" },
+		$infoText = ($deviceInfo && empty($localDevice) === false) ? '
+			{ "type": "Label", "label": "----------------------------------------- Geräte spezifische Informationen ------------------------------------------------" },
 			{ "type": "ValidationTextBox", "name": "UUID",         "caption": "UUID" },' : "";
 
 		switch ($itemType) {
@@ -98,15 +98,17 @@ class lightifyDevice extends lightifyControl {
 					"status": [
 						{ "code": 102, "icon": "active", "caption": "Device is active" },
 						{ "code": 201, "icon": "error",  "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",  "caption": "Please enter a valid Device [id]" }
+						{ "code": 202, "icon": "error",  "caption": "Please enter a valid Device [id]"  }
 					]
 				}';
 				break;
 
 			default:
-				$infoText = ($connectMode == osrConstant::CONNECT_LOCAL_CLOUD && empty($infoText) === false) ? $infoText.'
+				$cloudDevice = $this->GetBuffer("cloudDevice");
+
+				$infoText = ($connectMode == osrConstant::CONNECT_LOCAL_CLOUD && empty($cloudDevice) === false && empty($infoText) === false) ? $infoText.'
 					{ "type": "ValidationTextBox", "name": "manufacturer", "caption": "Manufacturer" },
-					{ "type": "ValidationTextBox", "name": "deviceModel",  "caption": "Model" },
+					{ "type": "ValidationTextBox", "name": "deviceModel",  "caption": "Model"        },
 					{ "type": "ValidationTextBox", "name": "deviceLabel",  "caption": "Capabilities" },' : $infoText;
 
 				$formJSON = '{
@@ -123,13 +125,13 @@ class lightifyDevice extends lightifyControl {
 						{ "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" }
 					],
 					"actions": [
-						{ "type": "Button", "label": "An",  "onClick": "OSR_SetValue($id, \"STATE\", true)" },
-						{ "type": "Button", "label": "Aus", "onClick": "OSR_SetValue($id, \"STATE\", false)" }
+						{ "type": "Button", "label": "On",  "onClick": "OSR_SetValue($id, \"STATE\", true)"  },
+						{ "type": "Button", "label": "Off", "onClick": "OSR_SetValue($id, \"STATE\", false)" }
 					],
 					"status": [
-						{ "code": 102, "icon": "active", "caption": "Device is active" },
-						{ "code": 201, "icon": "error",  "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",  "caption": "Please enter a valid Device [id]" }
+						{ "code": 102, "icon": "active", "caption": "Invalid Device [id]"                    },
+						{ "code": 201, "icon": "error",  "caption": "Lightify gateway is not connected"      },
+						{ "code": 202, "icon": "error",  "caption": "Please enter a valid Device [id]"       }
 					]
 				}';
 		}
@@ -148,26 +150,24 @@ class lightifyDevice extends lightifyControl {
 				$localCount  = ord($localBuffer{0});
 
 				//Store device buffer
-				$deviceBuffer = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
-				$deviceBuffer = ($deviceBuffer === false) ? "" : $deviceBuffer;
+				$localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
 
-				if ($data->Debug % 2) $this->SendDebug("<RECEIVEDATA|MODE_DEVICE_LOCAL>", $localCount."/".$this->lightifyBase->decodeData($deviceBuffer), 0);
-				if ($data->Message) IPS_LogMessage("SymconOSR", "<RECEIVEDATA|MODE_DEVICE_LOCAL>   ".$localCount.$this->lightifyBase->decodeData($deviceBuffer));
+				if ($localDevice !== false) {
+					if ($data->Debug % 2) $this->SendDebug("<RECEIVEDATA|MODE_DEVICE_LOCAL>", $localCount."/".$this->lightifyBase->decodeData($localDevice), 0);
+					if ($data->Message) IPS_LogMessage("SymconOSR", "<RECEIVEDATA|MODE_DEVICE_LOCAL>   ".$localCount.$this->lightifyBase->decodeData($localDevice));
 
-				if (empty($deviceBuffer) === false) {
-					$this->SetBuffer("deviceBuffer", $localBuffer{0}.$deviceBuffer);
-					$this->setDeviceInfo($data->Method, $data->Mode, $deviceBuffer, false);
+					$this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
+					$this->setDeviceInfo($data->Method, $data->Mode, $localDevice);
 				}
 				break;
 
 			case osrConstant::MODE_DEVICE_CLOUD:
 				$cloudDevice = $this->getDeviceCloud($deviceID, $data->Buffer);
-				$cloudDevice = ($cloudDevice === false) ? "" : $cloudDevice;
 
-				if ($data->Debug % 2) $this->SendDebug("<RECEIVEDATA|MODE_DEVICE_CLOUD>", $this->lightifyBase->decodeData($cloudDevice), 0);
-				if ($data->Message) IPS_LogMessage("SymconOSR", "<RECEIVEDATA|MODE_DEVICE_CLOUD>   ".$this->lightifyBase->decodeData($cloudDevice));
+				if ($cloudDevice !== false) {
+					if ($data->Debug % 2) $this->SendDebug("<RECEIVEDATA|MODE_DEVICE_CLOUD>", $this->lightifyBase->decodeData($cloudDevice), 0);
+					if ($data->Message) IPS_LogMessage("SymconOSR", "<RECEIVEDATA|MODE_DEVICE_CLOUD>   ".$this->lightifyBase->decodeData($cloudDevice));
 
-				if (empty($cloudDevice) === false) {
 					$this->SetBuffer("cloudDevice", $cloudDevice);
 					$this->setDeviceInfo($data->Method, $data->Mode, $cloudDevice, true);
 				}
@@ -194,13 +194,12 @@ class lightifyDevice extends lightifyControl {
 				return self::ERROR_INVALID_DEVICE_ID;
 
 			//Store device buffer
-			$deviceBuffer = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
-			$deviceBuffer =  ($deviceBuffer === false) ? "" : $deviceBuffer;
-			//IPS_LogMessage("SymconOSR", "<SETDEVICEPROPERTY>   ".$deviceID."/".IPS_GetName($this->InstanceID)."/".$this->lightifyBase->decodeData($deviceBuffer));
+			$localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
+			//IPS_LogMessage("SymconOSR", "<SETDEVICEPROPERTY>   ".$deviceID."/".IPS_GetName($this->InstanceID)."/".$this->lightifyBase->decodeData($localDevice));
 
-			if ($deviceBuffer !== false) {
-				$uintUUID  = substr($deviceBuffer, 2, osrConstant::UUID_DEVICE_LENGTH);
-				$itemType  = ord($deviceBuffer{10});
+			if ($localDevice !== false) {
+				$uintUUID  = substr($localDevice, 2, osrConstant::UUID_DEVICE_LENGTH);
+				$itemType  = ord($localDevice{10});
 				$saveID    = unserialize($this->GetBuffer("saveID"));
 
 				if ($saveID != $deviceID) {
@@ -229,21 +228,21 @@ class lightifyDevice extends lightifyControl {
 					);
 
 					if ($jsonString != osrConstant::NO_STRING) {
+						//IPS_LogMessage("SymconOSR", "<SETDEVICEPROPERTY>   ".$deviceID."/".IPS_GetName($this->InstanceID)."/".$jsonString);
 						$cloudData = json_decode($jsonString);
 
 						//Store group device buffer
 						$cloudDevice = $this->getDeviceCloud($deviceID, $cloudData->Buffer);
-						$cloudDevice = ($cloudDevice === false) ? "" : $cloudDevice;
 
 						if ($cloudDevice !== false) {
 							$this->SetBuffer("cloudDevice", $cloudDevice);
-							$this->setDeviceInfo(osrConstant::METHOD_APPLY_CHILD, osrConstant::MODE_DEVICE_CLOUD, $cloudDevice, false);
+							$this->setDeviceInfo(osrConstant::METHOD_CREATE_CHILD, osrConstant::MODE_DEVICE_CLOUD, $cloudDevice, true);
 						}
 					}
 				}
 
-				$this->SetBuffer("deviceBuffer", $localBuffer{0}.$deviceBuffer);
-				$this->setDeviceInfo(osrConstant::METHOD_CREATE_CHILD, osrConstant::MODE_DEVICE_LOCAL, $deviceBuffer, false);
+				$this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
+				$this->setDeviceInfo(osrConstant::METHOD_CREATE_CHILD, osrConstant::MODE_DEVICE_LOCAL, $localDevice);
 			}
 		}
 
@@ -252,7 +251,7 @@ class lightifyDevice extends lightifyControl {
 
 
 	private function getDeviceLocal($deviceID, $buffer, $ncount) {
-		$deviceBuffer = false;
+		$localDevice = false;
 
 		for ($i = 1; $i <= $ncount; $i++) {
 			$localID = ord($buffer{0});
@@ -263,14 +262,14 @@ class lightifyDevice extends lightifyControl {
 				if (IPS_GetInstance($this->InstanceID)['ConnectionID'] != $this->parentID)
 					continue;
 
-				$deviceBuffer = substr($buffer, 0, osrConstant::DATA_DEVICE_LENGTH);
+				$localDevice = substr($buffer, 0, osrConstant::DATA_DEVICE_LENGTH);
 				break;
 			}
 
 			$buffer = substr($buffer, osrConstant::DATA_DEVICE_LENGTH);
 		}
 
-		return $deviceBuffer;
+		return $localDevice;
 	}
 
 
@@ -294,7 +293,7 @@ class lightifyDevice extends lightifyControl {
 	}
 
 
-	private function setDeviceInfo($method, $mode, $data, $apply) {
+	private function setDeviceInfo($method, $mode, $data, $apply = false) {
 		$itemType = ord($data{10});
 		$result   = false;
 
@@ -456,17 +455,17 @@ class lightifyDevice extends lightifyControl {
 				break;
 
 			case osrConstant::MODE_DEVICE_CLOUD:
-				list($cloudID, $deviceType, $manufacturer, $modelName, $bmpClusters, $zigBee, $firmwareVersion) = json_decode($data);
+				list($cloudID, $deviceType, $manufacturer, $deviceModel, $bmpClusters, $zigBee, $firmware) = json_decode($data);
 
 				if ($method == osrConstant::METHOD_CREATE_CHILD) {
 					if ($itemType != osrConstant::TYPE_SENSOR_MOTION && $itemType != osrConstant::TYPE_DIMMER_2WAY && $itemType != osrConstant::TYPE_SWITCH_4WAY) {
-						$deviceLabel = (empty($bmpClusters)) ? "--" : implode(" ", $bmpClusters);
+						$deviceLabel = (empty($bmpClusters)) ? "" : implode(" ", $bmpClusters);
 		
 						if ($this->ReadPropertyString("manufacturer") != $manufacturer)
 							IPS_SetProperty($this->InstanceID, "manufacturer", (string)$manufacturer);
 		
-						if ($this->ReadPropertyString("deviceModel") != $modelName)
-							IPS_SetProperty($this->InstanceID, "deviceModel", (string)$modelName);
+						if ($this->ReadPropertyString("deviceModel") != $deviceModel)
+							IPS_SetProperty($this->InstanceID, "deviceModel", (string)$deviceModel);
 		
 						if ($this->ReadPropertyString("deviceLabel") != $deviceLabel)
 							IPS_SetProperty($this->InstanceID, "deviceLabel", (string)$deviceLabel);
@@ -494,8 +493,8 @@ class lightifyDevice extends lightifyControl {
 				}
 
 				if ($firmwareID !== false) {
-					if (GetValueString($firmwareID) != $firmwareVersion) {
-						SetValueString($firmwareID, $firmwareVersion);
+					if (GetValueString($firmwareID) != $firmware) {
+						SetValueString($firmwareID, $firmware);
 						IPS_SetDisabled($firmwareID, true);
 						IPS_SetHidden($firmwareID, true);
 					}

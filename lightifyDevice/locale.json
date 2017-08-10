@@ -1,12 +1,18 @@
 {
 	"translations": {
 		"de": {
-			"Class"                : "Klasse",
-			"Device [id]"          : "Geräte [id]",
-			"Manufacturer"         : "Hersteller",
-			"Model"                : "Modell",
-			"Capabilities"         : "Eigenschaften",
-			"Group [id]"           : "Gruppen [id]"
+			"Device [id]"                       : "Geräte [id]",
+			"Class"                             : "Klasse",
+			"Light"                             : "Lampe",
+			"Plug"                              : "Steckddose",
+			"Manufacturer"                      : "Hersteller",
+			"Model"                             : "Modell",
+			"Capabilities"                      : "Eigenschaften",
+			"On"                                : "An",
+			"Off"                               : "Aus",
+			"Device is active"                  : "Gerät ist aktiv",
+			"Lightify gateway is not connected" : "Lightify gateway ist nicht verbunden",
+			"Invalid Device [id]"               : "Ungültige Geräte [id]"
 		}
 	}
 }

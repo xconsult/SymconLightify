@@ -131,8 +131,8 @@ class osrConstant extends stdClass {
 	const DATA_GROUP_LENGTH      = 18;
 	const DATA_NAME_LENGTH       = 15;
 	const DATA_WIFI_LENGTH       = 97;
-	const DATA_CLASS_INFO        = 8;
-	const DATA_DEVICE_LIST       = 31;
+	const DATA_CLASS_INFO        = 10;
+	const DATA_DEVICE_LIST       = 33;
 	const DATA_GROUP_LIST        = 25;
 	const DATA_GROUP_DEVICE      = 10;
 
