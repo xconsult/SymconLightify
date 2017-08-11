@@ -3,8 +3,8 @@
 //Socket functions
 class lightifyConnect extends stdClass {
 
-	private $lightifyBase    = null;
-	private $lightifyConnect = null;
+	private $lightifyBase;
+	private $lightifySocket;
 
 	private $host;
 	private $debug;
@@ -12,37 +12,33 @@ class lightifyConnect extends stdClass {
 
 
 	public function __construct ($InstanceID, $host, $debug = false, $message = false) {
-		if ($this->lightifyConnect == null) {
-			$this->lightifyBase	= new lightifyBase;
+		$this->lightifyBase = new lightifyBase;
 
-			$this->InstanceID = $InstanceID;
-			$this->requestID  = 0;
+		$this->InstanceID = $InstanceID;
+		$this->requestID  = 0;
 
-			$this->host    = $host;
-			$this->debug   = $debug;
-			$this->message = $message;
-		}
+		$this->host    = $host;
+		$this->debug   = $debug;
+		$this->message = $message;
 	}
 
 
 	protected function localConnect() {
-		if ($this->lightifyConnect == null) {
-			if ($this->host != "") {
-				if (false === ($this->lightifyConnect = @fsockopen($this->host, osrConstant::GATEWAY_PORT, $code, $error, 5))) {
-					$error = "Socket open failed: ".$error." [".$code."]";
-
-					if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<__CONSTRUCT>", $error, 0);
-					if ($this->message) IPS_LogMessage("SymconOSR", "<__CONSTRUCT>.  ".$error);
-
-					return false;
-				}
-
-				//socket options
-				stream_set_timeout($this->lightifyConnect, 3);
-				stream_set_blocking($this->lightifyConnect, 1);
-				//stream_set_chunk_size($this->lightifyConnect, 4096);
+		if (false === ($this->lightifySocket = @fsockopen($this->host, osrConstant::GATEWAY_PORT, $code, $error, 5))) {
+			if ($this->debug % 4 || $this->message) {
+				$error = "Socket open failed: ".$error." [".$code."]";
+	
+				if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<__CONSTRUCT>", $error, 0);
+				if ($this->message) IPS_LogMessage("SymconOSR", "<__CONSTRUCT>.  ".$error);
+	
+				return false;
 			}
 		}
+
+		//socket options
+		stream_set_timeout($this->lightifySocket, 3);
+		stream_set_blocking($this->lightifySocket, 1);
+		//stream_set_chunk_size($this->lightifySocket, 4096);
 
 		return true;
 	}
@@ -66,13 +62,13 @@ class lightifyConnect extends stdClass {
 				if ($this->message) IPS_LogMessage("SymconOSR", "<SENDRAW>   ".$info);
 			}
 
-			if (false !== ($bytes = @fwrite($this->lightifyConnect, $data, $length))) {
+			if (false !== ($bytes = @fwrite($this->lightifySocket, $data, $length))) {
 				if ($bytes == $length) {
 					$buffer = "";
 
-					while(!feof($this->lightifyConnect)) {
-						if (false !== ($buffer .= @fread($this->lightifyConnect, 1024))) { //Read 1024 bytes block
-							$metaData = @stream_get_meta_data($this->lightifyConnect);
+					while(!feof($this->lightifySocket)) {
+						if (false !== ($buffer .= @fread($this->lightifySocket, 1024))) { //Read 1024 bytes block
+							$metaData = @stream_get_meta_data($this->lightifySocket);
 							if ($metaData['unread_bytes'] > 0) continue;
 						} else {
 							$error = "Socket read data failed!";
@@ -235,7 +231,7 @@ class lightifyConnect extends stdClass {
 
 
 	function __desctruct() {
-		if ($this->lightifyConnect) socket_close($this-socket);
+		@fclose($this-lightifySocket);
 	}
 
 }

@@ -120,6 +120,7 @@ class osrConstant extends stdClass {
 	const UUID_OSRAM_LENGTH      = 8;
 	const UUID_DEVICE_LENGTH     = 8;
 	const UUID_GROUP_LENGTH      = 2;
+	const UUID_SCENE_LENGTH      = 1;
 	const UUID_STRING_LENGTH     = 23;
 
 	const BUFFER_HEADER_LENGTH   = 8;
@@ -133,7 +134,8 @@ class osrConstant extends stdClass {
 	const DATA_WIFI_LENGTH       = 97;
 	const DATA_CLASS_INFO        = 10;
 	const DATA_DEVICE_LIST       = 33;
-	const DATA_GROUP_LIST        = 25;
+	const DATA_GROUP_LIST        = 19;
+	const DATA_SCENE_LIST        = 32;
 	const DATA_GROUP_DEVICE      = 10;
 
 	const WIFI_PROFILE_LENGTH    = 31;

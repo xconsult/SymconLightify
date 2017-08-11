@@ -116,7 +116,7 @@ class lightifyGroup extends lightifyControl {
 							{ "label": "Color",       "name": "color",       "width": "60px"  },
 							{ "label": "CCT",         "name": "temperature", "width": "45px"  },
 							{ "label": "Level",       "name": "level",       "width": "45px"  },
-							{ "label": "Intens",      "name": "saturation",  "width": "45px"  }
+							{ "label": "Sättigung",   "name": "saturation",  "width": "45px"  }
 						]
 				},' : "";
 

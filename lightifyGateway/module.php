@@ -13,9 +13,10 @@ class lightifyGateway extends IPSModule {
 	const TIMER_MODE_ON          = true;
 	const TIMER_MODE_OFF         = false;
 
-	const LIST_CATEGORIES_INDEX  = 9;
-	const LIST_DEVICES_INDEX     = 12;
-	const LIST_GROUPS_INDEX      = 13;
+	const LIST_CATEGORY_INDEX    = 9;
+	const LIST_DEVICE_INDEX      = 12;
+	const LIST_GROUP_INDEX       = 13;
+	const LIST_SCENE_INDEX       = 14;
 
 	const MAX_DEVICE_SYNC        = 50;
 	const MAX_GROUP_SYNC         = 16;
@@ -83,6 +84,7 @@ class lightifyGateway extends IPSModule {
 		//Store at runtime
 		$this->SetBuffer("deviceList", osrConstant::NO_STRING);
 		$this->SetBuffer("groupList", osrConstant::NO_STRING);
+		$this->SetBuffer("sceneList", osrConstant::NO_STRING);
 		$this->SetBuffer("localDevice", osrConstant::NO_STRING);
 		$this->SetBuffer("localGroup", osrConstant::NO_STRING);
 		$this->SetBuffer("deviceGroup", osrConstant::NO_STRING);
@@ -108,6 +110,7 @@ class lightifyGateway extends IPSModule {
 		$this->RegisterPropertyString("categoryList", osrConstant::NO_STRING);
 		$this->RegisterPropertyString("deviceList", osrConstant::NO_STRING);
 		$this->RegisterPropertyString("groupList", osrConstant::NO_STRING);
+		$this->RegisterPropertyString("sceneList", osrConstant::NO_STRING);
 		$this->RegisterPropertyBoolean("deviceInfo", false);
 
 		$this->RegisterPropertyInteger("debug", self::DEBUG_DISABLED);
@@ -182,10 +185,9 @@ class lightifyGateway extends IPSModule {
 				{ "type": "Label",        "label": "----------------------------------------------- Registrierte Geräte/Gruppen/Szenen --------------------------------------" },
 				{ "type": "List",         "name":  "deviceList",        "caption": "Devices",
 					"columns": [
-						{ "label": "ID",          "name": "deviceID",     "width": "35px"  },
-						{ "label": "Class",       "name": "classInfo",    "width": "75px"  },
-						{ "label": "UUID",        "name": "UUID",         "width": "150px" },
-						{ "label": "Name",        "name": "deviceName",   "width": "120px" }';
+						{ "label": "ID",          "name": "deviceID",     "width": "30px"  },
+						{ "label": "Class",       "name": "classInfo",    "width": "65px"  },
+						{ "label": "Name",        "name": "deviceName",   "width": "110px" }';
 
 			$cloudDevice = $this->GetBuffer("cloudDevice");
 			$formDevice  = (empty($cloudDevice) === false) ? $formDevice.',
@@ -199,12 +201,24 @@ class lightifyGateway extends IPSModule {
 
 		$groupList = $this->GetBuffer("groupList");
 		$formGroup = (empty($groupList) === false && ord($groupList{0}) > 0) ? '
-			{ "type": "List",           "name":  "groupList",         "caption": "Groups/Scenes",
+			{ "type": "List",           "name":  "groupList",         "caption": "Groups",
 				"columns": [
-					{ "label": "ID",          "name": "groupID",      "width": "35px"  },
-					{ "label": "Class",       "name": "classInfo",    "width": "75px"  },
-					{ "label": "UUID",        "name": "UUID",         "width": "150px" },
-					{ "label": "Name",        "name": "groupName",    "width": "120px" }
+					{ "label": "ID",          "name": "groupID",      "width": "30px"  },
+					{ "label": "Class",       "name": "classInfo",    "width": "65px"  },
+					{ "label": "Name",        "name": "groupName",    "width": "220px" },
+					{ "label": "Info",        "name": "information",  "width": "70px"  }
+				]
+		},' : "";
+
+		$sceneList = $this->GetBuffer("sceneList");
+		$formScene = (empty($sceneList) === false && ord($sceneList{0}) > 0) ? '
+			{ "type": "List",           "name":  "sceneList",         "caption": "Scenes",
+				"columns": [
+					{ "label": "ID",          "name": "sceneID",      "width": "30px"  },
+					{ "label": "Class",       "name": "classInfo",    "width": "65px"  },
+					{ "label": "Name",        "name": "sceneName",    "width": "110px" },
+					{ "label": "Group",       "name": "groupName",    "width": "110px" },
+					{ "label": "Info",        "name": "information",  "width": "70px"  }
 				]
 		},' : "";
 
@@ -244,6 +258,7 @@ class lightifyGateway extends IPSModule {
 				{ "type": "CheckBox",     "name": "deviceInfo",         "caption": " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" },
 				'.$formDevice.'
 				'.$formGroup.'
+				'.$formScene.'
 				{ "type": "Label",        "label": "----------------------------------------------------------------------------------------------------------------------------------" },
 				{ "type": "Select", "name": "debug", "caption": "Debug",
 					"options": [
@@ -281,7 +296,7 @@ class lightifyGateway extends IPSModule {
 		//Only add default element if we do not have anything in persistence
 		if (empty($this->ReadPropertyString("categoryList"))) {
 			foreach ($Types as $item) {
-				$data->elements[self::LIST_CATEGORIES_INDEX]->values[] = array(
+				$data->elements[self::LIST_CATEGORY_INDEX]->values[] = array(
 					'Device'     => $item,
 					'categoryID' => 0, 
 					'Category'   => "select ...",
@@ -297,13 +312,13 @@ class lightifyGateway extends IPSModule {
 				//We only need to add annotations. Remaining data is merged from persistance automatically.
 				//Order is determinted by the order of array elements
 				if ($row->categoryID && IPS_ObjectExists($row->categoryID)) {
-					$data->elements[self::LIST_CATEGORIES_INDEX]->values[] = array(
+					$data->elements[self::LIST_CATEGORY_INDEX]->values[] = array(
 						'Device'   => $Types[$index],
 						'Category' => IPS_GetName(0)."\\".IPS_GetLocation($row->categoryID),
 						'Sync'     => ($row->syncID) ? "ja" : "nein"
 					);
 				} else {
-					$data->elements[self::LIST_CATEGORIES_INDEX]->values[] = array(
+					$data->elements[self::LIST_CATEGORY_INDEX]->values[] = array(
 						'Device'   => $Types[$index],
 						'Category' => "wählen ...",
 						'Sync'     => "nein"
@@ -312,7 +327,7 @@ class lightifyGateway extends IPSModule {
 			}
 		}
 
-		//Devices list element
+		//Device list element
 		if (empty($formDevice) === false) {
 			$ncount     = ord($deviceList{0});
 			$deviceList = substr($deviceList, 1);
@@ -332,7 +347,6 @@ class lightifyGateway extends IPSModule {
 				$arrayList  = array(
 					'deviceID'   => $deviceID,
 					'classInfo'  => $classInfo,
-					'UUID'       => $UUID,
 					'deviceName' => $deviceName
 				);
 
@@ -353,33 +367,64 @@ class lightifyGateway extends IPSModule {
 					}
 				}
 
-				$data->elements[self::LIST_DEVICES_INDEX]->values[] = $arrayList;
+				$data->elements[self::LIST_DEVICE_INDEX]->values[] = $arrayList;
 				$deviceList = substr($deviceList, osrConstant::DATA_DEVICE_LIST);
 			}
 		}
 
-		//Groups list element
+		//Group list element
 		if (empty($formGroup) === false) {
-			$ncount     = ord($groupList{0});
+			$ncount    = ord($groupList{0});
 			$groupList = substr($groupList, 1);
 
 			for ($i = 1; $i <= $ncount; $i++) {
 				//We only need to add annotations. Remaining data is merged from persistance automatically.
 				//Order is determinted by the order of array elements
-				$uint16    = substr($groupList, 0, osrConstant::UUID_GROUP_LENGTH);
-				$groupID   = ord($uint16{0});
-				$UUID      = osrConstant::UUID_OSRAM_LIGHTIFY.":0f:0f:0f:0a:".sprintf("%02x", $groupID);
-				$groupName = trim(substr($groupList, 2, osrConstant::DATA_NAME_LENGTH));
-				$classInfo = "Gruppe";
+				$groupID     = ord($groupList{0});
+				$uint64      = $groupList{0}.$groupList{1}.chr(0x0a).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
+				$UUID        = $this->lightifyBase->chrToUUID($uint64);
+				$groupName   = trim(substr($groupList, 2, osrConstant::DATA_NAME_LENGTH));
 
-				$data->elements[self::LIST_GROUPS_INDEX]->values[] = array(
-					'groupID'   => $groupID,
-					'classInfo' => $classInfo,
-					'UUID'      => $UUID,
-					'groupName' => $groupName
+				$dcount      = ord($groupList{18});
+				$information = ($dcount == 1) ? $dcount." Gerät" : $dcount." Geräte";
+
+				$data->elements[self::LIST_GROUP_INDEX]->values[] = array(
+					'groupID'     => $groupID,
+					'classInfo'   =>  "Gruppe",
+					'groupName'   => $groupName,
+					'information' => $information
 				);
 
-				$groupList = substr($groupList, osrConstant::DATA_GROUP_LENGTH);
+				$groupList = substr($groupList, osrConstant::DATA_GROUP_LIST);
+			}
+		}
+
+		//Scene list element
+		if (empty($formScene) === false) {
+			$ncount    = ord($sceneList{0});
+			$sceneList = substr($sceneList, 1);
+
+			for ($i = 1; $i <= $ncount; $i++) {
+				//We only need to add annotations. Remaining data is merged from persistance automatically.
+				//Order is determinted by the order of array elements
+				$uint64    = $sceneList{0}.chr(0x00).chr(0x0c).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
+				$sceneID   = ord($sceneList{0});
+				$UUID      = $this->lightifyBase->chrToUUID($uint64);
+				$sceneName = trim(substr($sceneList, 1, osrConstant::DATA_NAME_LENGTH));
+				$groupName = trim(substr($sceneList, 15, osrConstant::DATA_NAME_LENGTH));
+
+				$dcount      = ord($sceneList{31});
+				$information = ($dcount == 1) ? $dcount." Gerät" : $dcount." Geräte";
+
+				$data->elements[self::LIST_SCENE_INDEX]->values[] = array(
+					'sceneID'     => $sceneID,
+					'classInfo'   => "Szene",
+					'sceneName'   => $sceneName,
+					'groupName'   => $groupName,
+					'information' => $information
+				);
+
+				$sceneList = substr($sceneList, osrConstant::DATA_SCENE_LIST);
 			}
 		}
 
@@ -1001,25 +1046,22 @@ class lightifyGateway extends IPSModule {
 				return false;
 
 			case osrCommand::GET_GROUP_LIST:
-				$ncount = ord($data{0})+ord($data{1});
-				$data   = substr($data, 2);
+				$ncount      = ord($data{0})+ord($data{1});
+				$data        = substr($data, 2);
 
-				$deviceGroup  = $this->GetBuffer("deviceGroup");
-				$localDevice = "";
-
-				$localGroup = $data;
+				$localGroup  = $data;
 				$groupDevice = "";
-
-				if (($dcount = ord($deviceGroup{0})) > 0)
-					$localDevice = substr($deviceGroup, 1);
+				$groupList   = "";
 
 				for ($i = 1; $i <= $ncount; $i++) {
+					$deviceGroup = $this->GetBuffer("deviceGroup");
+
 					$uintUUID    = substr($data, 0, osrConstant::UUID_GROUP_LENGTH);
 					$groupID     = ord($uintUUID{0});
 					$buffer      = "";
 
-					if ($dcount > 0) {
-						$deviceGroup = $localDevice;
+					if (($dcount = ord($deviceGroup{0})) > 0) {
+						$deviceGroup = substr($deviceGroup, 1);
 
 						for ($j = 1, $k = 0; $j <= $dcount; $j++) {
 							$groups = $this->lightifyBase->decodeGroup(ord($deviceGroup{8}), ord($deviceGroup{9}));
@@ -1035,8 +1077,8 @@ class lightifyGateway extends IPSModule {
 						}
 					}
 
-					//Add group [id]
 					$groupDevice .= chr($groupID).chr($k).$buffer;
+					$groupList   .= substr($data, 0, osrConstant::DATA_GROUP_LENGTH).chr($k);
 					//IPS_LogMessage("SymconOSR", "<READDATA>   ".$i."/".$groupID."/".$k."/".$this->lightifyBase->decodeData($buffer));
 
 					if (($length = strlen($data)) > osrConstant::DATA_GROUP_LENGTH) $length = osrConstant::DATA_GROUP_LENGTH;
@@ -1044,7 +1086,7 @@ class lightifyGateway extends IPSModule {
 				}
 
 				//Store at runtime
-				$this->SetBuffer("groupList", chr($ncount).$localGroup);
+				$this->SetBuffer("groupList", chr($ncount).$groupList);
 				$this->SetBuffer("groupDevice", $groupDevice);
 
 				if ($this->debug % 2) $this->SendDebug("<READDATA|GET_GROUP_LIST>", $ncount."/".$this->lightifyBase->decodeData($localGroup), 0);
@@ -1069,27 +1111,36 @@ class lightifyGateway extends IPSModule {
 			case osrConstant::GET_GROUP_SCENE:
 				$localGroup  = $this->GetBuffer("localGroup");
 				$cloudGroup  = json_decode($this->GetBuffer("cloudGroup"));
-				$sceneBuffer = "";
+
+				$sceneList  = "";
+				$cloudScene = "";
+				$i = 0;
 
 				foreach ($cloudGroup as $group) {
 					$groupScenes = $group->scenes;
+					$groupName   = str_pad($group->name, osrConstant::DATA_NAME_LENGTH, " ", STR_PAD_RIGHT);
 
 					if (empty($groupScenes) === false) {
-						$i = 0;
+						$j = 0;
 
 						foreach ($groupScenes as $sceneID => $sceneName) {
-							$sceneBuffer .= chr($sceneID).str_pad($sceneName, osrConstant::DATA_NAME_LENGTH, " ", STR_PAD_RIGHT);
-							$i += 1;
+							$sceneName   = str_pad($sceneName, osrConstant::DATA_NAME_LENGTH, " ", STR_PAD_RIGHT);
+							$cloudScene .= chr($sceneID).$sceneName;
+							$sceneList  .= chr($sceneID).$sceneName.$groupName.chr(count($group->devices));
+							$i += 1; $j += 1;
 						}
 
-						$sceneBuffer = chr($group->groupId).chr($i).$sceneBuffer;
+						$cloudScene = chr($group->groupId).chr($j).$cloudScene;
 					}
 				}
 
-				if ($this->debug % 2) $this->SendDebug("<READDATA|GET_GROUP_SCENE>", $this->lightifyBase->decodeData($localGroup{0}.$sceneBuffer), 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<READDATA|GET_GROUP_SCENE>   ".$this->lightifyBase->decodeData($localGroup{0}.$sceneBuffer));
+				//Store at runtime
+				$this->SetBuffer("sceneList", chr($i).$sceneList);
 
-				return $localGroup{0}.$sceneBuffer;
+				if ($this->debug % 2) $this->SendDebug("<READDATA|GET_GROUP_SCENE>", $this->lightifyBase->decodeData($localGroup{0}.$cloudScene), 0);
+				if ($this->message) IPS_LogMessage("SymconOSR", "<READDATA|GET_GROUP_SCENE>   ".$this->lightifyBase->decodeData($localGroup{0}.$cloudScene));
+
+				return $localGroup{0}.$cloudScene;
 		}
 
 		return chr(00)."";

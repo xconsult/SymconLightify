@@ -386,7 +386,7 @@ abstract class lightifyControl extends IPSModule {
 								SetValue($stateID, $value);
 
 								$this->maintainVariables(osrConstant::MODE_MAINTAIN_ACTION, $value);
-								//$this->sendData(osrConstant::METHOD_LOAD_LOCAL);
+								$this->sendData(osrConstant::METHOD_LOAD_LOCAL);
 
 								return true;
 							}
