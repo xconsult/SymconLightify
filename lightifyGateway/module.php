@@ -638,7 +638,7 @@ class lightifyGateway extends IPSModule {
 
 					return false;
 				} else {
-					if ($this->debug % 2) IPS_SendDebug("<CLOUDREQUEST|RESULT>", $jsonResult, 0);
+					if ($this->debug % 2) $this->SendDebug("<CLOUDREQUEST|RESULT>", $jsonResult, 0);
 					if ($this->message) IPS_LogMessage("SymconOSR", "<CLOUDREQUEST|RESULT>   ".$jsonResult);
 
 					return $jsonResult;
@@ -1038,7 +1038,7 @@ class lightifyGateway extends IPSModule {
 					}
 					$cloudDevice = json_encode($cloudDevice);
 
-					if ($this->debug % 2) IPS_SendDebug("<READDATA|GET_DEVICE_CLOUD>", $cloudDevice, 0);
+					if ($this->debug % 2) $this->SendDebug("<READDATA|GET_DEVICE_CLOUD>", $cloudDevice, 0);
 					if ($this->message) IPS_LogMessage("SymconOSR", "<READDATA|GET_DEVICE_CLOUD>   ".$cloudDevice);
 
 					return $cloudDevice;
@@ -1103,7 +1103,7 @@ class lightifyGateway extends IPSModule {
 				);
 				$cloudGroup = $this->cloudRequest(json_encode($args));
 
-				if ($this->debug % 2) IPS_SendDebug("<READDATA|GET_GROUP_CLOUD>", $cloudGroup, 0);
+				if ($this->debug % 2) $this->SendDebug("<READDATA|GET_GROUP_CLOUD>", $cloudGroup, 0);
 				if ($this->message) IPS_LogMessage("SymconOSR", "<READDATA|GET_GROUP_CLOUD>   ".$cloudGroup);
 
 				return $cloudGroup;
