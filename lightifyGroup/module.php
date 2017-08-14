@@ -11,8 +11,10 @@ class lightifyGroup extends lightifyControl {
 	const LIST_ELEMENTS_INDEX      = 3;
 
 	const STATUS_ITEM_ACTIVE       = 102;
+	const STATUS_ITEM_INACTIVE     = 104;
 	const ERROR_GATEWAY_CONNECTION = 201;
 	const ERROR_INVALID_ITEM_ID    = 202;
+
 
 	const ITEM_CREATE_ID           = 0;
 	const ITEM_MIN_ID              = 1;
@@ -86,7 +88,7 @@ class lightifyGroup extends lightifyControl {
 
 		switch ($itemType) {
 			case osrConstant::TYPE_DEVICE_GROUP:
-				$deviceList  = (empty($groupDevice) === false) ? '
+				$deviceList  = (empty($groupDevice) === false && ord($groupDevice{0}) > 0) ? '
 					{ "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" },
 					{ "type": "List",  "name":  "deviceList", "caption": "Devices",
 						"columns": [
@@ -117,9 +119,10 @@ class lightifyGroup extends lightifyControl {
 						{ "type": "Button", "label": "Off", "onClick": "OSR_SetValue($id, \"STATE\", false)" }
 					],
 					"status": [
-						{ "code": 102, "icon": "active", "caption": "Group is active"                   },
-						{ "code": 201, "icon": "error",  "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",  "caption": "Invalid Group [id]"                }
+						{ "code": 102, "icon": "active",   "caption": "Group is active"                   },
+						{ "code": 104, "icon": "inactive", "caption": "Group is inactive"                 },
+						{ "code": 201, "icon": "error",    "caption": "Lightify gateway is not connected" },
+						{ "code": 202, "icon": "error",    "caption": "Invalid Group [id]"                }
 					]
 				}';
 				break;
@@ -138,9 +141,10 @@ class lightifyGroup extends lightifyControl {
 						{ "type": "Button", "label": "Activate",  "onClick": "OSR_SetValue($id, \"SCENE\", 2)" }
 					],
 					"status": [
-						{ "code": 102, "icon": "active", "caption": "Scene is active"                   },
-						{ "code": 201, "icon": "error",  "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",  "caption": "Invalid Scene [id]"                }
+						{ "code": 102, "icon": "active",   "caption": "Scene is active"                   },
+						{ "code": 104, "icon": "inactive", "caption": "Scene is inactive"                 },
+						{ "code": 201, "icon": "error",    "caption": "Lightify gateway is not connected" },
+						{ "code": 202, "icon": "error",    "caption": "Invalid Scene [id]"                }
 					]
 				}';
 				return $formJSON;
@@ -162,9 +166,10 @@ class lightifyGroup extends lightifyControl {
 						}
 					],
 					"status": [
-						{ "code": 102, "icon": "active", "caption": "Group/Scene is active"             },
-						{ "code": 201, "icon": "error",  "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",  "caption": "Invalid Group/Scene [id]"          }
+						{ "code": 102, "icon": "active",   "caption": "Group/Scene is active"             },
+						{ "code": 104, "icon": "inactive", "caption": "Group/Scene is inactive".          },
+						{ "code": 201, "icon": "error",    "caption": "Lightify gateway is not connected" },
+						{ "code": 202, "icon": "error",    "caption": "Invalid Group/Scene [id]"          }
 					]
 				}';
 				return $formJSON;
@@ -259,10 +264,16 @@ class lightifyGroup extends lightifyControl {
 				//Store device group buffer
 				if ($itemType == osrConstant::TYPE_DEVICE_GROUP) {
 					$groupDevice = $this->getGroupDevice($itemID, substr($localBuffer, 2), $localCount);
-					$groupDevice = ($groupDevice === false) ? $localBuffer{3}."" : $groupDevice;
+					$this->SetBuffer("groupDevice", $groupDevice);
 	
-					if ($groupDevice !== false) {
-						$this->SetBuffer("groupDevice", $groupDevice);
+					if (empty($groupDevice) === false) {
+						if ($data->Debug % 2 || $data->Message) {
+							$info = $localCount."/".$this->lightifyBase->decodeData($groupDevice);
+
+							if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<GROUP|RECEIVEDATA|GROUPS:LOCAL>", $info, 0);
+							if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|GROUPS:LOCAL>   ".$info);
+						}
+
 						$this->setGroupInfo($data->Mode, $data->Method, $groupDevice);
 					}
 				}
@@ -275,10 +286,16 @@ class lightifyGroup extends lightifyControl {
 				//Store group scene buffer
 				if ($itemType == osrConstant::TYPE_GROUP_SCENE) {
 					$groupScene = $this->getGroupScene($itemID, substr($localBuffer, 2), $localCount);
-					$groupScene = ($groupScene === false) ? $localBuffer{3}."" : $groupScene;
+					$this->SetBuffer("groupScene", $groupScene);
 
-					if ($groupScene !== false) {
-						$this->SetBuffer("groupScene", $groupScene);
+					if (empty($groupScene) === false) {
+						if ($data->Debug % 2 || $data->Message) {
+							$info = ord($groupScene{0})."/".ord($groupScene{1})."/".$this->lightifyBase->decodeData($groupScene);
+
+							if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<GROUP|RECEIVEDATA|SCENES:CLOUD>", $info, 0);
+							if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|SCENES:CLOUD>   ".$info);
+						}
+
 						$this->setSceneInfo($data->Mode, $data->Method);
 					}
 				}
@@ -298,16 +315,12 @@ class lightifyGroup extends lightifyControl {
 			$localData   = json_decode($jsonString);
 			$localBuffer = utf8_decode($localData->Buffer);
 			$localCount  = ord($localBuffer{0});
-			$maxGroup    = $localCount;
-
-			if ($itemID > $maxGroup)
-				return self::ERROR_INVALID_ITEM_ID;
 
 			//Store group device buffer
 			$groupDevice = $this->getGroupDevice($itemID, substr($localBuffer, 2), $localCount);
-			$groupDevice = ($groupDevice === false) ? $localBuffer{3}."" : $groupDevice;
+			$this->SetBuffer("groupDevice", $groupDevice);
 
-			if ($groupDevice !== false) {
+			if (empty($groupDevice) === false) {
 				$itemType = ord($localBuffer{1});
 				$uintUUID = chr($itemID).chr(0x00).chr($itemType).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
 				$saveID   = unserialize($this->GetBuffer("saveID"));
@@ -325,12 +338,13 @@ class lightifyGroup extends lightifyControl {
 				if ($this->ReadPropertyInteger("itemType") != $itemType)
 					IPS_SetProperty($this->InstanceID, "itemType", (integer)$itemType);
 
-				$this->SetBuffer("groupDevice", $groupDevice);
 				$this->setGroupInfo(osrConstant::MODE_GROUP_LOCAL, osrConstant::METHOD_CREATE_CHILD, $groupDevice);
+				return self::STATUS_ITEM_ACTIVE;
 			}
 		}
 
-		return self::STATUS_ITEM_ACTIVE;
+		$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
+		return self::STATUS_ITEM_INACTIVE;
 	}
 
 
@@ -345,18 +359,22 @@ class lightifyGroup extends lightifyControl {
 			$localData   = json_decode($jsonString);
 			$localBuffer = utf8_decode($localData->Buffer);
 			$localCount  = ord($localBuffer{0});
-			$maxScene    = $localCount;
-
-			if ($itemID > $maxScene)
-				return self::ERROR_INVALID_ITEM_ID;
 
 			//Store group scene buffer
 			$groupScene = $this->getGroupScene($itemID, substr($localBuffer, 2), $localCount);
-			$groupScene = ($groupScene === false) ? $localBuffer{3}."" : $groupScene;
+			$this->SetBuffer("groupScene", $groupScene);
 
-			if ($groupScene !== false) {
+			if (empty($groupScene) === false) {
 				$itemType = ord($localBuffer{1});
 				$uintUUID = chr($itemID).chr(0x00).chr($itemType).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
+				$saveID   = unserialize($this->GetBuffer("saveID"));
+
+				if ($saveID != $itemID) {
+					if ($saveID != osrConstant::NO_VALUE)
+						$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
+
+					$this->SetBuffer("saveID", serialize($itemID));
+				}
 
 				if ($this->ReadPropertyString("uintUUID") != $uintUUID)
 					IPS_SetProperty($this->InstanceID, "uintUUID", (string)$uintUUID);
@@ -364,17 +382,18 @@ class lightifyGroup extends lightifyControl {
 				if ($this->ReadPropertyInteger("itemType") != $itemType)
 					IPS_SetProperty($this->InstanceID, "itemType", (integer)$itemType);
 
-				$this->SetBuffer("groupScene", $groupScene);
 				$this->setSceneInfo(osrConstant::MODE_GROUP_LOCAL, osrConstant::METHOD_CREATE_CHILD);
+				return self::STATUS_ITEM_ACTIVE;
 			}
 		}
 
-		return self::STATUS_ITEM_ACTIVE;
+		$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
+		return self::STATUS_ITEM_INACTIVE;
 	}
 
 
 	private function getGroupDevice($itemID, $buffer, $ncount) {
-		$groupDevice = false;
+		$groupDevice = "";
 
 		for ($i = 1; $i <= $ncount; $i++) {
 			$localID = ord($buffer{0});
@@ -383,9 +402,6 @@ class lightifyGroup extends lightifyControl {
 				$buffer = substr($buffer, 2);
 	
 				if ($itemID == $localID) {
-					if (IPS_GetInstance($this->InstanceID)['ConnectionID'] != $this->parentID)
-						continue;
-	
 					$groupDevice = chr($dcount).substr($buffer, 0, $dcount*osrConstant::UUID_DEVICE_LENGTH);
 					break;
 				}
@@ -399,15 +415,12 @@ class lightifyGroup extends lightifyControl {
 
 
 	private function getGroupScene($itemID, $buffer, $ncount) {
-		$groupScene = false;
+		$groupScene = "";
 
 		for ($i = 1; $i <= $ncount; $i++) {
-			$localID = ord($buffer{0});
+			$localID = ord($buffer{1});
 
 			if ($itemID == $localID) {
-				if (IPS_GetInstance($this->InstanceID)['ConnectionID'] != $this->parentID)
-					continue;
-	
 				$groupScene = substr($buffer, 0, osrConstant::DATA_SCENE_LENGTH);
 				break;
 			}

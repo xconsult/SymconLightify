@@ -508,13 +508,10 @@ class lightifyGateway extends IPSModule {
 
 						case osrConstant::MODE_GROUP_SCENE:
 							$cloudScene = $this->GetBuffer("cloudScene");
-							$ncount     = $cloudScene{0};
 
-							if (empty($cloudScene) === false && ord($cloudScene) > 0) {
-								$itemType = $cloudScene{1};
-
+							if (empty($cloudScene) === false && ord($cloudScene{0}) > 0) {
 								$jsonReturn = json_encode(array(
-									'Buffer'  => utf8_encode($ncount.$itemType.$cloudScene),
+									'Buffer'  => utf8_encode($cloudScene),
 									'Debug'   => $this->debug,
 									'Message' => $this->message)
 								);
@@ -841,15 +838,12 @@ class lightifyGateway extends IPSModule {
 
 						if ($this->connect == osrConstant::CONNECT_LOCAL_CLOUD) {
 							if ($this->syncScene && empty($cloudScene) === false && ord($cloudScene{0}) > 0) {
-								$ncount   = $cloudScene{0};
-								$itemType = $cloudScene{1};
-	
 								$this->SendDataToChildren(json_encode(array(
 									'DataID'	=> osrConstant::TX_GROUP,
 									'Connect'	=> $this->connect,
 									'Mode'		=> osrConstant::MODE_GROUP_SCENE,
 									'Method'	=> $sendMethod,
-									'Buffer'  => utf8_encode($ncount.$itemType.$cloudScene),
+									'Buffer'  => utf8_encode($cloudScene),
 									'Debug'		=> $this->debug,
 									'Message'	=> $this->message))
 								);

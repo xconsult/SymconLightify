@@ -8,6 +8,7 @@ require_once(__DIR__.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."lightifyContr
 class lightifyDevice extends lightifyControl {
 
 	const STATUS_DEVICE_ACTIVE     = 102;
+	const STATUS_DEVICE_INACTIVE   = 104;
 	const ERROR_GATEWAY_CONNECTION = 201;
 	const ERROR_INVALID_DEVICE_ID  = 202;
 
@@ -96,9 +97,10 @@ class lightifyDevice extends lightifyControl {
 						{ "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" }
 					],
 					"status": [
-						{ "code": 102, "icon": "active", "caption": "Device is active" },
-						{ "code": 201, "icon": "error",  "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",  "caption": "Please enter a valid Device [id]"  }
+						{ "code": 102, "icon": "active",   "caption": "Device is active"                  },
+						{ "code": 104, "icon": "inactive", "caption": "Device is inactive"                },
+						{ "code": 201, "icon": "error",    "caption": "Lightify gateway is not connected" },
+						{ "code": 202, "icon": "error",    "caption": "Invalid Device [id]"               }
 					]
 				}';
 				break;
@@ -129,9 +131,10 @@ class lightifyDevice extends lightifyControl {
 						{ "type": "Button", "label": "Off", "onClick": "OSR_SetValue($id, \"STATE\", false)" }
 					],
 					"status": [
-						{ "code": 102, "icon": "active", "caption": "Invalid Device [id]"                    },
-						{ "code": 201, "icon": "error",  "caption": "Lightify gateway is not connected"      },
-						{ "code": 202, "icon": "error",  "caption": "Please enter a valid Device [id]"       }
+						{ "code": 102, "icon": "active",   "caption": "Device is active"                  },
+						{ "code": 104, "icon": "inactive", "caption": "Device is inactive"                },
+						{ "code": 201, "icon": "error",    "caption": "Lightify gateway is not connected" },
+						{ "code": 202, "icon": "error",    "caption": "Invalid Device [id]"               }
 					]
 				}';
 		}
@@ -151,24 +154,32 @@ class lightifyDevice extends lightifyControl {
 
 				//Store device buffer
 				$localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
+				$this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 
-				if ($localDevice !== false) {
-					if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<DEVICE|RECEIVEDATA|DEVICES:LOCAL>", $localCount."/".$this->lightifyBase->decodeData($localDevice), 0);
-					if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|DEVICES:LOCAL>   ".$localCount.$this->lightifyBase->decodeData($localDevice));
+				if (empty($localDevice) === false) {
+					if ($data->Debug % 2 || $data->Message) {
+						$info = $localCount."/".$this->lightifyBase->decodeData($localDevice);
 
-					$this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
+						if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<DEVICE|RECEIVEDATA|DEVICES:LOCAL>", $info, 0);
+						if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|DEVICES:LOCAL>   ".$info);
+					}
+
 					$this->setDeviceInfo($data->Method, $data->Mode, $localDevice);
 				}
 				break;
 
 			case osrConstant::MODE_DEVICE_CLOUD:
 				$cloudDevice = $this->getDeviceCloud($deviceID, $data->Buffer);
+				$this->SetBuffer("cloudDevice", $cloudDevice);
 
-				if ($cloudDevice !== false) {
-					if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<DEVICE|RECEIVEDATA|DEVICES:CLOUD>", $this->lightifyBase->decodeData($cloudDevice), 0);
-					if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|DEVICES:CLOUD>   ".$this->lightifyBase->decodeData($cloudDevice));
+				if (empty($cloudDevice) === false) {
+					if ($data->Debug % 2 || $data->Message) {
+						$info = $this->lightifyBase->decodeData($cloudDevice);
 
-					$this->SetBuffer("cloudDevice", $cloudDevice);
+						if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<DEVICE|RECEIVEDATA|DEVICES:CLOUD>", $info, 0);
+						if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|DEVICES:CLOUD>   ".$info);
+					}
+
 					$this->setDeviceInfo($data->Method, $data->Mode, $cloudDevice, true);
 				}
 				break;
@@ -187,17 +198,12 @@ class lightifyDevice extends lightifyControl {
 			$localData   = json_decode($jsonString);
 			$localBuffer = utf8_decode($localData->Buffer);
 			$localCount  = ord($localBuffer{0});
-			$maxDevice   = ord($localBuffer{1});
-			//IPS_LogMessage("SymconOSR", "<SETDEVICEPROPERTY>   ".$deviceID."/".IPS_GetName($this->InstanceID)."/".$localCount."/".$maxDevice);
-
-			if ($deviceID > $maxDevice)
-				return self::ERROR_INVALID_DEVICE_ID;
 
 			//Store device buffer
 			$localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
-			//IPS_LogMessage("SymconOSR", "<SETDEVICEPROPERTY>   ".$deviceID."/".IPS_GetName($this->InstanceID)."/".$this->lightifyBase->decodeData($localDevice));
+			$this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 
-			if ($localDevice !== false) {
+			if (empty($localDevice) === false) {
 				$uintUUID  = substr($localDevice, 2, osrConstant::UUID_DEVICE_LENGTH);
 				$itemType  = ord($localDevice{10});
 				$saveID    = unserialize($this->GetBuffer("saveID"));
@@ -228,40 +234,35 @@ class lightifyDevice extends lightifyControl {
 					);
 
 					if ($jsonString != osrConstant::NO_STRING) {
-						//IPS_LogMessage("SymconOSR", "<SETDEVICEPROPERTY>   ".$deviceID."/".IPS_GetName($this->InstanceID)."/".$jsonString);
 						$cloudData = json_decode($jsonString);
 
 						//Store group device buffer
 						$cloudDevice = $this->getDeviceCloud($deviceID, $cloudData->Buffer);
+						$this->SetBuffer("cloudDevice", $cloudDevice);
 
-						if ($cloudDevice !== false) {
-							$this->SetBuffer("cloudDevice", $cloudDevice);
+						if (empty($cloudDevice) === false)
 							$this->setDeviceInfo(osrConstant::METHOD_CREATE_CHILD, osrConstant::MODE_DEVICE_CLOUD, $cloudDevice, true);
-						}
 					}
 				}
 
-				$this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 				$this->setDeviceInfo(osrConstant::METHOD_CREATE_CHILD, osrConstant::MODE_DEVICE_LOCAL, $localDevice);
+				return self::STATUS_DEVICE_ACTIVE;
 			}
 		}
 
-		return self::STATUS_DEVICE_ACTIVE;
+		$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
+		return self::STATUS_DEVICE_INACTIVE;
 	}
 
 
 	private function getDeviceLocal($deviceID, $buffer, $ncount) {
-		$localDevice = false;
+		$localDevice = "";
 
 		for ($i = 1; $i <= $ncount; $i++) {
 			$localID = ord($buffer{0});
 			$buffer  = substr($buffer, 1);
-			//IPS_LogMessage("SymconOSR", "<GETDEVICELOCAL>   ".$ncount."/".$i."/".$deviceID."/".$localID."/".IPS_GetName($this->InstanceID));
 
 			if ($deviceID == $localID) {
-				if (IPS_GetInstance($this->InstanceID)['ConnectionID'] != $this->parentID)
-					continue;
-
 				$localDevice = substr($buffer, 0, osrConstant::DATA_DEVICE_LENGTH);
 				break;
 			}
@@ -274,16 +275,13 @@ class lightifyDevice extends lightifyControl {
 
 
 	private function getDeviceCloud($deviceID, $buffer) {
-		$cloudDevice = false;
+		$cloudDevice = "";
 		$Devices     = json_decode($buffer);
 
 		foreach ($Devices as $device) {
 			list($cloudID) = $device;
 
 			if ($deviceID == $cloudID) {
-				if (IPS_GetInstance($this->InstanceID)['ConnectionID'] != $this->parentID)
-					continue;
-
 				$cloudDevice = json_encode($device);
 				break;
 			}
