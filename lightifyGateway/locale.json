@@ -22,6 +22,7 @@
 			"Capabilities"                                                                                   : "Eigenschaften",
 			"Groups"                                                                                         : "Gruppen",
 			"Scenes"                                                                                         : "Szenen",
+			"Group"                                                                                          : "Gruppe",
 			"Disabled"                                                                                       : "Inaktiv",
 			"Send buffer"                                                                                    : "Sende Buffer",
 			"Receive buffer"                                                                                 : "Empfangs Buffer",
@@ -34,7 +35,7 @@
 			"Enter all required informations"                                                                : "Die notwendigen Informationen eingeben",
 			"Gateway is closed"                                                                              : "Gateway ist nicht verbunden",
 			"Invalid IP address!"                                                                            : "Ungültige IP Addresse!",
-			"Minimum update interval = 5 seconds"                                                            : "Minimum Wert Aktualisierungs Interval = 5 Sekunden!",
+			"Minimum update interval = 3 seconds"                                                            : "Minimum Wert Aktualisierungs Interval = 3 Sekunden",
 			"Unknown error"                                                                                  : "Unbekannter Fehler"
 		}
 	}

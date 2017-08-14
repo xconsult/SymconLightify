@@ -22,7 +22,7 @@ class osrCommand extends stdClass {
 	# DB Set light soft on
 	# DC Set light soft off
 
-	const GET_PAIRED_DEVICES    = 0x13;
+	const GET_DEVICE_LIST       = 0x13;
 	const GET_GROUP_LIST        = 0x1E;
 	const ADD_DEVICE_TO_GROUP   = 0x20;
 	const DEL_DEVICE_FROM_GROUP = 0x21;
@@ -130,6 +130,7 @@ class osrConstant extends stdClass {
 
 	const DATA_DEVICE_LENGTH     = 50;
 	const DATA_GROUP_LENGTH      = 18;
+	const DATA_SCENE_LENGTH      = 17;
 	const DATA_NAME_LENGTH       = 15;
 	const DATA_WIFI_LENGTH       = 97;
 	const DATA_CLASS_INFO        = 10;
@@ -163,9 +164,9 @@ class osrConstant extends stdClass {
 	const TYPE_DIMMER_2WAY       = 64; //2 Way dimmer
 	const TYPE_SWITCH_4WAY       = 65; //4 Way switch
 
-	const TYPE_DEVICE_GROUP     = 160;	//0xA0
-	const TYPE_GROUP_SCENE      = 176;	//0xB0
-	const TYPE_ALL_LIGHTS       = 255;	//0xFF
+	const TYPE_DEVICE_GROUP     = 0xF0;
+	const TYPE_GROUP_SCENE      = 0xF1;
+	const TYPE_ALL_LIGHTS       = 0xFF;
 
 	const MODEL_MANUFACTURER    = "OSRAM";
 	const MODEL_FIXED_WHITE     = "Light-LIGHTIFY";

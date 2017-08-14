@@ -21,9 +21,8 @@ abstract class lightifyControl extends IPSModule {
 	const DATA_INDEX_LENGTH   = 3;
 	const WAIT_TIME_SEMAPHORE = 1500; //milliseconds
 
-	private $lightifyBase     = null;
-	private $lightifyConnect  = null;
-	private $transition       = false;
+	private $lightifyBase;
+	private $lightifyConnect;
 
 	private $moduleID;
 	private $parentID;
@@ -33,6 +32,8 @@ abstract class lightifyControl extends IPSModule {
 	private $direct;
 
 	private $itemType;
+	private $transition = false;
+
 	private $itemGroup  = false;
 	private $itemScene  = false;
 	private $itemDummy  = false;
@@ -76,7 +77,7 @@ abstract class lightifyControl extends IPSModule {
 						break;
 
 					case $this->itemGroup:
-						$ressource = self::RESSOURCE_GROUP.self::BODY_CMD_SET.$this->ReadPropertyInteger("groupID");
+						$ressource = self::RESSOURCE_GROUP.self::BODY_CMD_SET.$this->ReadPropertyInteger("itemID");
 						break;
 				}
 				$buffer = $ressource.self::BODY_CMD_TIME.$data;
@@ -125,6 +126,7 @@ abstract class lightifyControl extends IPSModule {
 					//fall-through
 
 				case "SCENE":
+					$Value = $this->ReadPropertyInteger("itemID");
 					//fall-through
 
 				case "STATE":
@@ -153,10 +155,10 @@ abstract class lightifyControl extends IPSModule {
 
 		if (in_array($key, explode(",", osrConstant::LIST_KEY_VALUES)) == false) {
 			if ($this->debug % 2 || $this->message) {
-				$info = "usage: [".$this->InstanceID."|".$this->name."] {key} not valid!";
+				$error = "usage: [".$this->InstanceID."|".$this->name."] {key} not valid!";
 
-				if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+				if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|ERROR>", $error, 0);
+				if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|ERROR>   ".$error);
 
 				return false;
 			}
@@ -174,7 +176,9 @@ abstract class lightifyControl extends IPSModule {
 			}
 
 			if ($this->itemGroup || $this->itemScene) {
-				$flag = chr(0x02);
+				$flag     = chr(0x02);
+				$uintUUID = str_pad(substr($uintUUID, 0, 1), osrConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
+
 				if ($this->itemGroup) $this->transition = osrConstant::TRANSITION_DEFAULT;
 			}
 
@@ -203,8 +207,8 @@ abstract class lightifyControl extends IPSModule {
 						if ($this->debug % 2 || $this->message) {
 							$info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true/false'";
 
-							if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-							if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+							if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|ALL>", $info, 0);
+							if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|ALL>   ".$info);
 						}
 					}
 					return false;
@@ -218,8 +222,8 @@ abstract class lightifyControl extends IPSModule {
 							if ($this->debug % 2 || $this->message) {
 								$info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
 
-								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-								if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|SAVE>", $info, 0);
+								if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|SAVE>   ".$info);
 							}
 						}
 					}
@@ -245,8 +249,8 @@ abstract class lightifyControl extends IPSModule {
 							if ($this->debug % 2 || $this->message) {
 								$info = "usage: [".$this->InstanceID."|".$this->name."] {name} musst be a string";
 
-								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-								if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|NAME>", $info, 0);
+								if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|NAME>   ".$info);
 							}
 						}
 					}
@@ -255,13 +259,16 @@ abstract class lightifyControl extends IPSModule {
 				case "SCENE":
 					if ($this->itemScene) {
 						if (is_int($value)) {
-							if (false !== ($result = $this->lightifyConnect->activateGroupScene($value))) return true;
+							if (false !== ($result = $this->lightifyConnect->activateGroupScene($value))) {
+								$this->sendData(osrConstant::METHOD_LOAD_LOCAL);
+								return true;
+							}
 						} else {
 							if ($this->debug % 2 || $this->message) {
 								$info = "usage: [".$this->InstanceID."|".$this->name."] {sceneID} musst be numeric";
 
-								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-								if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|SCENE>", $info, 0);
+								if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|SCENE>   ".$info);
 							}
 						}
 					}
@@ -287,8 +294,8 @@ abstract class lightifyControl extends IPSModule {
 							if ($this->debug % 2 || $this->message) {
 								$info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
 
-								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-								if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|DEFAULT>", $info, 0);
+								if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|DEFAULT>   ".$info);
 							}
 						}
 					}
@@ -337,8 +344,8 @@ abstract class lightifyControl extends IPSModule {
 							if ($this->debug % 2 || $this->message) {
 								$info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
 
-								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-								if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|ACTIVE>", $info, 0);
+								if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|ACTIVE>   ".$info);
 							}
 						}
 					}
@@ -356,8 +363,8 @@ abstract class lightifyControl extends IPSModule {
 							if ($this->debug % 2 || $this->message) {
 								$info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
 
-								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-								if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|PLANT>", $info, 0);
+								if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|PLANT>   ".$info);
 							}
 						}
 					}
@@ -372,8 +379,8 @@ abstract class lightifyControl extends IPSModule {
 							if ($this->debug % 2 || $this->message) {
 								$info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be 'true/false'";
 
-								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-								if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|LOOP>", $info, 0);
+								if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|LOOP>   ".$info);
 							}
 						}
 					}
@@ -394,8 +401,8 @@ abstract class lightifyControl extends IPSModule {
 							if ($this->debug % 2 || $this->message) {
 								$info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be 'true/false'";
 
-								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-								if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+								if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|STATE>", $info, 0);
+								if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|STATE>   ".$info);
 							}
 						}
 					}
@@ -569,8 +576,8 @@ abstract class lightifyControl extends IPSModule {
 		}
 
 		if (($this->debug % 2 || $this->message) && isset($info)) {
-			if ($this->debug % 2) IPS_SendDebug($this->parentID, "<SETVALUE>", $info, 0);
-			if ($this->message) IPS_LogMessage("SymconOSR", "<SETVALUE>   ".$info);
+			if ($this->debug % 2) IPS_SendDebug($this->parentID, "<CONTROL|SETVALUE|INFO>", $info, 0);
+			if ($this->message) IPS_LogMessage("SymconOSR", "<CONTROL|SETVALUE|INFO>   ".$info);
 		}
 
 		return $value;
@@ -599,19 +606,6 @@ abstract class lightifyControl extends IPSModule {
 		}
 
 		return false;
-	}
-
-
-	private function setSceneInfo($mode, $method, $data) {
-		switch ($mode) {
-			case osrConstant::GET_SCENE_CLOUD:
-				if (false === ($activateID = @$this->GetIDForIdent("SCENE"))) {
-					$activateID = $this->RegisterVariableInteger("SCENE", "Apply", "OSR.Scene", 0);
-					SetValueInteger($activateID, 1);
-					$this->EnableAction("SCENE");
-				}
-				break;
-		}
 	}
 
 }

@@ -20,16 +20,13 @@ class lightifyConnect extends stdClass {
 		$this->host    = $host;
 		$this->debug   = $debug;
 		$this->message = $message;
-	}
 
-
-	protected function localConnect() {
 		if (false === ($this->lightifySocket = @fsockopen($this->host, osrConstant::GATEWAY_PORT, $code, $error, 5))) {
 			if ($this->debug % 4 || $this->message) {
 				$error = "Socket open failed: ".$error." [".$code."]";
 	
-				if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<__CONSTRUCT>", $error, 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<__CONSTRUCT>.  ".$error);
+				if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<GATEWAY|LOCALCONNECT>", $error, 0);
+				if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|LOCALCONNECT>.  ".$error);
 	
 				return false;
 			}
@@ -45,64 +42,64 @@ class lightifyConnect extends stdClass {
 
 
 	public function sendRaw($command, $flag, $args = null) {
-		if ($this->localConnect()) {
-			//$this->requestID = ($this->requestID == osrConstant::REQUESTID_HIGH_VALUE) ? 1 : $this->requestID+1;
-			//$data = $flag.chr($command).$this->lightifyBase->getRequestID($this->requestID);
+		//$this->requestID = ($this->requestID == osrConstant::REQUESTID_HIGH_VALUE) ? 1 : $this->requestID+1;
+		//$data = $flag.chr($command).$this->lightifyBase->getRequestID($this->requestID);
 
-			$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
-			if ($args != null) $data .= $args;
+		$data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
+		if ($args != null) $data .= $args;
 
-			$data   = chr(strlen($data)).chr(0x00).$data;
-			$length = strlen($data);
+		$data   = chr(strlen($data)).chr(0x00).$data;
+		$length = strlen($data);
 
-			if ($this->debug % 4 || $this->message) {
-				$info = strtoupper(dechex($command))."/ ".hexdec($flag)."/ ".$length."/ ".$this->lightifyBase->decodeData($data);
+		if ($this->debug % 4 || $this->message) {
+			$info = strtoupper(dechex($command))."/ ".hexdec($flag)."/ ".$length."/ ".$this->lightifyBase->decodeData($data);
 
-				if ($this->debug % 4) IPS_SendDebug($this->InstanceID, "<SENDRAW>", $info, 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<SENDRAW>   ".$info);
-			}
-
-			if (false !== ($bytes = @fwrite($this->lightifySocket, $data, $length))) {
-				if ($bytes == $length) {
-					$buffer = "";
-
-					while(!feof($this->lightifySocket)) {
-						if (false !== ($buffer .= @fread($this->lightifySocket, 1024))) { //Read 1024 bytes block
-							$metaData = @stream_get_meta_data($this->lightifySocket);
-							if ($metaData['unread_bytes'] > 0) continue;
-						} else {
-							$error = "Socket read data failed!";
-						}
-						break;
-					}
-					$length = strlen($buffer);
-
-					if ($this->debug % 3 || $this->message) {
-						$info = strtoupper(dechex($command))."/ ".hexdec($flag)."/ ".$length."/ ".$this->lightifyBase->decodeData($buffer);
-
-						if ($this->debug % 3) IPS_SendDebug($this->InstanceID, "<SENDRAW>", $info, 0);
-						if ($this->message) IPS_LogMessage("SymconOSR", "<SENDRAW>   ".$info);
-					}
-
-					//if ($length > ($bytes = osrConstant::BUFFER_HEADER_LENGTH+1)) {
-					if ($length >= ($bytes = osrConstant::BUFFER_HEADER_LENGTH+1)) {
-						if (0 == ($code = ord($buffer{8}))) return (string)substr($buffer, $bytes, $length-$bytes);
-						$error = "Receive buffer error [".$code."]";
-					} else {
-						$error = "Receive buffer has wrong size [".$length."]";
-					}
-				} else {
-					$error = "Write returned wrong size [".$bytes."]";
-				}
-			} else {
-				$error = "Socket write data failed!";
-			}
-
-			if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<SENDRAW>", $error, 0);
-			if ($this->message) IPS_LogMessage("SymconOSR", "<SENDRAW>   ".$error);
+			if ($this->debug % 4) IPS_SendDebug($this->InstanceID, "<GATEWAY|SENDRAW:WRITE>", $info, 0);
+			if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|SENDRAW:WRITE>   ".$info);
 		}
 
-		return false;
+		if (false !== ($bytes = @fwrite($this->lightifySocket, $data, $length))) {
+			if ($bytes == $length) {
+				$buffer = "";
+
+				while(!feof($this->lightifySocket)) {
+					if (false !== ($buffer .= @fread($this->lightifySocket, 1024))) { //Read 1024 bytes block
+						$metaData = @stream_get_meta_data($this->lightifySocket);
+						if ($metaData['unread_bytes'] > 0) continue;
+					} else {
+						$error = "Socket read data failed!";
+					}
+					break;
+				}
+				$length = strlen($buffer);
+
+				if ($this->debug % 3 || $this->message) {
+					$info = strtoupper(dechex($command))."/ ".hexdec($flag)."/ ".$length."/ ".$this->lightifyBase->decodeData($buffer);
+
+					if ($this->debug % 3) IPS_SendDebug($this->InstanceID, "<GATEWAY|SENDRAW:READ>", $info, 0);
+					if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|SENDRAW:READ>   ".$info);
+				}
+
+				///Handle read buffer
+				$bytes = osrConstant::BUFFER_HEADER_LENGTH+1;
+
+				if ($length >= $bytes) {
+					$code = ord($buffer{8});
+					if ($code == 0) return (string)substr($buffer, $bytes, $length-$bytes);
+
+					$error = "Receive buffer error [".$code."]";
+				} else {
+					$error = "Receive buffer has wrong size [".$length."]";
+				}
+			} else {
+				$error = "Write returned wrong size [".$bytes."]";
+			}
+		} else {
+			$error = "Socket write data failed!";
+		}
+
+		if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<GATEWAY|SENDRAW:ERROR>", $error, 0);
+		if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|SENDRAW:ERROR>   ".$error);
 	}
 
 
@@ -178,7 +175,7 @@ class lightifyConnect extends stdClass {
 
 
 	public function getPairedDevices() {
-		return $this->sendRaw(osrCommand::GET_PAIRED_DEVICES, chr(0x00), chr(0x01));
+		return $this->sendRaw(osrCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01));
 	}
 
 

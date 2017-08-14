@@ -13,9 +13,9 @@
 			"time"                              : "Zeit",
 			"On"                                : "An",
 			"Off"                               : "Aus",
-			"Group/Scene is active"             : "Gruppe/Szene ist aktiv",
+			"Group is active"                   : "Gruppe ist aktiv",
 			"Lightify gateway is not connected" : "Lightify gateway ist nicht verbunden",
-			"Invalid Group/Scene [id]"          : "Ungültige Gruppen/Szenen [id]"
+			"Invalid Group [id]"                : "Ungültige Gruppen [id]"
 		}
 	}
 }

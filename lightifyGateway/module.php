@@ -35,8 +35,8 @@ class lightifyGateway extends IPSModule {
 
 	const HEADER_CONTENT_TYPE    = "Content-Type: application/json";
 	const HEADER_AUTHORIZATION   = "authorization: ";
-	const RESSOURCE_DEVICES      = "/devices";
-	const RESSOURCE_GROUPS       = "/groups";
+	const RESSOURCE_DEVICE_LIST  = "/devices";
+	const RESSOURCE_GROUP_LIST   = "/groups";
 
 	const RESOURCE_SESSION       = "/session";
 	const LIGHTIFY_EUROPE        = "https://eu.lightify-api.org/lightify/services";
@@ -117,7 +117,7 @@ class lightifyGateway extends IPSModule {
 		$this->RegisterPropertyBoolean("message", false);
 
 		//Create profiles
-		if (IPS_VariableProfileExists("OSR.Hue") == false) {
+		if (IPS_VariableProfileExists("OSR.Hue") === false) {
 			IPS_CreateVariableProfile("OSR.Hue", osrConstant::IPS_INTEGER);
 			IPS_SetVariableProfileIcon("OSR.Hue", "Shift");
 			IPS_SetVariableProfileDigits("OSR.Hue", 0);
@@ -125,7 +125,7 @@ class lightifyGateway extends IPSModule {
 			IPS_SetVariableProfileValues("OSR.Hue", osrConstant::HUE_MIN, osrConstant::HUE_MAX, 1);
 		}
 
-		if (IPS_VariableProfileExists("OSR.ColorTemp") == false) {
+		if (IPS_VariableProfileExists("OSR.ColorTemp") === false) {
 			IPS_CreateVariableProfile("OSR.ColorTemp", osrConstant::IPS_INTEGER);
 			IPS_SetVariableProfileIcon("OSR.ColorTemp", "Sun");
 			IPS_SetVariableProfileDigits("OSR.ColorTemp", 0);
@@ -133,7 +133,7 @@ class lightifyGateway extends IPSModule {
 			IPS_SetVariableProfileValues("OSR.ColorTemp", osrConstant::CTEMP_CCT_MIN, osrConstant::CTEMP_CCT_MAX, 1);
 		}
 
-		if (IPS_VariableProfileExists("OSR.ColorTempExt") == false) {
+		if (IPS_VariableProfileExists("OSR.ColorTempExt") === false) {
 			IPS_CreateVariableProfile("OSR.ColorTempExt", osrConstant::IPS_INTEGER);
 			IPS_SetVariableProfileIcon("OSR.ColorTempExt", "Sun");
 			IPS_SetVariableProfileDigits("OSR.ColorTempExt", 0);
@@ -141,19 +141,28 @@ class lightifyGateway extends IPSModule {
 			IPS_SetVariableProfileValues("OSR.ColorTempExt", osrConstant::CTEMP_COLOR_MIN, osrConstant::CTEMP_COLOR_MAX, 1);
 		}
 
-		if (IPS_VariableProfileExists("OSR.Intensity") == false) {
+		if (IPS_VariableProfileExists("OSR.Intensity") === false) {
 			IPS_CreateVariableProfile("OSR.Intensity", osrConstant::IPS_INTEGER);
 			IPS_SetVariableProfileDigits("OSR.Intensity", 0);
 			IPS_SetVariableProfileText("OSR.Intensity", "", "%");
 			IPS_SetVariableProfileValues("OSR.Intensity", osrConstant::INTENSITY_MIN, osrConstant::INTENSITY_MAX, 1);
 		}
 
-		if (IPS_VariableProfileExists("OSR.Scene") == false) {
+		if (IPS_VariableProfileExists("OSR.Switch") === false) {
+			IPS_CreateVariableProfile("OSR.Switch", osrConstant::IPS_BOOLEAN);
+			IPS_SetVariableProfileIcon("OSR.Switch", "Power");
+			IPS_SetVariableProfileDigits("OSR.Switch", 0);
+			IPS_SetVariableProfileValues("OSR.Switch", 0, 1, 0);
+			IPS_SetVariableProfileAssociation("OSR.Switch", true, "On", "", 0xFF9200);
+			IPS_SetVariableProfileAssociation("OSR.Switch", false, "Off", "", -1);
+		}
+
+		if (IPS_VariableProfileExists("OSR.Scene") === false) {
 			IPS_CreateVariableProfile("OSR.Scene", osrConstant::IPS_INTEGER);
 			IPS_SetVariableProfileIcon("OSR.Scene", "Power");
 			IPS_SetVariableProfileDigits("OSR.Scene", 0);
 			IPS_SetVariableProfileValues("OSR.Scene", 1, 1, 0);
-			IPS_SetVariableProfileAssociation("OSR.Scene", 1, "Yes", "", 0x00FF00);
+			IPS_SetVariableProfileAssociation("OSR.Scene", 1, "On", "", 0xFF9200);
 		}
 	}
 
@@ -266,7 +275,7 @@ class lightifyGateway extends IPSModule {
 						{ "label": "Send buffer",         "value": 3  },
 						{ "label": "Receive buffer",      "value": 7  },
 						{ "label": "Send/Receive buffer", "value": 13 },
-						{ "label": "Detailed error log",  "value": 37 }
+						{ "label": "Detailed error log",  "value": 17 }
 					]
 				},
 				{ "type": "CheckBox",     "name":  "message",           "caption": " Messages" },
@@ -281,7 +290,7 @@ class lightifyGateway extends IPSModule {
 				{ "code": 104, "icon": "inactive", "caption": "Enter all required informations"     },
 				{ "code": 201, "icon": "inactive", "caption": "Gateway is closed"                   },
 				{ "code": 205, "icon": "error",    "caption": "Invalid IP address"                  },
-				{ "code": 207, "icon": "error",    "caption": "Minimum update interval = 5 seconds" },
+				{ "code": 207, "icon": "error",    "caption": "Minimum update interval = 3 seconds" },
 				{ "code": 202, "icon": "error",    "caption": "Invalid Serial number!"              },
 				{ "code": 203, "icon": "error",    "caption": "Enter a valid Username"              },
 				{ "code": 204, "icon": "error",    "caption": "Enter a Password"                    },
@@ -381,8 +390,8 @@ class lightifyGateway extends IPSModule {
 				//We only need to add annotations. Remaining data is merged from persistance automatically.
 				//Order is determinted by the order of array elements
 				$groupID     = ord($groupList{0});
-				$uint64      = $groupList{0}.$groupList{1}.chr(0x0a).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
-				$UUID        = $this->lightifyBase->chrToUUID($uint64);
+				$intUUID     = $groupList{0}.$groupList{1}.chr(osrConstant::TYPE_DEVICE_GROUP).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
+				$UUID        = $this->lightifyBase->chrToUUID($intUUID);
 				$groupName   = trim(substr($groupList, 2, osrConstant::DATA_NAME_LENGTH));
 
 				$dcount      = ord($groupList{18});
@@ -407,9 +416,9 @@ class lightifyGateway extends IPSModule {
 			for ($i = 1; $i <= $ncount; $i++) {
 				//We only need to add annotations. Remaining data is merged from persistance automatically.
 				//Order is determinted by the order of array elements
-				$uint64    = $sceneList{0}.chr(0x00).chr(0x0c).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
+				$intUUID   = $sceneList{0}.chr(0x00).chr(osrConstant::TYPE_GROUP_SCENE).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
 				$sceneID   = ord($sceneList{0});
-				$UUID      = $this->lightifyBase->chrToUUID($uint64);
+				$UUID      = $this->lightifyBase->chrToUUID($intUUID);
 				$sceneName = trim(substr($sceneList, 1, osrConstant::DATA_NAME_LENGTH));
 				$groupName = trim(substr($sceneList, 15, osrConstant::DATA_NAME_LENGTH));
 
@@ -482,12 +491,30 @@ class lightifyGateway extends IPSModule {
 							return $jsonReturn;
 
 						case osrConstant::MODE_GROUP_LOCAL:
-							$localGroup = $this->GetBuffer("localGroup");
 							$groupDevice = $this->GetBuffer("groupDevice");
+							$localGroup  = $this->GetBuffer("localGroup");
+							$ncount      = $localGroup{0};
 
-							if (empty($localGroup) === false && ord($localGroup{0}) > 0) {
+							if (empty($localGroup) === false && ord($ncount) > 0) {
+								$itemType = $localGroup{1};
+
 								$jsonReturn = json_encode(array(
-									'Buffer'  => utf8_encode($localGroup{0}.$groupDevice),
+									'Buffer'  => utf8_encode($ncount.$itemType.$groupDevice),
+									'Debug'   => $this->debug,
+									'Message' => $this->message)
+								);
+							}
+							return $jsonReturn;
+
+						case osrConstant::MODE_GROUP_SCENE:
+							$cloudScene = $this->GetBuffer("cloudScene");
+							$ncount     = $cloudScene{0};
+
+							if (empty($cloudScene) === false && ord($cloudScene) > 0) {
+								$itemType = $cloudScene{1};
+
+								$jsonReturn = json_encode(array(
+									'Buffer'  => utf8_encode($ncount.$itemType.$cloudScene),
 									'Debug'   => $this->debug,
 									'Message' => $this->message)
 								);
@@ -633,13 +660,13 @@ class lightifyGateway extends IPSModule {
 				if (array_key_exists("errorCode", $response)) {
 					$error = $response->errorCode.":".$response->errorMessage;
 
-					if ($this->debug % 2) $this->SendDebug("<CLOUDREQUEST|ERROR>", $error, 0);
-					IPS_LogMessage("SymconOSR", "<CLOUDREQUEST|ERROR>   ".$error);
+					if ($this->debug % 2) $this->SendDebug("<GATEWAY|CLOUDREQUEST:ERROR>", $error, 0);
+					IPS_LogMessage("SymconOSR", "<GATEWAY|CLOUDREQUEST:ERROR>   ".$error);
 
 					return false;
 				} else {
-					if ($this->debug % 2) $this->SendDebug("<CLOUDREQUEST|RESULT>", $jsonResult, 0);
-					if ($this->message) IPS_LogMessage("SymconOSR", "<CLOUDREQUEST|RESULT>   ".$jsonResult);
+					if ($this->debug % 2) $this->SendDebug("<GATEWAY|CLOUDREQUEST:RESULT>", $jsonResult, 0);
+					if ($this->message) IPS_LogMessage("GATEWAY|SymconOSR", "<CLOUDREQUEST:RESULT>   ".$jsonResult);
 
 					return $jsonResult;
 				}
@@ -656,7 +683,6 @@ class lightifyGateway extends IPSModule {
 
 		if ($this->ReadPropertyBoolean("open")) {
 			$this->SetTimerInterval("localTimer", 0);
-			$this->SetEnvironment();
 
 			$localDevice = $this->GetBuffer("localDevice");
 			$localGroup  = $this->GetBuffer("localGroup");
@@ -678,9 +704,9 @@ class lightifyGateway extends IPSModule {
 				}
 
 				//Get paired devices
-				if (false !== ($data = $this->lightifyConnect->sendRaw(osrCommand::GET_PAIRED_DEVICES, chr(0x00), chr(0x01)))) {
+				if (false !== ($data = $this->lightifyConnect->sendRaw(osrCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01)))) {
 					if (strlen($data) >= (2+osrConstant::DATA_DEVICE_LENGTH)) {
-						$localDevice = $this->readData(osrCommand::GET_PAIRED_DEVICES, $data);
+						$localDevice = $this->readData(osrCommand::GET_DEVICE_LIST, $data);
 						$localDevice = (ord($localDevice{0}) > 0) ? $localDevice : osrConstant::NO_STRING;
 						$this->SetBuffer("localDevice", $localDevice);
 					}
@@ -696,30 +722,28 @@ class lightifyGateway extends IPSModule {
 				}
 
 				//Get cloud data
-				//if ($localMethod != osrConstant::METHOD_APPLY_LOCAL) {
-					if ($this->connect == osrConstant::CONNECT_LOCAL_CLOUD) {
-						$connectTime = $this->GetBuffer("connectTime");
+				if ($this->connect == osrConstant::CONNECT_LOCAL_CLOUD) {
+					$connectTime = $this->GetBuffer("connectTime");
 
-						if (empty($connectTime) || strtotime($connectTime) < time()) {
-							if ($this->syncDevice && empty($localDevice) === false) {
-								$cloudDevice = $this->readData(osrConstant::GET_DEVICE_CLOUD);
-								if ($cloudDevice !== false) $this->SetBuffer("cloudDevice", $cloudDevice);
-							}
-
-							if ($this->syncGroup && empty($localGroup) === false) {
-								$cloudGroup = $this->readData(osrConstant::GET_GROUP_CLOUD);
-								if ($cloudGroup !== false) $this->SetBuffer("cloudGroup", $cloudGroup);
-
-								if ($this->syncScene) {
-									$cloudScene = $this->readData(osrConstant::GET_GROUP_SCENE);
-									if ($cloudScene !== false) $this->SetBuffer("cloudScene", $cloudScene);
-								}
-							}
-
-							$this->SetBuffer("connectTime", date("d.m.Y H:i:s", time()+self::TIME_CLOUD_REQUEST));
+					if (empty($connectTime) || strtotime($connectTime) < time()) {
+						if ($this->syncDevice && empty($localDevice) === false) {
+							$cloudDevice = $this->readData(osrConstant::GET_DEVICE_CLOUD);
+							if ($cloudDevice !== false) $this->SetBuffer("cloudDevice", $cloudDevice);
 						}
+
+						if ($this->syncGroup && empty($localGroup) === false) {
+							$cloudGroup = $this->readData(osrConstant::GET_GROUP_CLOUD);
+							if ($cloudGroup !== false) $this->SetBuffer("cloudGroup", $cloudGroup);
+
+							if ($this->syncScene) {
+								$cloudScene = $this->readData(osrConstant::GET_GROUP_SCENE);
+								if ($cloudScene !== false) $this->SetBuffer("cloudScene", $cloudScene);
+							}
+						}
+
+						$this->SetBuffer("connectTime", date("d.m.Y H:i:s", time()+self::TIME_CLOUD_REQUEST));
 					}
-				//}
+				}
 			}
 
 			//Read Buffer
@@ -771,7 +795,7 @@ class lightifyGateway extends IPSModule {
 
 				//Update child informations
 				if ($localMethod == osrConstant::METHOD_LOAD_LOCAL || $localMethod == osrConstant::METHOD_CREATE_CHILD) {
-					if ($this->syncDevice && empty($localDevice) === false) {
+					if ($this->syncDevice && empty($localDevice) === false && ord($localDevice{0}) > 0) {
 						if (count(IPS_GetInstanceListByModuleID(osrConstant::MODULE_DEVICE)) > 0) {
 							$this->SendDataToChildren(json_encode(array(
 								'DataID'	=> osrConstant::TX_DEVICE,
@@ -785,7 +809,7 @@ class lightifyGateway extends IPSModule {
 						}
 
 						if ($this->connect == osrConstant::CONNECT_LOCAL_CLOUD) {
-							if (empty($cloudDevice) === false) {
+							if (empty($cloudDevice) === false && ord($cloudDevice{0}) > 0) {
 								$this->SendDataToChildren(json_encode(array(
 									'DataID'	=> osrConstant::TX_DEVICE,
 									'Connect'	=> $this->connect,
@@ -799,17 +823,37 @@ class lightifyGateway extends IPSModule {
 						}
 					}
 
-					if ($this->syncGroup && empty($localGroup) === false) {
+					if ($this->syncGroup && empty($localGroup) === false && ord($localGroup{0}) > 0) {
 						if (count(IPS_GetInstanceListByModuleID(osrConstant::MODULE_GROUP)) > 0) {
+							$ncount   = $localGroup{0};
+							$itemType = $localGroup{1};
+
 							$this->SendDataToChildren(json_encode(array(
 								'DataID'	=> osrConstant::TX_GROUP,
 								'Connect'	=> $this->connect,
 								'Mode'		=> osrConstant::MODE_GROUP_LOCAL,
 								'Method'	=> $sendMethod,
-								'Buffer'  => utf8_encode($localGroup{0}.$groupDevice),
+								'Buffer'  => utf8_encode($ncount.$itemType.$groupDevice),
 								'Debug'		=> $this->debug,
 								'Message'	=> $this->message))
 							);
+						}
+
+						if ($this->connect == osrConstant::CONNECT_LOCAL_CLOUD) {
+							if ($this->syncScene && empty($cloudScene) === false && ord($cloudScene{0}) > 0) {
+								$ncount   = $cloudScene{0};
+								$itemType = $cloudScene{1};
+	
+								$this->SendDataToChildren(json_encode(array(
+									'DataID'	=> osrConstant::TX_GROUP,
+									'Connect'	=> $this->connect,
+									'Mode'		=> osrConstant::MODE_GROUP_SCENE,
+									'Method'	=> $sendMethod,
+									'Buffer'  => utf8_encode($ncount.$itemType.$cloudScene),
+									'Debug'		=> $this->debug,
+									'Message'	=> $this->message))
+								);
+							}
 						}
 					}
 				}
@@ -823,6 +867,8 @@ class lightifyGateway extends IPSModule {
 
 
 	private function setGatewayInfo($method) {
+		$this->SetEnvironment();
+
 		$firmwareID = @$this->GetIDForIdent("FIRMWARE");
 		$ssidID     = @$this->GetIDForIdent("SSID");
 
@@ -904,7 +950,7 @@ class lightifyGateway extends IPSModule {
 
 	private function readData($command, $data = null) {
 		switch ($command) {
-			case osrCommand::GET_PAIRED_DEVICES:
+			case osrCommand::GET_DEVICE_LIST:
 				$ncount = ord($data{0})+ord($data{1});
 				$data   = substr($data, 2);
 
@@ -957,7 +1003,13 @@ class lightifyGateway extends IPSModule {
 						default:
 							$implemented = false;
 							$classInfo   = "Unbekannt";
-							IPS_LogMessage("SymconOSR", "<READDATA|GET_PAIRED_DEVICES>   Type [".$itemType."] not defined!");
+
+							if ($this->debug % 2 || $this->message) {
+								$info = "Type [".$itemType."] not defined!";
+
+								if ($this->debug % 2) $this->SendDebug("<GATEWAY|READDATA|DEVICES:LOCAL>", $info, 0);
+								if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|READDATA|DEVICES:LOCAL>   ".$info);
+							}
 					}
 
 					if ($implemented) {
@@ -985,8 +1037,12 @@ class lightifyGateway extends IPSModule {
 				$this->SetBuffer("deviceList", chr($j).$deviceList);
 				$this->SetBuffer("deviceGroup", chr($n).$deviceGroup);
 
-				if ($this->debug % 2) $this->SendDebug("<READDATA|GET_PAIRED_DEVICES>", $j."/".$i."/".$this->lightifyBase->decodeData($localDevice), 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<READDATA|GET_PAIRED_DEVICES>   ".$j."/".$i."/".$this->lightifyBase->decodeData($localDevice));
+				if ($this->debug % 2 || $this->message) {
+					$info = $j."/".$i."/".$this->lightifyBase->decodeData($localDevice);
+
+					if ($this->debug % 2) $this->SendDebug("<GATEWAY|READDATA|DEVICES:LOCAL>", $info, 0);
+					if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|READDATA|DEVICES:LOCAL>   ".$info);
+				}
 
 				//Return device buffer string
 				if ($this->syncDevice) return chr($j).chr($i).$localDevice;
@@ -994,7 +1050,7 @@ class lightifyGateway extends IPSModule {
 
 			case osrConstant::GET_DEVICE_CLOUD:
 				$args = array(
-					'Resource' => self::RESSOURCE_DEVICES,
+					'Resource' => self::RESSOURCE_DEVICE_LIST,
 					'Method'   => "GET",
 					'Buffer'   => null
 				);
@@ -1038,8 +1094,15 @@ class lightifyGateway extends IPSModule {
 					}
 					$cloudDevice = json_encode($cloudDevice);
 
-					if ($this->debug % 2) $this->SendDebug("<READDATA|GET_DEVICE_CLOUD>", $cloudDevice, 0);
-					if ($this->message) IPS_LogMessage("SymconOSR", "<READDATA|GET_DEVICE_CLOUD>   ".$cloudDevice);
+					if ($this->debug % 2) {
+						$this->SendDebug("<GATEWAY|READDATA|DEVICES:CLOUD>", $cloudBuffer, 0);
+						$this->SendDebug("<GATEWAY|READDATA|DEVICES:CLOUD>", $cloudDevice, 0);
+					}
+
+					if ($this->message) {
+						IPS_LogMessage("SymconOSR", "<GATEWAY|READDATA|DEVICES:CLOUD>   ".$cloudBuffer);
+						IPS_LogMessage("SymconOSR", "<GATEWAY|READDATA|DEVICES:CLOUD>   ".$cloudDevice);
+					}
 
 					return $cloudDevice;
 				}
@@ -1049,16 +1112,15 @@ class lightifyGateway extends IPSModule {
 				$ncount      = ord($data{0})+ord($data{1});
 				$data        = substr($data, 2);
 
-				$localGroup  = $data;
+				$itemType    = osrConstant::TYPE_DEVICE_GROUP;
+				$localGroup  = "";
 				$groupDevice = "";
 				$groupList   = "";
 
 				for ($i = 1; $i <= $ncount; $i++) {
-					$deviceGroup = $this->GetBuffer("deviceGroup");
-
-					$uintUUID    = substr($data, 0, osrConstant::UUID_GROUP_LENGTH);
-					$groupID     = ord($uintUUID{0});
-					$buffer      = "";
+					$deviceGroup  = $this->GetBuffer("deviceGroup");
+					$groupID      = ord($data{0});
+					$buffer       = "";
 
 					if (($dcount = ord($deviceGroup{0})) > 0) {
 						$deviceGroup = substr($deviceGroup, 1);
@@ -1077,8 +1139,9 @@ class lightifyGateway extends IPSModule {
 						}
 					}
 
+					$localGroup  .= substr($data,0, osrConstant::DATA_GROUP_LENGTH);
 					$groupDevice .= chr($groupID).chr($k).$buffer;
-					$groupList   .= substr($data, 0, osrConstant::DATA_GROUP_LENGTH).chr($k);
+					$groupList   .= substr($data,0, osrConstant::DATA_GROUP_LENGTH).chr($k);
 					//IPS_LogMessage("SymconOSR", "<READDATA>   ".$i."/".$groupID."/".$k."/".$this->lightifyBase->decodeData($buffer));
 
 					if (($length = strlen($data)) > osrConstant::DATA_GROUP_LENGTH) $length = osrConstant::DATA_GROUP_LENGTH;
@@ -1089,28 +1152,32 @@ class lightifyGateway extends IPSModule {
 				$this->SetBuffer("groupList", chr($ncount).$groupList);
 				$this->SetBuffer("groupDevice", $groupDevice);
 
-				if ($this->debug % 2) $this->SendDebug("<READDATA|GET_GROUP_LIST>", $ncount."/".$this->lightifyBase->decodeData($localGroup), 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<READDATA|GET_GROUP_LIST>   ".$ncount."/".$this->lightifyBase->decodeData($localGroup));
+				if ($this->debug % 2 || $this->message) {
+					$info = $ncount."/".$itemType."/".$this->lightifyBase->decodeData($localGroup);
+
+					if ($this->debug % 2) $this->SendDebug("<GATEWAY|READDATA|GROUPS:LOCAL>", $info, 0);
+					if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|READDATA|GROUPS:LOCAL>   ".$info);
+				}
 
 				//Return group buffer string
-				if ($this->syncGroup) return chr($ncount).$localGroup;
+				if ($this->syncGroup) return chr($ncount).chr($itemType).$localGroup;
 
 			case osrConstant::GET_GROUP_CLOUD:
 				$args = array(
-					'Resource' => self::RESSOURCE_GROUPS,
+					'Resource' => self::RESSOURCE_GROUP_LIST,
 					'Method'   => "GET",
 					'Buffer'   => null
 				);
 				$cloudGroup = $this->cloudRequest(json_encode($args));
 
-				if ($this->debug % 2) $this->SendDebug("<READDATA|GET_GROUP_CLOUD>", $cloudGroup, 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<READDATA|GET_GROUP_CLOUD>   ".$cloudGroup);
+				if ($this->debug % 2) $this->SendDebug("<GATEWAY|READDATA|GROUPS:CLOUD>", $cloudGroup, 0);
+				if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|READDATA|GROUPS:CLOUD>   ".$cloudGroup);
 
 				return $cloudGroup;
 
 			case osrConstant::GET_GROUP_SCENE:
-				$localGroup  = $this->GetBuffer("localGroup");
 				$cloudGroup  = json_decode($this->GetBuffer("cloudGroup"));
+				$itemType    = osrConstant::TYPE_GROUP_SCENE;
 
 				$sceneList  = "";
 				$cloudScene = "";
@@ -1125,22 +1192,23 @@ class lightifyGateway extends IPSModule {
 
 						foreach ($groupScenes as $sceneID => $sceneName) {
 							$sceneName   = str_pad($sceneName, osrConstant::DATA_NAME_LENGTH, " ", STR_PAD_RIGHT);
-							$cloudScene .= chr($sceneID).$sceneName;
+							$cloudScene .= chr($group->groupId).chr($sceneID).$sceneName;
 							$sceneList  .= chr($sceneID).$sceneName.$groupName.chr(count($group->devices));
 							$i += 1; $j += 1;
 						}
-
-						$cloudScene = chr($group->groupId).chr($j).$cloudScene;
 					}
 				}
 
 				//Store at runtime
 				$this->SetBuffer("sceneList", chr($i).$sceneList);
 
-				if ($this->debug % 2) $this->SendDebug("<READDATA|GET_GROUP_SCENE>", $this->lightifyBase->decodeData($localGroup{0}.$cloudScene), 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<READDATA|GET_GROUP_SCENE>   ".$this->lightifyBase->decodeData($localGroup{0}.$cloudScene));
+				if ($this->debug % 2 || $this->message) {
+					$info = $i."/".$itemType."/".$this->lightifyBase->decodeData($cloudScene);
 
-				return $localGroup{0}.$cloudScene;
+					if ($this->debug % 2) $this->SendDebug("<GATEWAY|READDATA|SCENES:CLOUD>", $info, 0);
+					if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|READDATA|SCENES:CLOUD>   ".$info);
+				}
+				return chr($i).chr($itemType).$cloudScene;
 		}
 
 		return chr(00)."";
@@ -1203,28 +1271,27 @@ class lightifyGateway extends IPSModule {
 							IPS_SetProperty($InstanceID, "deviceID", (integer)$deviceID);
 						}
 
-						if ($InstanceID)
+						if ($InstanceID) {
 							if (@IPS_GetProperty($InstanceID, "itemClass") != $itemClass)
 								IPS_SetProperty($InstanceID, "itemClass", (integer)$itemClass);
 
 							if (IPS_HasChanges($InstanceID)) IPS_ApplyChanges($InstanceID);
+						}
 					}
 
-					if (($length = strlen($data)) > osrConstant::DATA_DEVICE_LENGTH) $length = osrConstant::DATA_DEVICE_LENGTH;
-						$data = substr($data, $length);
+					$data = substr($data, osrConstant::DATA_DEVICE_LENGTH);
 				}
 				break;
 
 			case osrConstant::MODE_CREATE_GROUP:
-				$data       = substr($data, 1);
+				$data       = substr($data, 2);
 				$sync       = $this->syncGroup;
 				$categoryID = ($sync) ? $this->groupCategory->categoryID : false;
 
 				if ($categoryID !== false && IPS_CategoryExists($categoryID)) {
 					for ($i = 1; $i <= $ncount; $i++) {
-						$uint16     = substr($data, 0, osrConstant::UUID_GROUP_LENGTH);
-						$uintUUID   = str_pad($uint16, osrConstant::UUID_OSRAM_LENGTH, chr(00), STR_PAD_RIGHT);
-						$groupID    = ord($uint16{0});
+						$uintUUID   = $data{0}.$data{1}.chr(osrConstant::TYPE_DEVICE_GROUP).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
+						$groupID    = ord($data{0});
 
 						$groupName  = trim(substr($data, 2, osrConstant::DATA_NAME_LENGTH));
 						$InstanceID = $this->lightifyBase->getObjectByProperty(osrConstant::MODULE_GROUP, "uintUUID", $uintUUID);
@@ -1236,14 +1303,17 @@ class lightifyGateway extends IPSModule {
 							IPS_SetName($InstanceID, (string)$groupName);
 							IPS_SetPosition($InstanceID, 210+$groupID);
 
-							IPS_SetProperty($InstanceID, "groupID", (integer)$groupID);
+							IPS_SetProperty($InstanceID, "itemID", (integer)$groupID);
 						}
 
-						if ($InstanceID)
-							if (IPS_HasChanges($InstanceID)) IPS_ApplyChanges($InstanceID);
+						if ($InstanceID) {
+							if (@IPS_GetProperty($InstanceID, "itemClass") != osrConstant::CLASS_LIGHTIFY_GROUP)
+								IPS_SetProperty($InstanceID, "itemClass", osrConstant::CLASS_LIGHTIFY_GROUP);
 
-						if (($length = strlen($data)) > osrConstant::DATA_GROUP_LENGTH) $length = osrConstant::DATA_GROUP_LENGTH;
-							$data = substr($data, $length);
+							if (IPS_HasChanges($InstanceID)) IPS_ApplyChanges($InstanceID);
+						}
+
+						$data = substr($data, osrConstant::DATA_GROUP_LENGTH);
 					}
 				}
 				break;
@@ -1254,32 +1324,35 @@ class lightifyGateway extends IPSModule {
 				$categoryID = ($sync) ? $this->sceneCategory->categoryID : false;
 
 				if ($categoryID !== false && IPS_CategoryExists($categoryID)) {
+					$itemType = ord($data{0});
+					$data     = substr($data, 1);
+
 					for ($i = 1; $i <= $ncount; $i++) {
-						//IPS_LogMessage("SymconOSR", "<CREATEINSTANCE|MODE_CREATE_SCENE>   ".$ncount."/".ord($data{0})."/".ord($data{1})."/".$data);
+						$uintUUID   = $data{1}.chr(0x00).chr(osrConstant::TYPE_GROUP_SCENE).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
+						$sceneID    = ord($data{1});
 
-						$scount = ord($data{1});
-						$data   = substr($data, 2);
-						if ($scount == 0) continue;
+						$sceneName  = trim(substr($data, 2, osrConstant::DATA_NAME_LENGTH));
+						$InstanceID = $this->lightifyBase->getObjectByProperty(osrConstant::MODULE_GROUP, "uintUUID", $uintUUID);
+						//IPS_LogMessage("SymconOSR", "<CREATEINSTANCE|SCENES>   ".$ncount."/".$itemType."/".ord($data{0})."/".$sceneID."/".$this->lightifyBase->chrToUUID($uintUUID)."/".$sceneName);
 
-						for ($j = 1; $j <= $scount; $j++) {
-							$sceneID    = ord($data{0});
-							$intUUID    = osrConstant::UUID_OSRAM_LIGHTIFY.":0f:0f:0f:0f:0c:".sprintf("%02x", $sceneID);
+						if ($InstanceID === false) {
+							$InstanceID = IPS_CreateInstance(osrConstant::MODULE_GROUP);
 
-							$sceneName  = trim(substr($data, 1, osrConstant::DATA_NAME_LENGTH));
-							$InstanceID = $this->lightifyBase->getObjectByProperty(osrConstant::MODULE_GROUP, "intUUID", $intUUID);
-							//IPS_LogMessage("SymconOSR", "<CREATEINSTANCE|MODE_CREATE_SCENE>   ".$ncount."/".$scount."/".$sceneID."/".$intUUID."/".$sceneName);
+							IPS_SetParent($InstanceID, $this->sceneCategory->categoryID);
+							IPS_SetName($InstanceID, (string)$sceneName);
+							IPS_SetPosition($InstanceID, 210+$sceneID);
 
-							$data = substr($data, 1+osrConstant::DATA_NAME_LENGTH);
-							/*
-							if ($InstanceID === false) {
-								$InstanceID = IPS_CreateInstance(osrConstant::MODULE_GROUP);
-
-								IPS_SetParent($InstanceID, $this->sceneCategory->categoryID);
-								IPS_SetName($InstanceID, (string)$sceneName);
-								IPS_SetPosition($InstanceID, 210+$sceneID);
-							}
-							*/
+							IPS_SetProperty($InstanceID, "itemID", (integer)$sceneID);
 						}
+
+						if ($InstanceID) {
+							if (@IPS_GetProperty($InstanceID, "itemClass") != osrConstant::CLASS_LIGHTIFY_SCENE)
+								IPS_SetProperty($InstanceID, "itemClass", osrConstant::CLASS_LIGHTIFY_SCENE);
+
+							if (IPS_HasChanges($InstanceID)) IPS_ApplyChanges($InstanceID);
+						}
+
+						$data = substr($data, osrConstant::DATA_SCENE_LENGTH);
 					}
 				}
 				break;

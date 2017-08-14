@@ -153,8 +153,8 @@ class lightifyDevice extends lightifyControl {
 				$localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
 
 				if ($localDevice !== false) {
-					if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<RECEIVEDATA|MODE_DEVICE_LOCAL>", $localCount."/".$this->lightifyBase->decodeData($localDevice), 0);
-					if ($data->Message) IPS_LogMessage("SymconOSR", "<RECEIVEDATA|MODE_DEVICE_LOCAL>   ".$localCount.$this->lightifyBase->decodeData($localDevice));
+					if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<DEVICE|RECEIVEDATA|DEVICES:LOCAL>", $localCount."/".$this->lightifyBase->decodeData($localDevice), 0);
+					if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|DEVICES:LOCAL>   ".$localCount.$this->lightifyBase->decodeData($localDevice));
 
 					$this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 					$this->setDeviceInfo($data->Method, $data->Mode, $localDevice);
@@ -165,8 +165,8 @@ class lightifyDevice extends lightifyControl {
 				$cloudDevice = $this->getDeviceCloud($deviceID, $data->Buffer);
 
 				if ($cloudDevice !== false) {
-					if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<RECEIVEDATA|MODE_DEVICE_CLOUD>", $this->lightifyBase->decodeData($cloudDevice), 0);
-					if ($data->Message) IPS_LogMessage("SymconOSR", "<RECEIVEDATA|MODE_DEVICE_CLOUD>   ".$this->lightifyBase->decodeData($cloudDevice));
+					if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<DEVICE|RECEIVEDATA|DEVICES:CLOUD>", $this->lightifyBase->decodeData($cloudDevice), 0);
+					if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|DEVICES:CLOUD>   ".$this->lightifyBase->decodeData($cloudDevice));
 
 					$this->SetBuffer("cloudDevice", $cloudDevice);
 					$this->setDeviceInfo($data->Method, $data->Mode, $cloudDevice, true);
@@ -349,7 +349,7 @@ class lightifyDevice extends lightifyControl {
 
 				if (false === ($onlineID = @$this->GetIDForIdent("ONLINE"))) {
 					if ($method == osrConstant::METHOD_CREATE_CHILD) {
-						$onlineID = $this->RegisterVariableBoolean("ONLINE", "Online", "~Switch", 312);
+						$onlineID = $this->RegisterVariableBoolean("ONLINE", "Online", "OSR.Switch", 312);
 						IPS_SetIcon($onlineID, "Electricity");
 					}
 				}
@@ -375,7 +375,7 @@ class lightifyDevice extends lightifyControl {
 
 				if (false === ($stateID = @$this->GetIDForIdent("STATE"))) {
 					if ($method == osrConstant::METHOD_CREATE_CHILD)
-						$stateID = $this->RegisterVariableBoolean("STATE", "State", "~Switch", 313);
+						$stateID = $this->RegisterVariableBoolean("STATE", "State", "OSR.Switch", 313);
 				}
 
 				if ($stateID !== false) {
