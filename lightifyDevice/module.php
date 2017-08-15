@@ -248,10 +248,12 @@ class lightifyDevice extends lightifyControl {
 				$this->setDeviceInfo(osrConstant::METHOD_CREATE_CHILD, osrConstant::MODE_DEVICE_LOCAL, $localDevice);
 				return self::STATUS_DEVICE_ACTIVE;
 			}
+
+			$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
+			return self::STATUS_DEVICE_INACTIVE;
 		}
 
-		$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
-		return self::STATUS_DEVICE_INACTIVE;
+		return self::STATUS_DEVICE_ACTIVE;
 	}
 
 

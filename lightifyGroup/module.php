@@ -341,10 +341,12 @@ class lightifyGroup extends lightifyControl {
 				$this->setGroupInfo(osrConstant::MODE_GROUP_LOCAL, osrConstant::METHOD_CREATE_CHILD, $groupDevice);
 				return self::STATUS_ITEM_ACTIVE;
 			}
+
+			$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
+			return self::STATUS_ITEM_INACTIVE;
 		}
 
-		$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
-		return self::STATUS_ITEM_INACTIVE;
+		return self::STATUS_ITEM_ACTIVE;
 	}
 
 
@@ -385,10 +387,12 @@ class lightifyGroup extends lightifyControl {
 				$this->setSceneInfo(osrConstant::MODE_GROUP_LOCAL, osrConstant::METHOD_CREATE_CHILD);
 				return self::STATUS_ITEM_ACTIVE;
 			}
+
+			$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
+			return self::STATUS_ITEM_INACTIVE;
 		}
 
-		$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
-		return self::STATUS_ITEM_INACTIVE;
+		return self::STATUS_ITEM_ACTIVE;
 	}
 
 
@@ -582,9 +586,6 @@ class lightifyGroup extends lightifyControl {
 				$sceneID = $this->RegisterVariableInteger("SCENE", "Szene", "OSR.Scene", 311);
 				$this->EnableAction("SCENE");
 			}
-
-			if ($sceneID !== false)
-				if (GetValueInteger($sceneID) != 1); SetValueInteger($sceneID, 1);
 		}
 	}
 
