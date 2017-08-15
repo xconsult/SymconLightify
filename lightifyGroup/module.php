@@ -587,6 +587,8 @@ class lightifyGroup extends lightifyControl {
 				$this->EnableAction("SCENE");
 			}
 		}
+
+		if ($sceneID !== false && GetValueInteger($sceneID) != 1) SetValueInteger($sceneID, 1);
 	}
 
 
