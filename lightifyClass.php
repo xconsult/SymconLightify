@@ -193,9 +193,9 @@ class osrConstant extends stdClass {
 	const LABEL_SWITCH_4WAY     = "-";
 	const LABEL_UNKNOWN         = "Unknown-LIGHTIFY";
 
-	const STATE_ONLINE          = 0;
+	const STATE_ONLINE          = 2;
 	const STATE_UNKNOWN         = 1;
-	const STATE_OFFLINE         = 255;
+	const STATE_OFFLINE         = 0;
 
 	const CTEMP_DEFAULT         = 2702;
 	const CTEMP_DIMABLE_MIN     = 2702;

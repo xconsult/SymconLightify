@@ -319,12 +319,11 @@ class lightifyDevice extends lightifyControl {
 				$deviceCCT  = ($itemType & 2) ? true: false;
 				$deviceCLR  = ($itemType & 4) ? true: false;
 
-				$online = !((bool)ord($data{15})); //Online: 2 - Offline: 0
 				$hue    = $color = $level      = osrConstant::NO_STRING;
 				$temperature     = $saturation = osrConstant::NO_STRING;
 
 				if ($itemLight || $itemPlug || $itemMotion) {
-					$online    = ($online == osrConstant::STATE_ONLINE) ? true : false; //Online: 0 - Offline: 255
+					$online    = (ord($data{15}) == osrConstant::STATE_ONLINE) ? true : false; //Online: 2 - Offline: 0 - Unknown: 1
 					$state     = ($online) ? ord($data{18}) : false;
 					$newOnline = $online; 
 					$newState  = ($itemMotion) ? ord($data{22}) : $state;

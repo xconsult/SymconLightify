@@ -1217,10 +1217,10 @@ class lightifyGateway extends IPSModule {
 				$data = substr($data, 2);
 
 				for ($i = 1; $i <= $ncount; $i++) {
-					$deviceID  = ord($data{0});
-					$data      = substr($data, 1);
-					$itemType  = ord($data{10});
-					$implemted = true;
+					$deviceID    = ord($data{0});
+					$data        = substr($data, 1);
+					$itemType    = ord($data{10});
+					$implemented = true;
 
 					switch ($itemType) {
 						case osrConstant::TYPE_PLUG_ONOFF:
@@ -1249,7 +1249,7 @@ class lightifyGateway extends IPSModule {
 							$categoryID = ($sync) ? $this->deviceCategory->categoryID : false;
 					}
 
-					if ($implemted && $categoryID !== false && IPS_CategoryExists($categoryID)) {
+					if ($implemented && $categoryID !== false && IPS_CategoryExists($categoryID)) {
 						$uintUUID   = substr($data, 2, osrConstant::UUID_DEVICE_LENGTH);
 						$deviceName = trim(substr($data, 26, osrConstant::DATA_NAME_LENGTH));
 						$InstanceID = $this->lightifyBase->getObjectByProperty(osrConstant::MODULE_DEVICE, "uintUUID", $uintUUID);
