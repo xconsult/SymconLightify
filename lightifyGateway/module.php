@@ -683,7 +683,8 @@ class lightifyGateway extends IPSModule {
 
 			$localDevice = $this->GetBuffer("localDevice");
 			$localGroup  = $this->GetBuffer("localGroup");
-			$cloudScene   = $this->GetBuffer("cloudScene");
+			$cloudGroup  = $this->GetBuffer("cloudGroup");
+			$cloudScene  = $this->GetBuffer("cloudScene");
 
 			if ($this->lightifyConnect) {
 				//Get Gateway WiFi configuration
@@ -732,9 +733,9 @@ class lightifyGateway extends IPSModule {
 							$cloudGroup = $this->readData(osrConstant::GET_GROUP_CLOUD);
 							if ($cloudGroup !== false) $this->SetBuffer("cloudGroup", $cloudGroup);
 
-							if ($this->syncScene) {
+							if ($this->syncScene && empty($cloudGroup) === false) {
 								$cloudScene = $this->readData(osrConstant::GET_GROUP_SCENE);
-								if ($cloudScene !== false) $this->SetBuffer("cloudScene", $cloudScene);
+								if (ord($cloudScene{0}) > 0) $this->SetBuffer("cloudScene", $cloudScene);
 							}
 						}
 
@@ -773,7 +774,7 @@ class lightifyGateway extends IPSModule {
 					}
 
 					if ($this->syncScene) {
-						if (empty($cloudScene) === false) {
+						if (empty($cloudGroup) === false && empty($cloudScene) === false) {
 							$this->createInstance(osrConstant::MODE_CREATE_SCENE, $cloudScene);
 							$error = false;
 						} else {
@@ -1017,7 +1018,7 @@ class lightifyGateway extends IPSModule {
 						$j += 1;
 
 						//Device group
-						if ($this->syncDevice && $hasGroup) {
+						if ($hasGroup) {
 							$deviceGroup .= $uint64.substr($data, 16, 2);
 							$n += 1; 
 						}
@@ -1115,17 +1116,18 @@ class lightifyGateway extends IPSModule {
 					$deviceGroup  = $this->GetBuffer("deviceGroup");
 					$groupID      = ord($data{0});
 					$buffer       = "";
+					$n = 0;
 
 					if (($dcount = ord($deviceGroup{0})) > 0) {
 						$deviceGroup = substr($deviceGroup, 1);
 
-						for ($j = 1, $k = 0; $j <= $dcount; $j++) {
+						for ($j = 1; $j <= $dcount; $j++) {
 							$groups = $this->lightifyBase->decodeGroup(ord($deviceGroup{8}), ord($deviceGroup{9}));
 	
 							foreach ($groups as $key) {
 								if ($groupID == $key) {
 									$buffer .= substr($deviceGroup, 0, osrConstant::UUID_DEVICE_LENGTH);
-									$k += 1;
+									$n += 1;
 									break;
 								}
 							}
@@ -1134,8 +1136,8 @@ class lightifyGateway extends IPSModule {
 					}
 
 					$localGroup  .= substr($data,0, osrConstant::DATA_GROUP_LENGTH);
-					$groupDevice .= chr($groupID).chr($k).$buffer;
-					$groupList   .= substr($data,0, osrConstant::DATA_GROUP_LENGTH).chr($k);
+					$groupDevice .= chr($groupID).chr($n).$buffer;
+					$groupList   .= substr($data,0, osrConstant::DATA_GROUP_LENGTH).chr($n);
 					//IPS_LogMessage("SymconOSR", "<READDATA>   ".$i."/".$groupID."/".$k."/".$this->lightifyBase->decodeData($buffer));
 
 					if (($length = strlen($data)) > osrConstant::DATA_GROUP_LENGTH) $length = osrConstant::DATA_GROUP_LENGTH;

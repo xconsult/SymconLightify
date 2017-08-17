@@ -11,7 +11,7 @@ class lightifyConnect extends stdClass {
 	private $message;
 
 
-	public function __construct ($InstanceID, $host, $debug = false, $message = false) {
+	public function __construct($InstanceID, $host, $debug = false, $message = false) {
 		$this->lightifyBase = new lightifyBase;
 
 		$this->InstanceID = $InstanceID;
@@ -25,8 +25,8 @@ class lightifyConnect extends stdClass {
 			if ($this->debug % 4 || $this->message) {
 				$error = "Socket open failed: ".$error." [".$code."]";
 	
-				if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<GATEWAY|LOCALCONNECT>", $error, 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|LOCALCONNECT>.  ".$error);
+				if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<GATEWAY|_CONSTRUCT>", $error, 0);
+				if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|_CONSTRUCT>   ".$error);
 	
 				return false;
 			}
@@ -37,6 +37,7 @@ class lightifyConnect extends stdClass {
 		stream_set_blocking($this->lightifySocket, 1);
 		//stream_set_chunk_size($this->lightifySocket, 4096);
 
+		//IPS_LogMessage("SymconOSR", "<GATEWAY|_CONSTRUCT>   Socket open: ".$this->lightifySocket);
 		return true;
 	}
 
@@ -227,8 +228,9 @@ class lightifyConnect extends stdClass {
 	}
 
 
-	function __desctruct() {
-		@fclose($this-lightifySocket);
+	public function __destruct() {
+		$result = @fclose($this->lightifySocket);
+		//IPS_LogMessage("SymconOSR", "<GATEWAY|_DESTRUCT>   Socket close: ".$this->lightifySocket."/".(integer)$result);
 	}
 
 }
