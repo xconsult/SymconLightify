@@ -47,8 +47,8 @@ class lightifyGateway extends IPSModule {
 	const GATEWAY_OFFLINE        = 5019;
 
 
-	private $lightifyBase    = null;
-	private $lightifyConnect = null;
+	private $lightifyBase;
+	private $lightifyConnect;
 
 	private $deviceCategory;
 	private $sensorCategory;

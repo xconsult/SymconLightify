@@ -95,9 +95,6 @@ class osrConstant extends stdClass {
 	const MODE_MAINTAIN_ACTION   = 1412;
 	const MODE_DELETE_VARIABLE   = 1413;
 
-	const SET_DEVICE_DUMMY       = 1601;
-	const SET_GROUP_DUMMY        = 1602;
-	const SET_SCENE_DUMMY        = 1603;
 	const GET_GATEWAY_LOCAL      = 1604;
 	const GET_DEVICE_LOCAL       = 1605;
 	const GET_GROUP_LOCAL        = 1606;
