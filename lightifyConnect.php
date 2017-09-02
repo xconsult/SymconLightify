@@ -6,39 +6,32 @@ class lightifyConnect extends stdClass {
 	private $lightifyBase;
 	private $lightifySocket;
 
-	private $host;
+	private $gatewayID;
+	private $requestID;
+
 	private $debug;
 	private $message;
 
 
-	public function __construct($InstanceID, $host, $debug = false, $message = false) {
+	public function __construct($gatewayID, $host, $debug = false, $message = false) {
 		$this->lightifyBase = new lightifyBase;
 
-		$this->InstanceID = $InstanceID;
-		$this->requestID  = 0;
+		if (false === ($this->lightifySocket = @fsockopen($host, osrConstant::GATEWAY_PORT, $code, $error, 5))) {
+			$error = "Socket open failed: ".$error." [".$code."]";	
+			throw new Exception($error);
+		}
 
-		$this->host    = $host;
+		//Global variables
+		$this->$gatewayID = $gatewayID;
+		$this->requestID = 0;
+
 		$this->debug   = $debug;
 		$this->message = $message;
-
-		if (false === ($this->lightifySocket = @fsockopen($this->host, osrConstant::GATEWAY_PORT, $code, $error, 5))) {
-			if ($this->debug % 4 || $this->message) {
-				$error = "Socket open failed: ".$error." [".$code."]";
-	
-				if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<GATEWAY|_CONSTRUCT>", $error, 0);
-				if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|_CONSTRUCT>   ".$error);
-	
-				return false;
-			}
-		}
 
 		//socket options
 		stream_set_timeout($this->lightifySocket, 3);
 		stream_set_blocking($this->lightifySocket, 1);
 		//stream_set_chunk_size($this->lightifySocket, 4096);
-
-		//IPS_LogMessage("SymconOSR", "<GATEWAY|_CONSTRUCT>   Socket open: ".$this->lightifySocket);
-		return true;
 	}
 
 
@@ -55,8 +48,8 @@ class lightifyConnect extends stdClass {
 		if ($this->debug % 4 || $this->message) {
 			$info = strtoupper(dechex($command))."/ ".hexdec($flag)."/ ".$length."/ ".$this->lightifyBase->decodeData($data);
 
-			if ($this->debug % 4) IPS_SendDebug($this->InstanceID, "<GATEWAY|SENDRAW:WRITE>", $info, 0);
-			if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|SENDRAW:WRITE>   ".$info);
+			if ($this->debug % 4) IPS_SendDebug($this->gatewayID, "<SOCKET|CONNECT|SENDRAW:WRITE>", $info, 0);
+			if ($this->message) IPS_LogMessage("SymconOSR", "<SOCKET|CONNECT|SENDRAW:WRITE>   ".$info);
 		}
 
 		if (false !== ($bytes = @fwrite($this->lightifySocket, $data, $length))) {
@@ -77,8 +70,8 @@ class lightifyConnect extends stdClass {
 				if ($this->debug % 3 || $this->message) {
 					$info = strtoupper(dechex($command))."/ ".hexdec($flag)."/ ".$length."/ ".$this->lightifyBase->decodeData($buffer);
 
-					if ($this->debug % 3) IPS_SendDebug($this->InstanceID, "<GATEWAY|SENDRAW:READ>", $info, 0);
-					if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|SENDRAW:READ>   ".$info);
+					if ($this->debug % 3) IPS_SendDebug($this->gatewayID, "<SOCKET|CONNECT|SENDRAW:READ>", $info, 0);
+					if ($this->message) IPS_LogMessage("SymconOSR", "<SOCKET|CONNECT|SENDRAW:READ>   ".$info);
 				}
 
 				///Handle read buffer
@@ -99,8 +92,8 @@ class lightifyConnect extends stdClass {
 			$error = "Socket write data failed!";
 		}
 
-		if ($this->debug % 2) IPS_SendDebug($this->InstanceID, "<GATEWAY|SENDRAW:ERROR>", $error, 0);
-		if ($this->message) IPS_LogMessage("SymconOSR", "<GATEWAY|SENDRAW:ERROR>   ".$error);
+		IPS_SendDebug($this->gatewayID, "<SOCKET|CONNECT|SENDRAW:ERROR>", $error, 0);
+		IPS_LogMessage("SymconOSR", "<SOCKET|CONNECT|SENDRAW:ERROR>   ".$error);
 	}
 
 

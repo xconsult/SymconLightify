@@ -97,9 +97,9 @@ class lightifyGroup extends lightifyControl {
 							{ "label": "Name",        "name": "name",        "width": "120px" },
 							{ "label": "Hue",         "name": "hue",         "width": "35px"  },
 							{ "label": "Color",       "name": "color",       "width": "60px"  },
-							{ "label": "CCT",         "name": "temperature", "width": "45px"  },
-							{ "label": "Level",       "name": "level",       "width": "45px"  },
-							{ "label": "Sättigung",   "name": "saturation",  "width": "45px"  }
+							{ "label": "Temperature", "name": "temperature", "width": "80px"  },
+							{ "label": "Level",       "name": "level",       "width": "50px"  },
+							{ "label": "Saturation",  "name": "saturation",  "width": "70px"  }
 						]
 				},' : "";
 

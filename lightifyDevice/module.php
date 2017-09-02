@@ -55,9 +55,10 @@ class lightifyDevice extends lightifyControl {
 
 	public function ApplyChanges() {
 		parent::ApplyChanges();
+		$deviceID = $this->ReadPropertyInteger("deviceID");
 
 		//Check config
-		if (($deviceID = $this->ReadPropertyInteger("deviceID")) < self::ID_DEVICE_MIN) {
+		if ($deviceID < self::ID_DEVICE_MIN) {
 			$this->SetStatus(self::ERROR_INVALID_DEVICE_ID);
 			return false;
 		}
@@ -79,10 +80,12 @@ class lightifyDevice extends lightifyControl {
 
 		$infoText = ($deviceInfo && empty($localDevice) === false) ? '
 			{ "type": "Label", "label": "----------------------------------------- Geräte spezifische Informationen ------------------------------------------------" },
-			{ "type": "ValidationTextBox", "name": "UUID",         "caption": "UUID" },' : "";
+			{ "type": "ValidationTextBox", "name": "UUID",         "caption": "UUID" }' : "";
 
 		switch ($itemType) {
 			case osrConstant::TYPE_SENSOR_MOTION:
+				$infoText = (empty($infoText)) ? "}" : "},".$infoText;
+
 				$formJSON = '{
 					"elements": [
 						{ "type": "NumberSpinner", "name": "deviceID",  "caption": "Device [id]" },
@@ -92,9 +95,7 @@ class lightifyDevice extends lightifyControl {
 								{ "label": "Plug",   "value": 2002 },
 								{ "label": "Sensor", "value": 2003 }
 							]
-						},
 						'.$infoText.'
-						{ "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" }
 					],
 					"status": [
 						{ "code": 102, "icon": "active",   "caption": "Device is active"                  },
@@ -107,6 +108,7 @@ class lightifyDevice extends lightifyControl {
 
 			default:
 				$cloudDevice = $this->GetBuffer("cloudDevice");
+				if (empty($infoText) === false) $infoText .= ",";
 
 				$infoText = ($connectMode == osrConstant::CONNECT_LOCAL_CLOUD && empty($cloudDevice) === false && empty($infoText) === false) ? $infoText.'
 					{ "type": "ValidationTextBox", "name": "manufacturer", "caption": "Manufacturer" },
