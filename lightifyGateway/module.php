@@ -477,8 +477,8 @@ class lightifyGateway extends IPSModule {
 							if (empty($localDevice) === false && ord($localDevice{0}) > 0) {
 								$jsonReturn = json_encode(array(
 									'Buffer'  => utf8_encode($localDevice),
-									'Debug'   => $debug,
-									'Message' => $message)
+									'Debug'   => $this->debug,
+									'Message' => $this->message)
 								);
 							}
 							return $jsonReturn;
@@ -768,50 +768,51 @@ class lightifyGateway extends IPSModule {
 				//Read Buffer
 				$groupDevice = $this->GetBuffer("groupDevice");
 				$deviceGroup = $this->GetBuffer("deviceGroup");
-	
+
 				//Create childs
 				if ($localMethod == osrConstant::METHOD_CREATE_CHILD) {
 					$error = true;
 	
 					if ($this->syncDevice || $this->syncGroup) {
-						$message = "Instances successfully created";
-	
 						if ($this->syncDevice) {
 							if (empty($localDevice) === false) {
 								$this->createInstance(osrConstant::MODE_CREATE_DEVICE, $localDevice);
+								$message = "Device Instances successfully created/updated";
 								$error = false;
 							} else {
-								$message = "Creating device instances failed!";
+								$message = "Device Instances not created/updated";
 							}
 						}
-	
+
 						if ($this->syncGroup) {
 							if (empty($localGroup) === false) {
 								$this->createInstance(osrConstant::MODE_CREATE_GROUP, $localGroup);
+								$message = $message."\nGroup Instances successfully created/updated";
 								$error = false;
 							} else {
-								$message = "Creating group instances failed!";
+								$message = $message."\nGroup Instances not created/updated";
 							}
 						}
-	
+
 						if ($this->syncScene) {
 							if (empty($cloudGroup) === false && empty($cloudScene) === false) {
 								$this->createInstance(osrConstant::MODE_CREATE_SCENE, $cloudScene);
+								$message = $message."\nScene Instances successfully created/updated";
 								$error = false;
 							} else {
-								$message = "Creating scene instances failed!";
+								$message = $message."\nScene Instances not created/updated";
 							}
 						}
 					} else {
-						$message = "Please define type and category to be created.";
+						$message = "Nothing selected. Please select a category first";
 					}
-	
+
 					echo $message."\n";
 				}
-	
+
 				if ($error === false) {
 					$sendMethod = ($localMethod == osrConstant::METHOD_LOAD_LOCAL) ? osrConstant::METHOD_UPDATE_CHILD : osrConstant::METHOD_CREATE_CHILD;
-	
+
 					//Update child informations
 					if ($localMethod == osrConstant::METHOD_LOAD_LOCAL || $localMethod == osrConstant::METHOD_CREATE_CHILD) {
 						if ($this->syncDevice && empty($localDevice) === false && ord($localDevice{0}) > 0) {
@@ -826,7 +827,7 @@ class lightifyGateway extends IPSModule {
 									'Message'	=> $this->message))
 								);
 							}
-	
+
 							if ($connect == osrConstant::CONNECT_LOCAL_CLOUD) {
 								if (empty($cloudDevice) === false && ord($cloudDevice{0}) > 0) {
 									$this->SendDataToChildren(json_encode(array(
@@ -841,12 +842,12 @@ class lightifyGateway extends IPSModule {
 								}
 							}
 						}
-	
+
 						if ($this->syncGroup && empty($localGroup) === false && ord($localGroup{0}) > 0) {
 							if (count(IPS_GetInstanceListByModuleID(osrConstant::MODULE_GROUP)) > 0) {
 								$ncount   = $localGroup{0};
 								$itemType = $localGroup{1};
-	
+
 								$this->SendDataToChildren(json_encode(array(
 									'DataID'	=> osrConstant::TX_GROUP,
 									'Connect'	=> $connect,
@@ -874,7 +875,7 @@ class lightifyGateway extends IPSModule {
 						}
 					}
 				}
-	
+
 				//Reset to default and activate timer
 				$this->SetTimerInterval("localTimer", $this->ReadPropertyInteger("localUpdate")*1000);
 				if ($this->GetBuffer("timerMode") == self::TIMER_MODE_OFF) $this->SetBuffer("timerMode", self::TIMER_MODE_ON);
