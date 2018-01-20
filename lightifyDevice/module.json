@@ -1,0 +1,11 @@
+{
+  "id": "{0028DE9E-6155-451A-97E1-7D2D1563F5BA}",
+  "name": "lightifyDevice",
+  "type": 3,
+  "vendor": "OSRAM",
+  "aliases": [ "Lightify Device" ],
+  "parentRequirements": [ "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}" ],
+  "childRequirements": [],
+  "implemented": [ "{0EC8C035-D581-4DF2-880D-E3C400F41682}" ],
+  "prefix": "OSR"
+}

@@ -1,0 +1,43 @@
+{
+  "translations": {
+    "de": {
+      " Open"                                                                                          : " Aktiv",
+      "Connection"                                                                                     : "Verbindung",
+      "Local only"                                                                                     : "Lokal",
+      "Local and Cloud"                                                                                : "Lokal und Cloud",
+      "IP address"                                                                                     : "IP Addresse",
+      "Update interval [s]"                                                                            : "Aktualisierung [s]",
+      "Username"                                                                                       : "Benutzername",
+      "Password"                                                                                       : "Passwort",
+      "Serial number"                                                                                  : "Seriennummer",
+      "Categories"                                                                                     : "Kategorien",
+      "Category"                                                                                       : "Kategorien",
+      " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" : " Geräte Informationen anzeigen (UUID, Hersteller, Modell, Eigenschaften, ZigBee, Firmware)",
+      "State"                                                                                          : "Status",
+      " Synchronise values"                                                                            : " Werte aktualisieren",
+      "Devices"                                                                                        : "Geräte",
+      "Manufacturer"                                                                                   : "Hersteller",
+      "Class"                                                                                          : "Klasse",
+      "Model"                                                                                          : "Modell",
+      "Capabilities"                                                                                   : "Eigenschaften",
+      "Groups"                                                                                         : "Gruppen",
+      "Scenes"                                                                                         : "Szenen",
+      "Group"                                                                                          : "Gruppe",
+      "Disabled"                                                                                       : "Inaktiv",
+      "Send buffer"                                                                                    : "Sende Buffer",
+      "Receive buffer"                                                                                 : "Empfangs Buffer",
+      "Send/Receive buffer"                                                                            : "Sende/Empfangs Buffer",
+      "Detailed error log"                                                                             : "Detaillierte Meldungen",
+      " Messages"                                                                                      : "Meldungen",
+      "Devices successfully synced!"                                                                   : "Geräte wurden erfolgreich synchronisiert",
+      "Create | Update"                                                                                : "Erstellen | Aktualisieren",
+      "Lightify gateway is open"                                                                       : "Lightify gateway ist verbunden",
+      "Enter all required informations"                                                                : "Die notwendigen Informationen eingeben",
+      "Lightify gateway is closed"                                                                     : "Lightify gateway ist nicht verbunden",
+      "Invalid IP address!"                                                                            : "Ungültige IP Addresse!",
+      "Ping timeout < 0ms"                                                                             : "Ping Zeitüberschreitung < 0ms",
+      "Update interval < 3s"                                                                           : "Aktualisierungs Interval < 3s",
+      "Unknown error"                                                                                  : "Unbekannter Fehler"
+    }
+  }
+}
