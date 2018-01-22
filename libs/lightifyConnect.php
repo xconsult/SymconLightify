@@ -16,7 +16,7 @@ class lightifyConnect extends stdClass {
   public function __construct($id, $gatewayIP, $debug = false, $message = false) {
     $this->lightifyBase = new lightifyBase;
 
-    if (false === ($this->lightifySocket = @fsockopen($gatewayIP, stdConstant::GATEWAY_PORT, $code, $error, 5))) {
+    if (false === ($this->lightifySocket = @fsockopen($gatewayIP, classConstant::GATEWAY_PORT, $code, $error, 5))) {
       $error = "Socket open failed: $error [".$code."]";  
       throw new Exception($error);
     }
@@ -36,7 +36,7 @@ class lightifyConnect extends stdClass {
 
 
   public function sendRaw($command, $flag, $args = null) {
-    //$this->requestID = ($this->requestID == stdConstant::REQUESTID_HIGH_VALUE) ? 1 : $this->requestID+1;
+    //$this->requestID = ($this->requestID == classConstant::REQUESTID_HIGH_VALUE) ? 1 : $this->requestID+1;
     //$data = $flag.chr($command).$this->lightifyBase->getRequestID($this->requestID);
     $data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
 
@@ -61,7 +61,7 @@ class lightifyConnect extends stdClass {
 
     if (false !== ($bytes = @fwrite($this->lightifySocket, $data, $length))) {
       if ($bytes == $length) {
-        $buffer = stdConstant::NO_STRING;
+        $buffer = classConstant::NO_STRING;
 
         while(!feof($this->lightifySocket)) {
           if (false !== ($buffer .= @fread($this->lightifySocket, 1024))) { //Read 1024 bytes block
@@ -87,7 +87,7 @@ class lightifyConnect extends stdClass {
         }
 
         ///Handle read buffer
-        $bytes = stdConstant::BUFFER_HEADER_LENGTH+1;
+        $bytes = classConstant::BUFFER_HEADER_LENGTH+1;
 
         if ($length >= $bytes) {
           $code = ord($buffer{8});
@@ -124,25 +124,25 @@ class lightifyConnect extends stdClass {
     $args   = $uintUUID.chr($value);
     $buffer = $this->sendRaw(stdCommand::SET_DEVICE_STATE, $flag, $args);
 
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
   }
 
 
   public function setName($uintUUID, $command, $flag, $name) {
-    $args = $uintUUID.str_pad($name, stdConstant::DATA_NAME_LENGTH).chr(0x00);
+    $args = $uintUUID.str_pad($name, classConstant::DATA_NAME_LENGTH).chr(0x00);
     return $this->sendRaw($command, $flag, $args);
   }
 
 
-  public function setColor($uintUUID, $flag, $value, $transition = stdConstant::TRANSITION_MIN) {
+  public function setColor($uintUUID, $flag, $value, $transition = classConstant::TRANSITION_MIN) {
     $args   = $uintUUID.chr($value['r']).chr($value['g']).chr($value['b']).chr(0xFF).chr(dechex($transition)).chr(0x00);
     $buffer = $this->sendRaw(stdCommand::SET_LIGHT_COLOR, $flag, $args.chr(0x00));
 
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
   }
 
 
-  public function setColorTemperature($uintUUID, $flag, $value, $transition = stdConstant::TRANSITION_MIN) {
+  public function setColorTemperature($uintUUID, $flag, $value, $transition = classConstant::TRANSITION_MIN) {
     $hex = dechex($value);
 
     if (strlen($hex) < 4) {
@@ -152,29 +152,29 @@ class lightifyConnect extends stdClass {
     $args   = $uintUUID.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(dechex($transition)).chr(0x00);
     $buffer = $this->sendRaw(stdCommand::SET_COLOR_TEMPERATURE, $flag, $args.chr(0x00));
 
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
   }
 
 
-  public function setLevel($uintUUID, $flag, $value, $transition = stdConstant::TRANSITION_MIN) {
+  public function setLevel($uintUUID, $flag, $value, $transition = classConstant::TRANSITION_MIN) {
     $args   = $uintUUID.chr($value).chr(dechex($transition)).chr(0x00);
     $buffer = $this->sendRaw(stdCommand::SET_LIGHT_LEVEL, $flag, $args.chr(0x00));
 
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
   }
 
 
-  public function setSaturation($uintUUID, $flag, $value, $transition = stdConstant::TRANSITION_MIN) {
+  public function setSaturation($uintUUID, $flag, $value, $transition = classConstant::TRANSITION_MIN) {
     $args   = $uintUUID.chr($value['r']).chr($value['g']).chr($value['b']).chr(0x00).chr(dechex($transition)).chr(0x00);
     $buffer = $this->sendRaw(stdCommand::SET_LIGHT_COLOR, $flag, $args.chr(0x00));
 
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
   }
 
 
   public function saveLightState($uintUUID) {
     $buffer = $this->sendRaw(stdCommand::SAVE_LIGHT_STATE, chr(0x00), $uintUUID.chr(0x00));
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
   }
 
 
@@ -182,7 +182,7 @@ class lightifyConnect extends stdClass {
     $args   = $uintUUID.chr($transition).chr(0x00);
     $buffer = $this->sendRaw($command, chr(0x00), $args);
 
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
   }
 
 
@@ -198,13 +198,13 @@ class lightifyConnect extends stdClass {
 
   public function activateGroupScene($sceneID) {
     $buffer = $this->sendRaw(stdCommand::ACTIVATE_GROUP_SCENE, chr(0x00), chr($sceneID));
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
   }
 
 
   public function getDeviceInfo($uintUUID) {
     $buffer = $this->sendRaw(stdCommand::GET_DEVICE_INFO, chr(0x00), $uintUUID);
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_ONLINE_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_ONLINE_LENGTH) ? $buffer : false);
   }
 
 
@@ -220,7 +220,7 @@ class lightifyConnect extends stdClass {
     $args   = $uintUUID.(($loop) ? chr(0x01) : chr(0x00)).chr(hexdec(substr($value, 2, 2))).chr(hexdec(substr($value, 0, 2)));
     $buffer = $this->sendRaw(stdCommand::CYCLE_LIGHT_COLOR, chr(0x00), $args);
 
-    return (($buffer !== false && strlen($buffer) == stdConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
+    return (($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) ? $buffer : false);
   }
 
 
@@ -241,7 +241,6 @@ class lightifyConnect extends stdClass {
 
   public function __destruct() {
     $result = @fclose($this->lightifySocket);
-    //IPS_LogMessage("SymconOSR", "<GATEWAY|_DESTRUCT>   Socket close: ".$this->lightifySocket."/".(integer)$result);
   }
 
 }

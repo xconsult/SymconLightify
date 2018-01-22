@@ -1,5 +1,6 @@
 <?
 
+require_once(__DIR__.DIRECTORY_SEPARATOR."classModule.php");
 require_once(__DIR__.DIRECTORY_SEPARATOR."lightifyClass.php");
 require_once(__DIR__.DIRECTORY_SEPARATOR."lightifyConnect.php");
 
@@ -22,14 +23,12 @@ define('WAIT_TIME_SEMAPHORE', 1500); //milliseconds
 
 abstract class lightifyControl extends IPSModule {
 
-  private $lightifyBase;
-  private $lightifyConnect;
+  public $classModule;
+  public $lightifyBase;
+  private $parentID = null;
 
-  private $moduleID;
-  private $parentID;
-
-  private $connect;
-  private $direct;
+  private $message;
+  private $debug;
 
   private $itemType;
   private $transition = false;
@@ -47,16 +46,12 @@ abstract class lightifyControl extends IPSModule {
   private $itemMotion = false;
   private $itemDevice = false;
 
-  private $debug      = false;
-  private $message    = false;
-
 
   public function __construct($InstanceID) {
     parent::__construct($InstanceID);
-    $this->lightifyBase = new lightifyBase;
 
-    $connection     = @IPS_GetInstance($this->InstanceID)['ConnectionID'];
-    $this->parentID = ($connection) ? $connection : false;
+    $this->classModule  = new classModule;
+    $this->lightifyBase = new lightifyBase;
   }
 
 
@@ -64,7 +59,7 @@ abstract class lightifyControl extends IPSModule {
     $buffer = $data;
 
     switch ($method) {
-      case stdConstant::METHOD_LOAD_CLOUD:
+      case classConstant::METHOD_LOAD_CLOUD:
         switch (true) {
           case $this->itemLight:
             //fall through
@@ -82,30 +77,22 @@ abstract class lightifyControl extends IPSModule {
     }
 
     $this->SendDataToParent(json_encode(array(
-      'DataID' => stdConstant::TX_GATEWAY,
+      'DataID' => classConstant::TX_GATEWAY,
       'method' => $method,
       'buffer' => $buffer))
     );
   }
 
 
-  private function getParentConfig() {
-    $this->connect = IPS_GetProperty($this->parentID, "connectMode");
-    $this->debug   = IPS_GetProperty($this->parentID, "debug");
-    $this->message = IPS_GetProperty($this->parentID, "message");
-  }
-
-
   private function setEnvironment() {
-    $this->moduleID = IPS_GetInstance($this->InstanceID)['ModuleInfo']['ModuleID'];
     $this->name     = IPS_GetName($this->InstanceID);
     $this->itemType = $this->ReadPropertyInteger("itemType");
 
-    if ($this->itemType == stdConstant::TYPE_DEVICE_GROUP) {
+    if ($this->itemType == classConstant::TYPE_DEVICE_GROUP) {
        $this->itemGroup = true;
      }
 
-    if ($this->itemType == stdConstant::TYPE_GROUP_SCENE) {
+    if ($this->itemType == classConstant::TYPE_GROUP_SCENE) {
        $this->itemScene = true;
      }
 
@@ -126,11 +113,11 @@ abstract class lightifyControl extends IPSModule {
          $this->itemLight = true;
        }
 
-      if ($this->itemType == stdConstant::TYPE_FIXED_WHITE || $this->itemType == stdConstant::TYPE_PLUG_ONOFF) {
+      if ($this->itemType == classConstant::TYPE_FIXED_WHITE || $this->itemType == classConstant::TYPE_PLUG_ONOFF) {
          $this->itemOnOff = true;
        }
 
-      if ($this->itemType == stdConstant::TYPE_SENSOR_MOTION) {
+      if ($this->itemType == classConstant::TYPE_SENSOR_MOTION) {
          $this->itemMotion = true;
        }
 
@@ -142,8 +129,8 @@ abstract class lightifyControl extends IPSModule {
 
 
   private function localConnect() {
-    $gatewayIP = IPS_GetProperty($this->parentID, "gatewayIP");
-    $timeOut   = IPS_GetProperty($this->parentID, "timeOut");
+    $gatewayIP   = IPS_GetProperty($this->parentID, "gatewayIP");
+    $timeOut     = IPS_GetProperty($this->parentID, "timeOut");
 
     if ($timeOut > 0) {
       $connect = Sys_Ping($gatewayIP, $timeOut);
@@ -153,7 +140,7 @@ abstract class lightifyControl extends IPSModule {
 
     if ($connect) {
       try { 
-        $this->lightifyConnect = new lightifyConnect($this->parentID, $gatewayIP, $this->debug, $this->message);
+        $lightifyConnect = new lightifyConnect($this->parentID, $gatewayIP, $this->debug, $this->message);
       } catch (Exception $ex) {
         $error = $ex->getMessage();
 
@@ -162,7 +149,7 @@ abstract class lightifyControl extends IPSModule {
 
         return false;
       }
-      return $lightifySocket;
+      return $lightifyConnect;
     } else {
       IPS_LogMessage("SymconOSR", "<GATEWAY|LOCALCONNECT>   "."Lightify gateway not online!");
       return false;
@@ -198,29 +185,35 @@ abstract class lightifyControl extends IPSModule {
 
 
   public function SetValue(string $key, integer $value) {
-    $this->getParentConfig();
-    $this->setEnvironment();
+    if ($this->parentID == null) {
+      $this->parentID = $this->classModule->getParentInfo($this->InstanceID);
+    }
 
-    if ($lightifySocket = $this->localConnect()) {
-      $key = strtoupper($key);
+    if ($this->parentID) {
+      $this->setEnvironment();
 
-      if (in_array($key, explode(",", stdConstant::LIST_KEY_VALUES)) == false) {
-        if ($this->debug % 2 || $this->message) {
-          $error = "usage: [".$this->InstanceID."|".$this->name."] {key} not valid!";
+      $this->debug   = IPS_GetProperty($this->parentID, "debug");
+      $this->message = IPS_GetProperty($this->parentID, "message");
 
-          if ($this->debug % 2) {
-            IPS_SendDebug($this->parentID, "<LIGHTIFY|SETVALUE|ERROR>", $error, 0);
+      if ($lightifyConnect = $this->localConnect()) {
+        $key = strtoupper($key);
+
+        if (in_array($key, explode(",", classConstant::LIST_KEY_VALUES)) == false) {
+          if ($this->debug % 2 || $this->message) {
+            $error = "usage: [".$this->InstanceID."|".$this->name."] {key} not valid!";
+
+            if ($this->debug % 2) {
+              IPS_SendDebug($this->parentID, "<LIGHTIFY|SETVALUE|ERROR>", $error, 0);
+            }
+
+            if ($this->message) {
+              IPS_LogMessage("SymconOSR", "<LIGHTIFY|SETVALUE|ERROR>   ".$error);
+            }
+
+            return false;
           }
-
-          if ($this->message) {
-            IPS_LogMessage("SymconOSR", "<LIGHTIFY|SETVALUE|ERROR>   ".$error);
-          }
-
-          return false;
         }
-      }
 
-      if ($this->lightifyConnect) {
         $uintUUID = @IPS_GetProperty($this->InstanceID, "uintUUID");
         $online   = false;
 
@@ -232,10 +225,10 @@ abstract class lightifyControl extends IPSModule {
 
         if ($this->itemGroup || $this->itemScene) {
           $flag     = chr(0x02);
-          $uintUUID = str_pad(substr($uintUUID, 0, 1), stdConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
+          $uintUUID = str_pad(substr($uintUUID, 0, 1), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
 
           if ($this->itemGroup) {
-            $this->transition = stdConstant::TRANSITION_DEFAULT;
+            $this->transition = classConstant::TRANSITION_DEFAULT;
           }
         }
 
@@ -257,9 +250,9 @@ abstract class lightifyControl extends IPSModule {
             $state   = ($stateID) ? GetValueBoolean($stateID) : false;
 
             if (($value == 0 && $state !== false) || $value == 1) {
-              if (false !== ($result = $lightifySocket->setAllDevices($value))) {
+              if (false !== ($result = $lightifyConnect->setAllDevices($value))) {
                 SetValue(@$this->GetIDForIdent($key), $value);
-                $this->sendData(stdConstant::METHOD_LOAD_LOCAL);
+                $this->sendData(classConstant::METHOD_LOAD_LOCAL);
                 return true;
               }
             } else {
@@ -280,7 +273,7 @@ abstract class lightifyControl extends IPSModule {
           case "SAVE":
             if ($this->itemLight) {
               if ($value == 1) {
-                $result = $lightifySocket->saveLightState($uintUUID);
+                $result = $lightifyConnect->saveLightState($uintUUID);
 
                 if ($result !== false) {
                   return true;
@@ -311,9 +304,9 @@ abstract class lightifyControl extends IPSModule {
               }
 
               if (is_string($value)) {
-                $name = substr(trim($value), 0, stdConstant::DATA_NAME_LENGTH);
+                $name = substr(trim($value), 0, classConstant::DATA_NAME_LENGTH);
 
-                if (false !== ($result = $lightifySocket->setName($uintUUID, $command, $flag, $name))) {
+                if (false !== ($result = $lightifyConnect->setName($uintUUID, $command, $flag, $name))) {
                   if (@IPS_GetName($this->InstanceID) != $name) {
                     IPS_SetName($this->InstanceID, (string)$name);
                   }
@@ -339,8 +332,8 @@ abstract class lightifyControl extends IPSModule {
           case "SCENE":
             if ($this->itemScene) {
               if (is_int($value)) {
-                if (false !== ($result = $lightifySocket->activateGroupScene($value))) {
-                  $this->sendData(stdConstant::METHOD_LOAD_LOCAL);
+                if (false !== ($result = $lightifyConnect->activateGroupScene($value))) {
+                  $this->sendData(classConstant::METHOD_LOAD_LOCAL);
                   return true;
                 }
               } else {
@@ -363,16 +356,18 @@ abstract class lightifyControl extends IPSModule {
             if ($this->itemLight || $this->itemGroup) {
               if ($value == 1) {
                 //Reset light to default values
-                $lightifySocket->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(stdConstant::COLOR_DEFAULT));
-                $lightifySocket->setColorTemperature($uintUUID, $flag, stdConstant::CTEMP_DEFAULT);
-                $lightifySocket->setLevel($uintUUID, $flag, stdConstant::LEVEL_MAX);
+                $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::COLOR_DEFAULT));
+                $lightifyConnect->setColorTemperature($uintUUID, $flag, classConstant::CTEMP_DEFAULT);
+                $lightifyConnect->setLevel($uintUUID, $flag, classConstant::LEVEL_MAX);
 
                 if ($this->itemLight) {
-                  $lightifySocket->setSoftTime($uintUUID, stdCommand::SET_LIGHT_SOFT_ON, stdConstant::TRANSITION_DEFAULT);
-                  $lightifySocket->setSoftTime($uintUUID, stdCommand::SET_LIGHT_SOFT_OFF, stdConstant::TRANSITION_DEFAULT);
+                  $lightifyConnect->setSoftTime($uintUUID, stdCommand::SET_LIGHT_SOFT_ON, classConstant::TRANSITION_DEFAULT);
+                  $lightifyConnect->setSoftTime($uintUUID, stdCommand::SET_LIGHT_SOFT_OFF, classConstant::TRANSITION_DEFAULT);
+                  IPS_SetProperty($this->InstanceID, "transition", classConstant::TRANSITION_DEFAULT/10);
 
-                  IPS_SetProperty($this->InstanceID, "transition", stdConstant::TRANSITION_DEFAULT/10);
-                  IPS_ApplyChanges($this->InstanceID);
+                  if (IPS_HasChanges($this->InstanceID)) {
+                    IPS_ApplyChanges($this->InstanceID);
+                  }
                 }
                 return true;
               } else {
@@ -401,7 +396,7 @@ abstract class lightifyControl extends IPSModule {
 
           case "TRANSITION":
             if ($this->itemLight) {
-              $value = ($value) ? $this->getValueRange("TRANSITION_TIME", $value) : stdConstant::TRANSITION_DEFAULT/10;
+              $value = ($value) ? $this->getValueRange("TRANSITION_TIME", $value) : classConstant::TRANSITION_DEFAULT/10;
 
               if (isset($command) == false) {
                 if ($this->ReadPropertyFloat("transition") != $value) {
@@ -410,7 +405,7 @@ abstract class lightifyControl extends IPSModule {
                 }
                 return true;
               } else {
-                $result = $lightifySocket->setSoftTime($uintUUID, $command, $value*10);
+                $result = $lightifyConnect->setSoftTime($uintUUID, $command, $value*10);
 
                 if ($result !== false) {
                   return true;
@@ -420,20 +415,20 @@ abstract class lightifyControl extends IPSModule {
             return false;
 
           case "RELAX":
-            $temperature = stdConstant::SCENE_RELAX;
+            $temperature = classConstant::SCENE_RELAX;
             //fall-trough
 
           case "ACTIVE":
             if ($this->itemLight || $this->itemGroup) {
-              $temperature = (isset($temperature)) ? $temperature : stdConstant::SCENE_ACTIVE;
+              $temperature = (isset($temperature)) ? $temperature : classConstant::SCENE_ACTIVE;
 
               if ($value == 1) {
-                if (false !== ($result = $lightifySocket->setColorTemperature($uintUUID, $flag, $temperature))) {
+                if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $temperature))) {
                   if ($this->itemLight && GetValue($this->InstanceID) != $value) {
                     SetValue($this->InstanceID, $value);
                   }
 
-                  $this->sendData(stdConstant::METHOD_LOAD_LOCAL);
+                  $this->sendData(classConstant::METHOD_LOAD_LOCAL);
                   return true;
                 }
               } else {
@@ -455,12 +450,12 @@ abstract class lightifyControl extends IPSModule {
           case "PLANT_LIGHT":
             if ($this->itemLight || $this->itemGroup) {
               if ($value == 1) {
-                if (false !== ($result = $lightifySocket->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(stdConstant::SCENE_PLANT_LIGHT)))) {
+                if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::SCENE_PLANT_LIGHT)))) {
                   if ($this->itemLight && GetValue($this->InstanceID) != $value) {
                     SetValue($this->InstanceID, $value);
                   }
 
-                  $this->sendData(stdConstant::METHOD_LOAD_LOCAL);
+                  $this->sendData(classConstant::METHOD_LOAD_LOCAL);
                   return true;
                 }
               } else {
@@ -482,7 +477,7 @@ abstract class lightifyControl extends IPSModule {
           case "LIGHTIFY_LOOP":
             if (($this->deviceRGB || $this->itemGroup) && $state) {
               if ($value == 0 || $value == 1) {
-                if (false !== ($result = $lightifySocket->sceneLightifyLoop($uintUUID, $flag, $value, 3268))){
+                if (false !== ($result = $lightifyConnect->sceneLightifyLoop($uintUUID, $flag, $value, 3268))){
                   return true;
                 }
               } else {
@@ -504,9 +499,9 @@ abstract class lightifyControl extends IPSModule {
           case "STATE":
             if (($this->itemDevice && $online) || $this->itemGroup) {
               if ($value == 0 || $value == 1) {
-                if (false !== ($result = $lightifySocket->setState($uintUUID, $flag, $value))) {
+                if (false !== ($result = $lightifyConnect->setState($uintUUID, $flag, $value))) {
                   SetValue($stateID, $value);
-                  $this->sendData(stdConstant::METHOD_LOAD_LOCAL);
+                  $this->sendData(classConstant::METHOD_LOAD_LOCAL);
 
                   return true;
                 }
@@ -540,7 +535,7 @@ abstract class lightifyControl extends IPSModule {
                 $hsv = $this->lightifyBase->HEX2HSV($hex);
                 $rgb = $this->lightifyBase->HEX2RGB($hex);
 
-                if (false !== ($result = $lightifySocket->setColor($uintUUID, $flag, $rgb, $this->transition))) {
+                if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $rgb, $this->transition))) {
                   if ($hueID && GetValue($hueID) != $hsv['h']) {
                     SetValue($hueID, $hsv['h']);
                   }
@@ -553,7 +548,7 @@ abstract class lightifyControl extends IPSModule {
                     SetValue($colorID, $value);
                   }
 
-                  $this->sendData(stdConstant::METHOD_LOAD_LOCAL);
+                  $this->sendData(classConstant::METHOD_LOAD_LOCAL);
                   return true;
                 }
               }
@@ -567,12 +562,12 @@ abstract class lightifyControl extends IPSModule {
               $value         = $this->getValueRange($key, $value);
 
               if ($value != $temperature) {
-                if (false !== ($result = $lightifySocket->setColorTemperature($uintUUID, $flag, $value, $this->transition))) {
+                if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $value, $this->transition))) {
                   if ($temperatureID) {
                     SetValue($temperatureID, $value);
                   }
 
-                  $this->sendData(stdConstant::METHOD_LOAD_LOCAL);
+                  $this->sendData(classConstant::METHOD_LOAD_LOCAL);
                   return true;
                 }
               }
@@ -586,12 +581,12 @@ abstract class lightifyControl extends IPSModule {
               $value   = $this->getValueRange($key, $value);
 
               if ($value != $level) {
-                if (false !== ($result = $lightifySocket->setLevel($uintUUID, $flag, $value, $this->transition))) {
+                if (false !== ($result = $lightifyConnect->setLevel($uintUUID, $flag, $value, $this->transition))) {
                   if ($levelID) {
                     SetValue($levelID, $value);
                   }
 
-                  $this->sendData(stdConstant::METHOD_LOAD_LOCAL);
+                  $this->sendData(classConstant::METHOD_LOAD_LOCAL);
                   return true;
                 }
               }
@@ -613,7 +608,7 @@ abstract class lightifyControl extends IPSModule {
                 $rgb   = $this->lightifyBase->HEX2RGB($hex);
                 $color = hexdec($hex);
 
-                if (false !== ($result = $lightifySocket->setSaturation($uintUUID, $flag, $rgb, $this->transition))) {
+                if (false !== ($result = $lightifyConnect->setSaturation($uintUUID, $flag, $rgb, $this->transition))) {
                   if ($this->deviceRGB && $colorID && GetValue($colorID) != $color) {
                     SetValue($colorID, $color);
                   }
@@ -622,16 +617,16 @@ abstract class lightifyControl extends IPSModule {
                     SetValue($saturationID, $value);
                   }
 
-                  $this->sendData(stdConstant::METHOD_LOAD_LOCAL);
+                  $this->sendData(classConstant::METHOD_LOAD_LOCAL);
                   return true;
                 }
               }
             }
             return false;
         }
-      }
 
-      return true;
+        return true;
+      }
     }
 
     return false;
@@ -647,21 +642,21 @@ abstract class lightifyControl extends IPSModule {
   private function getValueRange($key, $value) {
     switch ($key) {
       case "COLOR":
-        $minColor = hexdec(stdConstant::COLOR_MIN);
-        $maxColor = hexdec(stdConstant::COLOR_MAX);
+        $minColor = hexdec(classConstant::COLOR_MIN);
+        $maxColor = hexdec(classConstant::COLOR_MAX);
 
         if ($value < $minColor) {
-          $info = "usage: [".$this->InstanceID."|".$this->name."] Color {#".dechex($value)."} out of range. Setting to #".stdConstant::COLOR_MIN;
+          $info = "usage: [".$this->InstanceID."|".$this->name."] Color {#".dechex($value)."} out of range. Setting to #".classConstant::COLOR_MIN;
           $value = $minColor;
         } elseif ($value > $maxColor) {
-          $info = "usage: [".$this->InstanceID."|".$this->name."] Color {#".dechex($value)."} out of range. Setting to #".stdConstant::COLOR_MIN;
+          $info = "usage: [".$this->InstanceID."|".$this->name."] Color {#".dechex($value)."} out of range. Setting to #".classConstant::COLOR_MIN;
           $value = $maxColor;
         }
         break;
 
       case "COLOR_TEMPERATURE":
-        $minTemperature = ($this->itemType == stdConstant::TYPE_LIGHT_EXT_COLOR) ? stdConstant::CTEMP_COLOR_MIN : stdConstant::CTEMP_CCT_MIN;
-        $maxTemperature = ($this->itemType == stdConstant::TYPE_LIGHT_EXT_COLOR) ? stdConstant::CTEMP_COLOR_MAX : stdConstant::CTEMP_CCT_MAX;
+        $minTemperature = ($this->itemType == classConstant::TYPE_LIGHT_EXT_COLOR) ? classConstant::CTEMP_COLOR_MIN : classConstant::CTEMP_CCT_MIN;
+        $maxTemperature = ($this->itemType == classConstant::TYPE_LIGHT_EXT_COLOR) ? classConstant::CTEMP_COLOR_MAX : classConstant::CTEMP_CCT_MAX;
 
         if ($value < $minTemperature) {
           $info = "usage: [".$this->InstanceID."|".$this->name."] Color Temperature {".$value."K} out of range. Setting to ".$minTemperature."K";
@@ -673,28 +668,28 @@ abstract class lightifyControl extends IPSModule {
         break;
 
       case "LEVEL":
-        if ($value < stdConstant::INTENSITY_MIN) {
-          $info = "usage: [".$this->InstanceID."|".$this->name."] Level {".$value."%} out of range. Setting to ".stdConstant::INTENSITY_MIN."%";
-          $value = stdConstant::INTENSITY_MIN;
-        } elseif ($value > stdConstant::INTENSITY_MAX) {
-          $info = "usage: [".$this->InstanceID."|".$this->name."] Level {".$value."%} out of range. Setting to ".stdConstant::INTENSITY_MAX."%";
-          $value = stdConstant::INTENSITY_MAX;
+        if ($value < classConstant::INTENSITY_MIN) {
+          $info = "usage: [".$this->InstanceID."|".$this->name."] Level {".$value."%} out of range. Setting to ".classConstant::INTENSITY_MIN."%";
+          $value = classConstant::INTENSITY_MIN;
+        } elseif ($value > classConstant::INTENSITY_MAX) {
+          $info = "usage: [".$this->InstanceID."|".$this->name."] Level {".$value."%} out of range. Setting to ".classConstant::INTENSITY_MAX."%";
+          $value = classConstant::INTENSITY_MAX;
         }
         break;
 
       case "SATURATION":
-        if ($value < stdConstant::INTENSITY_MIN) {
-          $info = "usage: [".$this->InstanceID."|".$this->name."] Saturation {".$value."%} out of range. Setting to ".stdConstant::INTENSITY_MIN."%";
-          $value = stdConstant::INTENSITY_MIN;
-        } elseif ($value > stdConstant::INTENSITY_MAX) {
-          $info = "usage: [".$this->InstanceID."|".$this->name."] Saturation {".$value."%} out of range. Setting to ".stdConstant::INTENSITY_MAX."%";
-          $value = stdConstant::INTENSITY_MAX;
+        if ($value < classConstant::INTENSITY_MIN) {
+          $info = "usage: [".$this->InstanceID."|".$this->name."] Saturation {".$value."%} out of range. Setting to ".classConstant::INTENSITY_MIN."%";
+          $value = classConstant::INTENSITY_MIN;
+        } elseif ($value > classConstant::INTENSITY_MAX) {
+          $info = "usage: [".$this->InstanceID."|".$this->name."] Saturation {".$value."%} out of range. Setting to ".classConstant::INTENSITY_MAX."%";
+          $value = classConstant::INTENSITY_MAX;
         }
         break;
 
       case "TRANSITION_TIME":
-        $minTransition = stdConstant::TRANSITION_MIN;
-        $maxTransition = stdConstant::TRANSITION_MAX;
+        $minTransition = classConstant::TRANSITION_MIN;
+        $maxTransition = classConstant::TRANSITION_MAX;
 
         if ($value < ($minTransition /= 10)) {
           $info = "usage: [".$this->InstanceID."|".$this->name."] Transition time {".$value." sec} out of range. Setting to ".$minTransition.".0 sec";
@@ -706,12 +701,12 @@ abstract class lightifyControl extends IPSModule {
         break;
 
       case "LOOP_SPEEED":
-        if ($value < stdConstant::COLOR_SPEED_MIN) {
-          $info = "usage: [".$this->InstanceID."|".$this->name."] Loop speed {".$value." ms} out of range. Setting to ".stdConstant::COLOR_SPEED_MIN." ms";
-          $value = stdConstant::COLOR_SPEED_MIN;
-        } elseif ($value > stdConstant::COLOR_SPEED_MAX) {
-          $info = "usage: [".$this->InstanceID."|".$this->name."] Loop speed {".$value." ms} out of range. Setting to ".stdConstant::COLOR_SPEED_MAX." ms";
-          $value = stdConstant::COLOR_SPEED_MAX;
+        if ($value < classConstant::COLOR_SPEED_MIN) {
+          $info = "usage: [".$this->InstanceID."|".$this->name."] Loop speed {".$value." ms} out of range. Setting to ".classConstant::COLOR_SPEED_MIN." ms";
+          $value = classConstant::COLOR_SPEED_MIN;
+        } elseif ($value > classConstant::COLOR_SPEED_MAX) {
+          $info = "usage: [".$this->InstanceID."|".$this->name."] Loop speed {".$value." ms} out of range. Setting to ".classConstant::COLOR_SPEED_MAX." ms";
+          $value = classConstant::COLOR_SPEED_MAX;
         }
     }
 
@@ -739,20 +734,21 @@ abstract class lightifyControl extends IPSModule {
 
 
   public function GetValueEx(string $key) {
-    $this->getParentConfig();
-    $this->setEnvironment();
+    if ($this->parentID = $this->classModule->getParentInfo($this->InstanceID)) {
+      $itemClass = $this->ReadPropertyInteger("itemClass");
 
-    if ($lightifySocket = $this->localConnect()) {
-      if ($this->itemDevice) {
-        $onlineID = IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
-        $online   = GetValueBoolean($onlineID);
+      if ($lightifyConnect = $this->localConnect()) {
+        if ($itemClass == CLASS_LIGHTIFY_LIGHT || $itemClass == CLASS_LIGHTIFY_PLUG || $itemClass == CLASS_LIGHTIFY_SENSOR) {
+          $onlineID = IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
+          $online   = GetValueBoolean($onlineID);
 
-        if ($online) {
-          $uintUUID   = $this->lightifyBase->UUIDtoChr($this->ReadPropertyString("UUID"));
-          $buffer = $lightifySocket->setDeviceInfo($uintUUID);
+          if ($online) {
+            $uintUUID   = $this->lightifyBase->UUIDtoChr($this->ReadPropertyString("UUID"));
+            $buffer = $lightifyConnect->setDeviceInfo($uintUUID);
 
-          if (is_array($list = $buffer) && in_array($key, $list)) {
-            return $list[$key];
+            if (is_array($list = $buffer) && in_array($key, $list)) {
+              return $list[$key];
+            }
           }
         }
       }
