@@ -16,20 +16,20 @@ class lightifyDevice extends lightifyControl {
   public function Create() {
     parent::Create();
 
-    $this->SetBuffer("localDevice", classConstant::NO_STRING);
-    $this->SetBuffer("cloudDevice", classConstant::NO_STRING);
-    $this->SetBuffer("saveID", serialize(classConstant::NO_VALUE));
+    $this->SetBuffer("localDevice", vtNoString);
+    $this->SetBuffer("cloudDevice", vtNoString);
+    $this->SetBuffer("saveID", serialize(vtNoValue));
 
     $this->RegisterPropertyInteger("deviceID", self::ITEMID_CREATE);
-    $this->RegisterPropertyInteger("itemClass", classConstant::NO_VALUE);
+    $this->RegisterPropertyInteger("itemClass", vtNoValue);
 
-    $this->RegisterPropertyString("UUID", classConstant::NO_STRING);
-    $this->RegisterPropertyString("manufacturer", classConstant::NO_STRING);
-    $this->RegisterPropertyString("deviceModel", classConstant::NO_STRING);
-    $this->RegisterPropertyString("deviceLabel", classConstant::NO_STRING);
+    $this->RegisterPropertyString("UUID", vtNoString);
+    $this->RegisterPropertyString("manufacturer", vtNoString);
+    $this->RegisterPropertyString("deviceModel", vtNoString);
+    $this->RegisterPropertyString("deviceLabel", vtNoString);
 
-    $this->RegisterPropertyString("uintUUID", classConstant::NO_STRING);
-    $this->RegisterPropertyInteger("itemType", classConstant::NO_VALUE);
+    $this->RegisterPropertyString("uintUUID", vtNoString);
+    $this->RegisterPropertyInteger("itemType", vtNoValue);
     $this->RegisterPropertyFloat("transition", classConstant::TRANSITION_DEFAULT);
 
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
@@ -48,7 +48,7 @@ class lightifyDevice extends lightifyControl {
       return false;
     }
 
-    if ($itemClass == classConstant::NO_VALUE) {
+    if ($itemClass == vtNoValue) {
       $this->SetStatus(203);
       return false;
     }
@@ -77,11 +77,11 @@ class lightifyDevice extends lightifyControl {
       $itemType    = $this->ReadPropertyInteger("itemType");
 
       $itemClass = $this->ReadPropertyInteger("itemClass");
-      $formLabel = ($itemClass == classConstant::NO_VALUE) ? '{ "label": "Select...",  "value":   -1 },' : classConstant::NO_STRING;
+      $formLabel = ($itemClass == vtNoValue) ? '{ "label": "Select...",  "value":   -1 },' : vtNoString;
 
-      $infoText = ($itemClass != classConstant::NO_VALUE && $deviceInfo && empty($localDevice) === false) ? '
+      $infoText = ($itemClass != vtNoValue && $deviceInfo && empty($localDevice) === false) ? '
         { "type": "Label", "label": "----------------------------------------- Geräte spezifische Informationen ------------------------------------------------" },
-        { "type": "ValidationTextBox", "name": "UUID",         "caption": "UUID" }' : classConstant::NO_STRING;
+        { "type": "ValidationTextBox", "name": "UUID",         "caption": "UUID" }' : vtNoString;
 
       switch ($itemType) {
         case classConstant::TYPE_SENSOR_MOTION:
@@ -222,7 +222,7 @@ class lightifyDevice extends lightifyControl {
         'mode'   => classConstant::MODE_DEVICE_LOCAL))
       );
 
-      if ($jsonString != classConstant::NO_STRING) {
+      if ($jsonString != vtNoString) {
         $localData   = json_decode($jsonString);
         $localBuffer = utf8_decode($localData->buffer);
         $localCount  = ord($localBuffer{0});
@@ -256,7 +256,7 @@ class lightifyDevice extends lightifyControl {
               'mode'   => classConstant::MODE_DEVICE_CLOUD))
             );
 
-            if ($jsonString != classConstant::NO_STRING) {
+            if ($jsonString != vtNoString) {
               $cloudData = json_decode($jsonString);
 
               //Store group device buffer
@@ -284,7 +284,7 @@ class lightifyDevice extends lightifyControl {
 
 
   private function getDeviceLocal($deviceID, $buffer, $ncount) {
-    $localDevice = classConstant::NO_STRING;
+    $localDevice = vtNoString;
 
     for ($i = 1; $i <= $ncount; $i++) {
       $localID = ord($buffer{0});
@@ -303,7 +303,7 @@ class lightifyDevice extends lightifyControl {
 
 
   private function getDeviceCloud($deviceID, $buffer) {
-    $cloudDevice = classConstant::NO_STRING;
+    $cloudDevice = vtNoString;
     $cloudBuffer = json_decode($buffer);
 
     foreach ($cloudBuffer as $device) {
@@ -344,8 +344,8 @@ class lightifyDevice extends lightifyControl {
         $deviceCCT  = ($itemType & 2) ? true: false;
         $deviceCLR  = ($itemType & 4) ? true: false;
 
-        $hue    = $color = $level      = classConstant::NO_STRING;
-        $temperature     = $saturation = classConstant::NO_STRING;
+        $hue    = $color = $level      = vtNoString;
+        $temperature     = $saturation = vtNoString;
 
         if ($itemLight || $itemPlug || $itemMotion) {
           $online    = (ord($data{15}) == classConstant::STATE_ONLINE) ? true : false; //Online: 2 - Offline: 0 - Unknown: 1
@@ -374,7 +374,7 @@ class lightifyDevice extends lightifyControl {
 
         //Additional informations
         $zigBee   = dechex(ord($data{0})).dechex(ord($data{1}));
-        $firmware = classConstant::NO_STRING;
+        $firmware = vtNoString;
 
         if (false === ($onlineID = @$this->GetIDForIdent("ONLINE"))) {
           if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -500,7 +500,7 @@ class lightifyDevice extends lightifyControl {
 
         if ($method == classConstant::METHOD_CREATE_CHILD) {
           if ($itemType != classConstant::TYPE_SENSOR_MOTION && $itemType != classConstant::TYPE_DIMMER_2WAY && $itemType != classConstant::TYPE_SWITCH_4WAY) {
-            $deviceLabel = (empty($bmpClusters)) ? classConstant::NO_STRING : implode(" ", $bmpClusters);
+            $deviceLabel = (empty($bmpClusters)) ? vtNoString : implode(" ", $bmpClusters);
     
             if ($this->ReadPropertyString("manufacturer") != $manufacturer) {
               IPS_SetProperty($this->InstanceID, "manufacturer", (string)$manufacturer);
@@ -519,7 +519,7 @@ class lightifyDevice extends lightifyControl {
         //Create and update zigBee
         if (false === ($zigBeeID = @$this->GetIDForIdent("ZIGBEE"))) {
           if ($method == classConstant::METHOD_CREATE_CHILD) {
-            $zigBeeID = $this->RegisterVariableString("ZIGBEE", "ZigBee", classConstant::NO_STRING, 321);
+            $zigBeeID = $this->RegisterVariableString("ZIGBEE", "ZigBee", vtNoString, 321);
           }
         }
 
@@ -534,7 +534,7 @@ class lightifyDevice extends lightifyControl {
         //Create and update firmware version
         if (false === ($firmwareID = @$this->GetIDForIdent("FIRMWARE"))) {
           if ($method == classConstant::METHOD_CREATE_CHILD) {
-            $firmwareID = $this->RegisterVariableString("FIRMWARE", "Firmware", classConstant::NO_STRING, 322);
+            $firmwareID = $this->RegisterVariableString("FIRMWARE", "Firmware", vtNoString, 322);
           }
         }
 

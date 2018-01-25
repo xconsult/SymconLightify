@@ -26,17 +26,17 @@ class lightifyGroup extends lightifyControl {
   public function Create() {
     parent::Create();
 
-    $this->SetBuffer("groupDevice", classConstant::NO_STRING);
-    $this->SetBuffer("groupScene", classConstant::NO_STRING);
+    $this->SetBuffer("groupDevice", vtNoString);
+    $this->SetBuffer("groupScene", vtNoString);
 
     $this->RegisterPropertyInteger("itemID", self::ITEMID_CREATE);
-    $this->RegisterPropertyString("UUID", classConstant::NO_STRING);
+    $this->RegisterPropertyString("UUID", vtNoString);
     $this->RegisterPropertyInteger("itemClass", classConstant::CLASS_LIGHTIFY_GROUP);
-    $this->RegisterPropertyString("deviceList", classConstant::NO_STRING);
+    $this->RegisterPropertyString("deviceList", vtNoString);
 
-    $this->RegisterPropertyString("uintUUID", classConstant::NO_STRING);
-    $this->RegisterPropertyInteger("itemType", classConstant::NO_VALUE);
-    $this->RegisterPropertyString("allLights", classConstant::NO_STRING);
+    $this->RegisterPropertyString("uintUUID", vtNoString);
+    $this->RegisterPropertyInteger("itemType", vtNoValue);
+    $this->RegisterPropertyString("allLights", vtNoString);
 
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
   }
@@ -89,7 +89,7 @@ class lightifyGroup extends lightifyControl {
                 { "label": "Level",       "name": "level",       "width": "50px"  },
                 { "label": "Saturation",  "name": "saturation",  "width": "70px"  }
               ]
-          },' : classConstant::NO_STRING;
+          },' : vtNoString;
 
           $formJSON = '{
             "elements": [
@@ -200,11 +200,11 @@ class lightifyGroup extends lightifyControl {
             $levelID       = @IPS_GetObjectIDByIdent("LEVEL", $instanceID);
             $saturationID  = @IPS_GetObjectIDByIdent("SATURATION", $instanceID);
 
-            $hue           = ($hueID) ?  GetValueformatted($hueID) : classConstant::NO_STRING;
-            $color         = ($colorID) ? strtolower(GetValueformatted($colorID)) : classConstant::NO_STRING;
-            $temperature   = ($temperatureID) ? GetValueformatted($temperatureID) : classConstant::NO_STRING;
-            $level         = ($levelID) ? preg_replace('/\s+/', '', GetValueformatted($levelID)) : classConstant::NO_STRING;
-            $saturation    = ($saturationID) ? preg_replace('/\s+/', '', GetValueformatted($saturationID)) : classConstant::NO_STRING;
+            $hue           = ($hueID) ?  GetValueformatted($hueID) : vtNoString;
+            $color         = ($colorID) ? strtolower(GetValueformatted($colorID)) : vtNoString;
+            $temperature   = ($temperatureID) ? GetValueformatted($temperatureID) : vtNoString;
+            $level         = ($levelID) ? preg_replace('/\s+/', '', GetValueformatted($levelID)) : vtNoString;
+            $saturation    = ($saturationID) ? preg_replace('/\s+/', '', GetValueformatted($saturationID)) : vtNoString;
 
             if ($state) {
               if (@IPS_GetProperty($instanceID, "itemType") == classConstant::TYPE_PLUG_ONOFF) {
@@ -225,7 +225,7 @@ class lightifyGroup extends lightifyControl {
               "deviceID"    => $deviceID,
               "name"        => IPS_GetName($instanceID),
               "hue"         => $hue,
-              "color"       => ($color != classConstant::NO_STRING) ? "#".strtoupper($color) : classConstant::NO_STRING,
+              "color"       => ($color != vtNoString) ? "#".strtoupper($color) : vtNoString,
               "temperature" => $temperature,
               "level"       => $level,
               "saturation"  => $saturation,
@@ -324,7 +324,7 @@ class lightifyGroup extends lightifyControl {
         'mode'   => classConstant::MODE_GROUP_LOCAL))
       );
 
-      if ($jsonString != classConstant::NO_STRING) {
+      if ($jsonString != vtNoString) {
         $localData   = json_decode($jsonString);
         $localBuffer = utf8_decode($localData->buffer);
         $localCount  = ord($localBuffer{0});
@@ -371,7 +371,7 @@ class lightifyGroup extends lightifyControl {
         'mode'   => classConstant::MODE_GROUP_SCENE))
       );
 
-      if ($jsonString != classConstant::NO_STRING) {
+      if ($jsonString != vtNoString) {
         $localData   = json_decode($jsonString);
         $localBuffer = utf8_decode($localData->buffer);
         $localCount  = ord($localBuffer{0});
@@ -407,7 +407,7 @@ class lightifyGroup extends lightifyControl {
 
 
   private function getGroupDevice($itemID, $buffer, $ncount) {
-    $groupDevice = classConstant::NO_STRING;
+    $groupDevice = vtNoString;
 
     for ($i = 1; $i <= $ncount; $i++) {
       $localID = ord($buffer{0});
@@ -429,7 +429,7 @@ class lightifyGroup extends lightifyControl {
 
 
   private function getGroupScene($itemID, $buffer, $ncount) {
-    $groupScene = classConstant::NO_STRING;
+    $groupScene = vtNoString;
 
     for ($i = 1; $i <= $ncount; $i++) {
       $localID = ord($buffer{1});
@@ -468,11 +468,11 @@ class lightifyGroup extends lightifyControl {
           $newOnline    = $online;
           $newState     = $state;
 
-          $hue = $color = $level      = classConstant::NO_VALUE;
-          $temperature  = $saturation = classConstant::NO_VALUE;
+          $hue = $color = $level      = vtNoValue;
+          $temperature  = $saturation = vtNoValue;
 
-          $deviceHue         = $deviceColor = $deviceLevel = classConstant::NO_VALUE;
-          $deviceTemperature = $deviceSaturation           = classConstant::NO_VALUE;
+          $deviceHue         = $deviceColor = $deviceLevel = vtNoValue;
+          $deviceTemperature = $deviceSaturation           = vtNoValue;
 
           foreach ($Devices as $device) {
             $deviceOnlineID      = @IPS_GetObjectIDByIdent('ONLINE', $device);
@@ -486,32 +486,32 @@ class lightifyGroup extends lightifyControl {
             $deviceLevelID       = @IPS_GetObjectIDByIdent("LEVEL", $device);
             $deviceSaturationID  = @IPS_GetObjectIDByIdent("SATURATION", $device);
 
-            $deviceHue           = ($deviceHueID) ?  GetValueInteger($deviceHueID) : classConstant::NO_VALUE;
-            $deviceColor         = ($deviceColorID) ? GetValueInteger($deviceColorID) : classConstant::NO_VALUE;
-            $deviceTemperature   = ($deviceTemperatureID) ? GetValueInteger($deviceTemperatureID) : classConstant::NO_VALUE;
-            $deviceLevel         = ($deviceLevelID) ? GetValueInteger($deviceLevelID) : classConstant::NO_VALUE;
-            $deviceSaturation    = ($deviceSaturationID) ? GetValueInteger($deviceSaturationID) : classConstant::NO_VALUE;
+            $deviceHue           = ($deviceHueID) ?  GetValueInteger($deviceHueID) : vtNoValue;
+            $deviceColor         = ($deviceColorID) ? GetValueInteger($deviceColorID) : vtNoValue;
+            $deviceTemperature   = ($deviceTemperatureID) ? GetValueInteger($deviceTemperatureID) : vtNoValue;
+            $deviceLevel         = ($deviceLevelID) ? GetValueInteger($deviceLevelID) : vtNoValue;
+            $deviceSaturation    = ($deviceSaturationID) ? GetValueInteger($deviceSaturationID) : vtNoValue;
 
             if ($online === false && $deviceOnline === true) $newOnline = true;
             if ($state === false && $deviceState === true) $newState = true;
 
-            if ($newState && $hue == classConstant::NO_VALUE && $deviceHue != classConstant::NO_VALUE) {
+            if ($newState && $hue == vtNoValue && $deviceHue != vtNoValue) {
               $hue = $deviceHue;
             }
 
-            if ($newState && $color == classConstant::NO_VALUE && $deviceColor != classConstant::NO_VALUE) {
+            if ($newState && $color == vtNoValue && $deviceColor != vtNoValue) {
               $color = $deviceColor;
             }
 
-            if ($newState && $level == classConstant::NO_VALUE && $deviceLevel != classConstant::NO_VALUE) {
+            if ($newState && $level == vtNoValue && $deviceLevel != vtNoValue) {
               $level = $deviceLevel;
             }
 
-            if ($newState && $temperature == classConstant::NO_VALUE && $deviceTemperature != classConstant::NO_VALUE) {
+            if ($newState && $temperature == vtNoValue && $deviceTemperature != vtNoValue) {
               $temperature = $deviceTemperature;
             }
 
-            if ($newState && $saturation == classConstant::NO_VALUE && $deviceSaturation != classConstant::NO_VALUE) {
+            if ($newState && $saturation == vtNoValue && $deviceSaturation != vtNoValue) {
               $saturation = $deviceSaturation;
             }
           }
@@ -535,7 +535,7 @@ class lightifyGroup extends lightifyControl {
 
           //Hue
           if ($hueID = @$this->GetIDForIdent("HUE"))
-            $this->MaintainAction("HUE", ($hue == classConstant::NO_VALUE) ? false : true);
+            $this->MaintainAction("HUE", ($hue == vtNoValue) ? false : true);
 
           if ($hueID === false) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -543,7 +543,7 @@ class lightifyGroup extends lightifyControl {
             }
           }
 
-          if ($hueID && $hue != classConstant::NO_VALUE) {
+          if ($hueID && $hue != vtNoValue) {
             if ($hue != GetValueInteger($hueID)) {
               SetValueInteger($hueID, $hue);
             }
@@ -551,7 +551,7 @@ class lightifyGroup extends lightifyControl {
 
           //Color
           if ($colorID = @$this->GetIDForIdent("COLOR"))
-            $this->MaintainAction("COLOR", ($color == classConstant::NO_VALUE) ? false : true);
+            $this->MaintainAction("COLOR", ($color == vtNoValue) ? false : true);
 
           if ($colorID === false) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -560,7 +560,7 @@ class lightifyGroup extends lightifyControl {
             }
           }
 
-          if ($colorID && $color != classConstant::NO_VALUE) {
+          if ($colorID && $color != vtNoValue) {
             if ($color != GetValueInteger($colorID)) {
               SetValueInteger($colorID, $color);
             }
@@ -568,7 +568,7 @@ class lightifyGroup extends lightifyControl {
 
           //Color temperature
           if ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
-            $this->MaintainAction("COLOR_TEMPERATURE", ($temperature == classConstant::NO_VALUE) ? false : true);
+            $this->MaintainAction("COLOR_TEMPERATURE", ($temperature == vtNoValue) ? false : true);
           }
 
           if ($temperatureID === false) {
@@ -577,7 +577,7 @@ class lightifyGroup extends lightifyControl {
             }
           }
 
-          if ($temperatureID && $temperature != classConstant::NO_VALUE) {
+          if ($temperatureID && $temperature != vtNoValue) {
             if ($temperature != GetValueInteger($temperatureID)) {
               SetValueInteger($temperatureID, $temperature);
             }
@@ -585,7 +585,7 @@ class lightifyGroup extends lightifyControl {
 
           //Level
           if ($levelID = @$this->GetIDForIdent("LEVEL"))
-            $this->MaintainAction("LEVEL", ($level == classConstant::NO_VALUE) ? false : true);
+            $this->MaintainAction("LEVEL", ($level == vtNoValue) ? false : true);
 
           if ($levelID === false) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -594,7 +594,7 @@ class lightifyGroup extends lightifyControl {
             }
           }
 
-          if ($levelID && $level != classConstant::NO_VALUE) {
+          if ($levelID && $level != vtNoValue) {
             if ($level != GetValueInteger($levelID)) {
               SetValueInteger($levelID, $level);
             }
@@ -602,7 +602,7 @@ class lightifyGroup extends lightifyControl {
 
           //Saturation control
           if ($saturationID = @$this->GetIDForIdent("SATURATION"))
-            $this->MaintainAction("SATURATION", ($saturation == classConstant::NO_VALUE) ? false : true);
+            $this->MaintainAction("SATURATION", ($saturation == vtNoValue) ? false : true);
 
           if ($saturationID === false) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -611,7 +611,7 @@ class lightifyGroup extends lightifyControl {
             }
           }
 
-          if ($saturationID && $saturation != classConstant::NO_VALUE) {
+          if ($saturationID && $saturation != vtNoValue) {
             if ($saturation != GetValueInteger($saturationID)) {
               SetValueInteger($saturationID, $saturation);
             }

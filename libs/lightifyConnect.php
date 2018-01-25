@@ -61,7 +61,7 @@ class lightifyConnect extends stdClass {
 
     if (false !== ($bytes = @fwrite($this->lightifySocket, $data, $length))) {
       if ($bytes == $length) {
-        $buffer = classConstant::NO_STRING;
+        $buffer = vtNoString;
 
         while(!feof($this->lightifySocket)) {
           if (false !== ($buffer .= @fread($this->lightifySocket, 1024))) { //Read 1024 bytes block

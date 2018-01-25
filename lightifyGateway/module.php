@@ -23,10 +23,10 @@ define('LIGHITFY_GATEWAY_OFFLINE',        5019);
 
 class lightifyGateway extends IPSModule {
 
-  const LIST_CATEGORY_INDEX = 10;
-  const LIST_DEVICE_INDEX   = 13;
-  const LIST_GROUP_INDEX    = 14;
-  const LIST_SCENE_INDEX    = 15;
+  const LIST_CATEGORY_INDEX     = 10;
+  const LIST_DEVICE_INDEX       = 13;
+  const LIST_GROUP_INDEX        = 14;
+  const LIST_SCENE_INDEX        = 15;
 
   const GATEWAY_SERIAL_LENGTH   =  11;
   const CLOUD_REQUEST_INTERVALL =  60; //seconds
@@ -90,39 +90,39 @@ class lightifyGateway extends IPSModule {
     parent::Create();
 
     //Store at runtime
-    $this->SetBuffer("lightifyCache", classConstant::NO_STRING);
-    $this->SetBuffer("cloudIntervall", classConstant::NO_STRING);
+    $this->SetBuffer("lightifyCache", vtNoString);
+    $this->SetBuffer("cloudIntervall", vtNoString);
 
-    $this->SetBuffer("deviceList", classConstant::NO_STRING);
-    $this->SetBuffer("groupList", classConstant::NO_STRING);
-    $this->SetBuffer("sceneList", classConstant::NO_STRING);
-    $this->SetBuffer("localDevice", classConstant::NO_STRING);
-    $this->SetBuffer("localGroup", classConstant::NO_STRING);
-    $this->SetBuffer("deviceGroup", classConstant::NO_STRING);
-    $this->SetBuffer("groupDevice", classConstant::NO_STRING);
-    $this->SetBuffer("cloudDevice", classConstant::NO_STRING);
-    $this->SetBuffer("cloudGroup", classConstant::NO_STRING);
-    $this->SetBuffer("cloudScene", classConstant::NO_STRING);
+    $this->SetBuffer("deviceList", vtNoString);
+    $this->SetBuffer("groupList", vtNoString);
+    $this->SetBuffer("sceneList", vtNoString);
+    $this->SetBuffer("localDevice", vtNoString);
+    $this->SetBuffer("localGroup", vtNoString);
+    $this->SetBuffer("deviceGroup", vtNoString);
+    $this->SetBuffer("groupDevice", vtNoString);
+    $this->SetBuffer("cloudDevice", vtNoString);
+    $this->SetBuffer("cloudGroup", vtNoString);
+    $this->SetBuffer("cloudScene", vtNoString);
 
     $this->RegisterPropertyBoolean("open", false);
     $this->RegisterPropertyInteger("connectMode", classConstant::CONNECT_LOCAL_ONLY);
 
     //Cloud credentials
-    $this->RegisterPropertyString("userName", classConstant::NO_STRING);
-    $this->RegisterPropertyString("password", classConstant::NO_STRING);
-    $this->RegisterPropertyString("serialNumber", classConstant::NO_STRING);
+    $this->RegisterPropertyString("userName", vtNoString);
+    $this->RegisterPropertyString("password", vtNoString);
+    $this->RegisterPropertyString("serialNumber", vtNoString);
 
     //Local gateway
-    $this->RegisterPropertyString("gatewayIP", classConstant::NO_STRING);
+    $this->RegisterPropertyString("gatewayIP", vtNoString);
     $this->RegisterPropertyInteger("timeOut", classConstant::MAX_PING_TIMEOUT);
     $this->RegisterPropertyInteger("localUpdate", TIMER_SYNC_LOCAL);
     $this->RegisterTimer("localTimer", 0, "OSR_getLightifyData($this->InstanceID, 1202);");
 
     //Global settings
-    $this->RegisterPropertyString("listCategory", classConstant::NO_STRING);
-    $this->RegisterPropertyString("listDevice", classConstant::NO_STRING);
-    $this->RegisterPropertyString("listGroup", classConstant::NO_STRING);
-    $this->RegisterPropertyString("listScene", classConstant::NO_STRING);
+    $this->RegisterPropertyString("listCategory", vtNoString);
+    $this->RegisterPropertyString("listDevice", vtNoString);
+    $this->RegisterPropertyString("listGroup", vtNoString);
+    $this->RegisterPropertyString("listScene", vtNoString);
     $this->RegisterPropertyBoolean("deviceInfo", false);
 
     $this->RegisterPropertyInteger("debug", classConstant::DEBUG_DISABLED);
@@ -130,58 +130,58 @@ class lightifyGateway extends IPSModule {
 
     //Create profiles
     if (IPS_VariableProfileExists("OSR.Hue") === false) {
-      IPS_CreateVariableProfile("OSR.Hue", classConstant::IPS_INTEGER);
+      IPS_CreateVariableProfile("OSR.Hue", vtInteger);
       IPS_SetVariableProfileIcon("OSR.Hue", "Shift");
       IPS_SetVariableProfileDigits("OSR.Hue", 0);
-      IPS_SetVariableProfileText("OSR.Hue", classConstant::NO_STRING, "°");
+      IPS_SetVariableProfileText("OSR.Hue", vtNoString, "°");
       IPS_SetVariableProfileValues("OSR.Hue", classConstant::HUE_MIN, classConstant::HUE_MAX, 1);
     }
 
     if (IPS_VariableProfileExists("OSR.ColorTemp") === false) {
-      IPS_CreateVariableProfile("OSR.ColorTemp", classConstant::IPS_INTEGER);
+      IPS_CreateVariableProfile("OSR.ColorTemp", vtInteger);
       IPS_SetVariableProfileIcon("OSR.ColorTemp", "Sun");
       IPS_SetVariableProfileDigits("OSR.ColorTemp", 0);
-      IPS_SetVariableProfileText("OSR.ColorTemp", classConstant::NO_STRING, "K");
+      IPS_SetVariableProfileText("OSR.ColorTemp", vtNoString, "K");
       IPS_SetVariableProfileValues("OSR.ColorTemp", classConstant::CTEMP_CCT_MIN, classConstant::CTEMP_CCT_MAX, 1);
     }
 
     if (IPS_VariableProfileExists("OSR.ColorTempExt") === false) {
-      IPS_CreateVariableProfile("OSR.ColorTempExt", classConstant::IPS_INTEGER);
+      IPS_CreateVariableProfile("OSR.ColorTempExt", vtInteger);
       IPS_SetVariableProfileIcon("OSR.ColorTempExt", "Sun");
       IPS_SetVariableProfileDigits("OSR.ColorTempExt", 0);
-      IPS_SetVariableProfileText("OSR.ColorTempExt", classConstant::NO_STRING, "K");
+      IPS_SetVariableProfileText("OSR.ColorTempExt", vtNoString, "K");
       IPS_SetVariableProfileValues("OSR.ColorTempExt", classConstant::CTEMP_COLOR_MIN, classConstant::CTEMP_COLOR_MAX, 1);
     }
 
     if (IPS_VariableProfileExists("OSR.Intensity") === false) {
-      IPS_CreateVariableProfile("OSR.Intensity", classConstant::IPS_INTEGER);
+      IPS_CreateVariableProfile("OSR.Intensity", vtInteger);
       IPS_SetVariableProfileDigits("OSR.Intensity", 0);
-      IPS_SetVariableProfileText("OSR.Intensity", classConstant::NO_STRING, "%");
+      IPS_SetVariableProfileText("OSR.Intensity", vtNoString, "%");
       IPS_SetVariableProfileValues("OSR.Intensity", classConstant::INTENSITY_MIN, classConstant::INTENSITY_MAX, 1);
     }
 
     if (IPS_VariableProfileExists("OSR.Switch") === false) {
-      IPS_CreateVariableProfile("OSR.Switch", classConstant::IPS_BOOLEAN);
+      IPS_CreateVariableProfile("OSR.Switch", vtBoolean);
       IPS_SetVariableProfileIcon("OSR.Switch", "Power");
       IPS_SetVariableProfileDigits("OSR.Switch", 0);
       IPS_SetVariableProfileValues("OSR.Switch", 0, 1, 0);
-      IPS_SetVariableProfileAssociation("OSR.Switch", true, "On", classConstant::NO_STRING, 0xFF9200);
-      IPS_SetVariableProfileAssociation("OSR.Switch", false, "Off", classConstant::NO_STRING, -1);
+      IPS_SetVariableProfileAssociation("OSR.Switch", true, "On", vtNoString, 0xFF9200);
+      IPS_SetVariableProfileAssociation("OSR.Switch", false, "Off", vtNoString, -1);
     }
 
     if (IPS_VariableProfileExists("OSR.Scene") === false) {
-      IPS_CreateVariableProfile("OSR.Scene", classConstant::IPS_INTEGER);
+      IPS_CreateVariableProfile("OSR.Scene", vtInteger);
       IPS_SetVariableProfileIcon("OSR.Scene", "Power");
       IPS_SetVariableProfileDigits("OSR.Scene", 0);
       IPS_SetVariableProfileValues("OSR.Scene", 1, 1, 0);
-      IPS_SetVariableProfileAssociation("OSR.Scene", 1, "On", classConstant::NO_STRING, 0xFF9200);
+      IPS_SetVariableProfileAssociation("OSR.Scene", 1, "On", vtNoString, 0xFF9200);
     }
   }
 
 
   public function ApplyChanges() {
     parent::ApplyChanges();
-    $this->SetBuffer("connectTime", classConstant::NO_STRING);
+    $this->SetBuffer("connectTime", vtNoString);
 
     $open    = $this->ReadPropertyBoolean("open");
     $connect = $this->ReadPropertyInteger("connectMode");
@@ -199,7 +199,7 @@ class lightifyGateway extends IPSModule {
 
   public function GetConfigurationForm() {
     $deviceList = $this->GetBuffer("deviceList");
-    $formDevice = classConstant::NO_STRING;
+    $formDevice = vtNoString;
 
     if (empty($deviceList) === false && ord($deviceList{0}) > 0) {
       $formDevice = '
@@ -231,7 +231,7 @@ class lightifyGateway extends IPSModule {
           { "label": "UUID",        "name": "UUID",         "width": "140px" },
           { "label": "Info",        "name": "information",  "width": "110px" }
         ]
-    },' : classConstant::NO_STRING;
+    },' : vtNoString;
 
     $sceneList = $this->GetBuffer("sceneList");
     $formScene = (empty($sceneList) === false && ord($sceneList{0}) > 0) ? '
@@ -244,7 +244,7 @@ class lightifyGateway extends IPSModule {
           { "label": "Group",       "name": "groupName",    "width": "110px" },
           { "label": "Info",        "name": "information",  "width":  "70px" }
         ]
-    },' : classConstant::NO_STRING;
+    },' : vtNoString;
 
     $formJSON = '{
       "elements": [
@@ -380,7 +380,7 @@ class lightifyGateway extends IPSModule {
         if (empty($Devices) === false) {
           foreach ($Devices as $device) {
             list($cloudID, $deviceType, $manufacturer, $deviceModel, $bmpClusters, $zigBee, $firmware) = $device;
-            $deviceLabel = (empty($bmpClusters)) ? classConstant::NO_STRING : implode(" ", $bmpClusters);
+            $deviceLabel = (empty($bmpClusters)) ? vtNoString : implode(" ", $bmpClusters);
   
             if ($deviceID == $cloudID) {
               $arrayList = $arrayList + array(
@@ -488,7 +488,7 @@ class lightifyGateway extends IPSModule {
         break;
 
       case classConstant::METHOD_APPLY_CHILD:
-        $jsonReturn = classConstant::NO_STRING;
+        $jsonReturn = vtNoString;
 
         if ($this->ReadPropertyBoolean("open")) {
           switch ($data->mode) {
@@ -562,11 +562,11 @@ class lightifyGateway extends IPSModule {
     if ($connect == classConstant::CONNECT_LOCAL_CLOUD) {
       $serialNumber = $this->ReadPropertyString("serialNumber");
 
-      if ($this->ReadPropertyString("userName") == classConstant::NO_STRING) {
+      if ($this->ReadPropertyString("userName") == vtNoString) {
         $this->SetStatus(205);
         return false;
       }
-      if ($this->ReadPropertyString("password") == classConstant::NO_STRING) {
+      if ($this->ReadPropertyString("password") == vtNoString) {
         $this->SetStatus(206);
         return false;
       }
@@ -845,7 +845,7 @@ class lightifyGateway extends IPSModule {
         if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01)))) {
           if (strlen($data) >= (2+classConstant::DATA_DEVICE_LENGTH)) {
             $localDevice = $this->readData(stdCommand::GET_DEVICE_LIST, $data);
-            $localDevice = (ord($localDevice{0}) > 0) ? $localDevice : classConstant::NO_STRING;
+            $localDevice = (ord($localDevice{0}) > 0) ? $localDevice : vtNoString;
             $this->SetBuffer("localDevice", $localDevice);
           }
         }
@@ -854,7 +854,7 @@ class lightifyGateway extends IPSModule {
         if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_GROUP_LIST, chr(0x00)))) {
           if (strlen($data) >= (2+classConstant::DATA_GROUP_LENGTH)) {
             $localGroup = $this->readData(stdCommand::GET_GROUP_LIST, $data);
-            $localGroup = (ord($localGroup{0}) > 0) ? $localGroup : classConstant::NO_STRING;
+            $localGroup = (ord($localGroup{0}) > 0) ? $localGroup : vtNoString;
             $this->SetBuffer("localGroup", $localGroup);
           }
         }
@@ -906,43 +906,40 @@ class lightifyGateway extends IPSModule {
 
         //Create childs
         if ($localMethod == classConstant::METHOD_CREATE_CHILD) {
-          $error = true;
+	        $message = vtNoString;
+          $error   = false;
 
           if ($this->syncDevice || $this->syncGroup) {
             if ($this->syncDevice) {
               if (empty($localDevice) === false) {
                 $this->createInstance(classConstant::MODE_CREATE_DEVICE, $localDevice);
-                $message = "Device Instances successfully created/updated";
-                $error = false;
-              } else {
-                $message = "Device Instances not created/updated";
+                $message = "Device";
               }
             }
 
             if ($this->syncGroup) {
               if (empty($localGroup) === false) {
                 $this->createInstance(classConstant::MODE_CREATE_GROUP, $localGroup);
-                $message = $message."\nGroup Instances successfully created/updated";
-                $error = false;
-              } else {
-                $message = $message."\nGroup Instances not created/updated";
+                $message = $message.", Group";
               }
             }
 
             if ($this->syncScene) {
               if (empty($cloudGroup) === false && empty($cloudScene) === false) {
                 $this->createInstance(classConstant::MODE_CREATE_SCENE, $cloudScene);
-                $message = $message."\nScene Instances successfully created/updated";
-                $error = false;
-              } else {
-                $message = $message."\nScene Instances not created/updated";
+                $message = $message.", Scene";
               }
             }
           } else {
             $message = "Nothing selected. Please select a category first";
           }
 
-          echo $message."\n";
+          if ($message) {
+            echo $message." instances successfully created/updated\n";
+          } else {
+	          echo "Internal error occurred. No instances created/updated\n";
+            $error = true;
+          }
         }
 
         if ($error === false) {
@@ -1032,21 +1029,21 @@ class lightifyGateway extends IPSModule {
 
     if ($method == classConstant::METHOD_APPLY_LOCAL) {
       if ($ssidID === false) {
-        if (false !== ($ssidID = $this->RegisterVariableString("SSID", "SSID", classConstant::NO_STRING, 301))) {
-          SetValueString($ssidID, classConstant::NO_STRING);
+        if (false !== ($ssidID = $this->RegisterVariableString("SSID", "SSID", vtNoString, 301))) {
+          SetValueString($ssidID, vtNoString);
           IPS_SetDisabled($ssidID, true);
         }
       }
 
       if (false === ($portID = @$this->GetIDForIdent("PORT"))) {
-        if (false !== ($portID = $this->RegisterVariableInteger("PORT", "Port", classConstant::NO_STRING, 303))) {
+        if (false !== ($portID = $this->RegisterVariableInteger("PORT", "Port", vtNoString, 303))) {
           SetValueInteger($portID, classConstant::GATEWAY_PORT);
           IPS_SetDisabled($portID, true);
         }
       }
 
       if ($firmwareID === false) {
-        if (false !== ($firmwareID = $this->RegisterVariableString("FIRMWARE", "Firmware", classConstant::NO_STRING, 304))) {
+        if (false !== ($firmwareID = $this->RegisterVariableString("FIRMWARE", "Firmware", vtNoString, 304))) {
           SetValueString($firmwareID, "-.-.-.--");
           IPS_SetDisabled($firmwareID, true);
         }
@@ -1118,9 +1115,9 @@ class lightifyGateway extends IPSModule {
         $ncount = ord($data{0})+ord($data{1});
         $data   = substr($data, 2);
 
-        $deviceList  = classConstant::NO_STRING;
-        $deviceGroup = classConstant::NO_STRING;
-        $localDevice = classConstant::NO_STRING;
+        $deviceList  = vtNoString;
+        $deviceGroup = vtNoString;
+        $localDevice = vtNoString;
 
         //Parse devices
         for ($i = 1, $j = 0, $m = 0, $n = 0; $i <= $ncount; $i++) {
@@ -1292,14 +1289,14 @@ class lightifyGateway extends IPSModule {
         $data        = substr($data, 2);
 
         $itemType    = classConstant::TYPE_DEVICE_GROUP;
-        $localGroup  = classConstant::NO_STRING;
-        $groupDevice = classConstant::NO_STRING;
-        $groupList   = classConstant::NO_STRING;
+        $localGroup  = vtNoString;
+        $groupDevice = vtNoString;
+        $groupList   = vtNoString;
 
         for ($i = 1; $i <= $ncount; $i++) {
           $deviceGroup  = $this->GetBuffer("deviceGroup");
           $groupID      = ord($data{0});
-          $buffer       = classConstant::NO_STRING;
+          $buffer       = vtNoString;
           $n = 0;
 
           if (($dcount = ord($deviceGroup{0})) > 0) {
@@ -1375,8 +1372,8 @@ class lightifyGateway extends IPSModule {
         $cloudGroup  = json_decode($this->GetBuffer("cloudGroup"));
         $itemType    = classConstant::TYPE_GROUP_SCENE;
 
-        $sceneList  = classConstant::NO_STRING;
-        $cloudScene = classConstant::NO_STRING;
+        $sceneList  = vtNoString;
+        $cloudScene = vtNoString;
         $i = 0;
 
         foreach ($cloudGroup as $group) {
@@ -1412,7 +1409,7 @@ class lightifyGateway extends IPSModule {
         return chr($i).chr($itemType).$cloudScene;
     }
 
-    return chr(00).classConstant::NO_STRING;
+    return chr(00).vtNoString;
   }
 
 
@@ -1478,8 +1475,7 @@ class lightifyGateway extends IPSModule {
               }
 
               if (IPS_HasChanges($InstanceID)) {
-                //IPS_ApplyChanges($InstanceID);
-                $this->ApplyChanges();
+                IPS_ApplyChanges($InstanceID);
               }
             }
           }
@@ -1517,8 +1513,7 @@ class lightifyGateway extends IPSModule {
               }
 
               if (IPS_HasChanges($InstanceID)) {
-                //IPS_ApplyChanges($InstanceID);
-                $this->ApplyChanges();
+                IPS_ApplyChanges($InstanceID);
               }
             }
 
@@ -1560,8 +1555,7 @@ class lightifyGateway extends IPSModule {
               }
 
               if (IPS_HasChanges($InstanceID)) {
-                //IPS_ApplyChanges($InstanceID);
-                $this->ApplyChanges();
+                IPS_ApplyChanges($InstanceID);
               }
             }
 
