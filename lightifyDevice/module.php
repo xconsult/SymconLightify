@@ -169,7 +169,9 @@ class lightifyDevice extends lightifyControl {
         $localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
         $this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 
-        if (empty($localDevice) === false) {
+        if ($localCount > 0 && empty($localDevice) === false) {
+          $info = $localCount."/".$this->lightifyBase->decodeData($localDevice);
+
           if ($data->debug % 2 || $data->message) {
             $info = $localCount."/".$this->lightifyBase->decodeData($localDevice);
 
@@ -347,11 +349,19 @@ class lightifyDevice extends lightifyControl {
         $hue    = $color = $level      = vtNoString;
         $temperature     = $saturation = vtNoString;
 
-        if ($itemLight || $itemPlug || $itemMotion) {
+        if ($itemLight || $itemPlug) {
           $online    = (ord($data{15}) == classConstant::STATE_ONLINE) ? true : false; //Online: 2 - Offline: 0 - Unknown: 1
           $state     = ($online) ? ord($data{18}) : false;
           $newOnline = $online; 
-          $newState  = ($itemMotion) ? ord($data{22}) : $state;
+          $newState  = $state;
+        }
+
+        if ($itemLight) {
+          $level = ord($data{19});
+        }
+
+        if ($itemMotion) {
+          $newState = (bool)ord($data{22}); //State = red
         }
 
         $white = ord($data{25});
@@ -368,42 +378,9 @@ class lightifyDevice extends lightifyControl {
           $temperature = hexdec(dechex(ord($data{21})).dechex(ord($data{20})));
         }
 
-        if ($itemLight) {
-          $level = ord($data{19});
-        }
-
         //Additional informations
         $zigBee   = dechex(ord($data{0})).dechex(ord($data{1}));
         $firmware = vtNoString;
-
-        if (false === ($onlineID = @$this->GetIDForIdent("ONLINE"))) {
-          if ($method == classConstant::METHOD_CREATE_CHILD) {
-            $onlineID = $this->RegisterVariableBoolean("ONLINE", "Online", "OSR.Switch", 312);
-            IPS_SetIcon($onlineID, "Electricity");
-          }
-        }
-
-        if ($onlineID !== false) {
-          if ($newOnline != ($online = GetValueBoolean($onlineID))) {
-            SetValueBoolean($onlineID, $newOnline);
-          }
-        }
-
-        if ($itemMotion) {
-          $motion = (bool)ord($data{23}); //Light = green, Sensor = motion detection
-
-          if (false === ($motionID = @$this->GetIDForIdent("MOTION"))) {
-            if ($method == classConstant::METHOD_CREATE_CHILD) {
-              $motionID = $this->RegisterVariableBoolean("MOTION", "Motion", "~Motion", 321);
-            }
-          }
-
-          if ($motionID !== false) {
-            if (GetValueBoolean($motionID) != $motion) {
-              SetValueBoolean($motionID, $motion);
-            }
-          }
-        }
 
         if (false === ($stateID = @$this->GetIDForIdent("STATE"))) {
           if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -422,6 +399,19 @@ class lightifyDevice extends lightifyControl {
         }
 
         if ($itemLight || $itemPlug) {
+          if (false === ($onlineID = @$this->GetIDForIdent("ONLINE"))) {
+            if ($method == classConstant::METHOD_CREATE_CHILD) {
+              $onlineID = $this->RegisterVariableBoolean("ONLINE", "Online", "OSR.Switch", 312);
+              IPS_SetIcon($onlineID, "Electricity");
+            }
+          }
+
+          if ($onlineID !== false) {
+            if ($newOnline != ($online = GetValueBoolean($onlineID))) {
+              SetValueBoolean($onlineID, $newOnline);
+            }
+          }
+
           if ($deviceRGB) {
             if (false == ($hueID = @$this->GetIDForIdent("HUE"))) {
               if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -433,6 +423,8 @@ class lightifyDevice extends lightifyControl {
               if (GetValueInteger($hueID) != $hue) {
                 SetValueInteger($hueID, $hue);
               }
+
+              $this->MaintainAction("HUE", $newState);
             }
 
             if (false == ($colorID = @$this->GetIDForIdent("COLOR"))) {
@@ -446,6 +438,8 @@ class lightifyDevice extends lightifyControl {
               if (GetValueInteger($colorID) != $color) {
                 SetValueInteger($colorID, $color);
               }
+
+              $this->MaintainAction("COLOR", $newState);
             }
 
             if (false == ($saturationID = @$this->GetIDForIdent("SATURATION"))) {
@@ -459,6 +453,8 @@ class lightifyDevice extends lightifyControl {
               if (GetValueInteger($saturationID) != $saturation) {
                 SetValueInteger($saturationID, $saturation);
               }
+
+              $this->MaintainAction("SATURATION", $newState);
             }
           }
 
@@ -475,6 +471,8 @@ class lightifyDevice extends lightifyControl {
               if (GetValueInteger($temperatureID) != $temperature) {
                 SetValueInteger($temperatureID, $temperature);
               }
+
+              $this->MaintainAction("COLOR_TEMPERATURE", $newState);
             }
           }
 
@@ -490,9 +488,42 @@ class lightifyDevice extends lightifyControl {
               if (GetValueInteger($levelID) != $level) {
                 SetValueInteger($levelID, $level);
               }
+
+              $this->MaintainAction("LEVEL", $newState);
             }
           }
-       }
+        }
+
+        if ($itemMotion) {
+          $battery  = dechex(ord($data{19}));       //Level = battery value
+          $motion   = (bool)ord($data{23}); //Light = green, Sensor = motion detection
+
+/*
+          if (false === ($batteryID = @$this->GetIDForIdent("BATTERY"))) {
+            if ($method == classConstant::METHOD_CREATE_CHILD) {
+              $batteryID = $this->RegisterVariableInteger("BATTERY", "Battery", "~Battery.100", 321);
+            }
+          }
+
+          if ($batteryID !== false) {
+            if (GetValueInteger($batteryID) != $battery) {
+              SetValueInteger($batteryID, $battery);
+            }
+          }
+*/
+
+          if (false === ($motionID = @$this->GetIDForIdent("MOTION"))) {
+            if ($method == classConstant::METHOD_CREATE_CHILD) {
+              $motionID = $this->RegisterVariableBoolean("MOTION", "Motion", "~Motion", 322);
+            }
+          }
+
+          if ($motionID !== false) {
+            if (GetValueBoolean($motionID) != $motion) {
+              SetValueBoolean($motionID, $motion);
+            }
+          }
+        }
         break;
 
       case classConstant::MODE_DEVICE_CLOUD:
@@ -552,7 +583,6 @@ class lightifyDevice extends lightifyControl {
             IPS_ApplyChanges($this->InstanceID);
           }
         }
-
         break;
     }
   }

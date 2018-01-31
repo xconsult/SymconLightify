@@ -181,8 +181,8 @@ class lightifyGroup extends lightifyControl {
             $online        = ($onlineID) ? GetValueBoolean($onlineID) : false;
             $state         = ($stateID) ? GetValueBoolean($stateID) : false;
 
-            $deviceID      = @IPS_GetProperty($instanceID, "deviceID");
-            $itemClass     = @IPS_GetProperty($instanceID, "itemClass");
+            $deviceID      = IPS_GetProperty($instanceID, "deviceID");
+            $itemClass     = IPS_GetProperty($instanceID, "itemClass");
 
             switch ($itemClass) {
               case classConstant::CLASS_LIGHTIFY_LIGHT:
@@ -534,8 +534,10 @@ class lightifyGroup extends lightifyControl {
           }
 
           //Hue
-          if ($hueID = @$this->GetIDForIdent("HUE"))
-            $this->MaintainAction("HUE", ($hue == vtNoValue) ? false : true);
+          if ($hueID = @$this->GetIDForIdent("HUE")) {
+	          $action = ($hue == vtNoValue) ? false : true;
+            $this->MaintainAction("HUE", $action);
+          }
 
           if ($hueID === false) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -550,8 +552,10 @@ class lightifyGroup extends lightifyControl {
           }
 
           //Color
-          if ($colorID = @$this->GetIDForIdent("COLOR"))
-            $this->MaintainAction("COLOR", ($color == vtNoValue) ? false : true);
+          if ($colorID = @$this->GetIDForIdent("COLOR")) {
+	          $action = ($color == vtNoValue) ? false : true;
+            $this->MaintainAction("COLOR", $action);
+          }
 
           if ($colorID === false) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -568,7 +572,8 @@ class lightifyGroup extends lightifyControl {
 
           //Color temperature
           if ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
-            $this->MaintainAction("COLOR_TEMPERATURE", ($temperature == vtNoValue) ? false : true);
+	          $action = ($temperature == vtNoValue) ? false : true;
+            $this->MaintainAction("COLOR_TEMPERATURE", $action);
           }
 
           if ($temperatureID === false) {
@@ -584,8 +589,10 @@ class lightifyGroup extends lightifyControl {
           }
 
           //Level
-          if ($levelID = @$this->GetIDForIdent("LEVEL"))
-            $this->MaintainAction("LEVEL", ($level == vtNoValue) ? false : true);
+          if ($levelID = @$this->GetIDForIdent("LEVEL")) {
+	          $action = ($level == vtNoValue) ? false : true;
+            $this->MaintainAction("LEVEL", $action);
+          }
 
           if ($levelID === false) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -601,8 +608,10 @@ class lightifyGroup extends lightifyControl {
           }
 
           //Saturation control
-          if ($saturationID = @$this->GetIDForIdent("SATURATION"))
-            $this->MaintainAction("SATURATION", ($saturation == vtNoValue) ? false : true);
+          if ($saturationID = @$this->GetIDForIdent("SATURATION")) {
+	          $action = ($saturation == vtNoValue) ? false : true;
+            $this->MaintainAction("SATURATION", $action);
+          }
 
           if ($saturationID === false) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
