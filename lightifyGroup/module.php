@@ -3,12 +3,12 @@
 require_once(__DIR__.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."libs".DIRECTORY_SEPARATOR."lightifyControl.php");
 
 
-define('ROW_COLOR_LIGHT_ON',   "#fffde7");
-define('ROW_COLOR_CCT_ON',     "#ffecB3");
-define('ROW_COLOR_PLUG_ON',    "#c5e1a5");
-define('ROW_COLOR_ONLINE_OFF', "#ffffff");
-define('ROW_COLOR_LIGHT_OFF',  "#e0e0e0");
-define('ROW_COLOR_PLUG_OFF',   "#ef9a9a");
+define('ROW_COLOR_LIGHT_ON',  "#fffde7");
+define('ROW_COLOR_CCT_ON',    "#ffecB3");
+define('ROW_COLOR_PLUG_ON',   "#c5e1a5");
+define('ROW_COLOR_STATE_OFF', "#ffffff");
+define('ROW_COLOR_LIGHT_OFF', "#e0e0e0");
+define('ROW_COLOR_PLUG_OFF',  "#ef9a9a");
 
 
 //class lightifyGroup extends IPSModule {
@@ -46,7 +46,9 @@ class lightifyGroup extends lightifyControl {
     parent::ApplyChanges();
 
     //Check config
-    if (($itemID = $this->ReadPropertyInteger("itemID")) < self::ITEMID_MINIMUM) {
+    $itemID = $this->ReadPropertyInteger("itemID");
+
+    if ($itemID < self::ITEMID_MINIMUM) {
       $this->SetStatus(202);
       return false;
     }
@@ -61,6 +63,7 @@ class lightifyGroup extends lightifyControl {
       }
     }
 
+    $this->SetReceiveDataFilter(".*i".str_pad($itemID, 3, "0", STR_PAD_LEFT).".*");
     $this->SetStatus($status);
   }
 
@@ -176,13 +179,11 @@ class lightifyGroup extends lightifyControl {
               continue;
             }
 
-            $onlineID      = @IPS_GetObjectIDByIdent('ONLINE', $instanceID);
-            $stateID       = @IPS_GetObjectIDByIdent('STATE', $instanceID);
-            $online        = ($onlineID) ? GetValueBoolean($onlineID) : false;
-            $state         = ($stateID) ? GetValueBoolean($stateID) : false;
+            $stateID   = @IPS_GetObjectIDByIdent('STATE', $instanceID);
+            $state     = ($stateID) ? GetValueBoolean($stateID) : false;
 
-            $deviceID      = IPS_GetProperty($instanceID, "deviceID");
-            $itemClass     = IPS_GetProperty($instanceID, "itemClass");
+            $deviceID  = IPS_GetProperty($instanceID, "deviceID");
+            $itemClass = IPS_GetProperty($instanceID, "itemClass");
 
             switch ($itemClass) {
               case classConstant::CLASS_LIGHTIFY_LIGHT:
@@ -214,9 +215,9 @@ class lightifyGroup extends lightifyControl {
               }
             } else {
               if (@IPS_GetProperty($instanceID, "itemType") == classConstant::TYPE_PLUG_ONOFF) {
-                $rowColor = ($online) ? ROW_COLOR_ONLINE_OFF : ROW_COLOR_PLUG_OFF;
+                $rowColor = ($state) ? ROW_COLOR_STATE_OFF : ROW_COLOR_PLUG_OFF;
               } else {
-                $rowColor = ($online) ? ROW_COLOR_ONLINE_OFF : ROW_COLOR_LIGHT_OFF;
+                $rowColor = ($state) ? ROW_COLOR_STATE_OFF : ROW_COLOR_LIGHT_OFF;
               }
             }
 
@@ -247,7 +248,7 @@ class lightifyGroup extends lightifyControl {
 
 
   public function ReceiveData($jsonString) {
-    $itemID = $this->ReadPropertyInteger("itemID");
+    $itemID = str_pad($this->ReadPropertyInteger("itemID"), 3, "0", STR_PAD_LEFT);
     $data   = json_decode($jsonString);
 
     $localBuffer = utf8_decode($data->buffer);
@@ -277,7 +278,8 @@ class lightifyGroup extends lightifyControl {
               }
             }
 
-            $this->setGroupInfo($data->mode, $data->method, $groupDevice);
+            $showControl = IPS_GetProperty($data->id, "showControl");
+            $this->setGroupInfo($data->mode, $data->method, $groupDevice, $showControl);
           }
         }
         break;
@@ -345,7 +347,9 @@ class lightifyGroup extends lightifyControl {
             IPS_SetProperty($this->InstanceID, "itemType", (integer)$itemType);
           }
 
-          $this->setGroupInfo(classConstant::MODE_GROUP_LOCAL, classConstant::METHOD_CREATE_CHILD, $groupDevice);
+          $showControl = IPS_GetProperty($this->parentID, "showControl");
+          $this->setGroupInfo(classConstant::MODE_GROUP_LOCAL, classConstant::METHOD_CREATE_CHILD, $groupDevice, $showControl);
+
           return 102;
         }
 
@@ -410,12 +414,17 @@ class lightifyGroup extends lightifyControl {
     $groupDevice = vtNoString;
 
     for ($i = 1; $i <= $ncount; $i++) {
-      $localID = ord($buffer{0});
+      //$localID = ord($buffer{0});
+      //$dcount  = ord($buffer{1});
 
-      if (($dcount = ord($buffer{1})) > 0) {
-        $buffer = substr($buffer, 2);
+      $localID = substr($buffer, 1, 3);
+      $dcount  = ord($buffer{4});
 
-        if ($itemID == $localID) {
+      if ($dcount > 0) {
+        //$buffer = substr($buffer, 2);
+        $buffer  = substr($buffer, 5);
+
+        if ($localID == $itemID) {
           $groupDevice = chr($dcount).substr($buffer, 0, $dcount*classConstant::UUID_DEVICE_LENGTH);
           break;
         }
@@ -434,7 +443,7 @@ class lightifyGroup extends lightifyControl {
     for ($i = 1; $i <= $ncount; $i++) {
       $localID = ord($buffer{1});
 
-      if ($itemID == $localID) {
+      if ($localID == $itemID) {
         $groupScene = substr($buffer, 0, classConstant::DATA_SCENE_LENGTH);
         break;
       }
@@ -446,7 +455,7 @@ class lightifyGroup extends lightifyControl {
   }
 
 
-  private function setGroupInfo($mode, $method, $data) {
+  private function setGroupInfo($mode, $method, $data, $showControl = false) {
     switch ($mode) {
       case classConstant::MODE_GROUP_LOCAL:
         if (($dcount = ord($data{0})) > 0) {
@@ -475,9 +484,7 @@ class lightifyGroup extends lightifyControl {
           $deviceTemperature = $deviceSaturation           = vtNoValue;
 
           foreach ($Devices as $device) {
-            $deviceOnlineID      = @IPS_GetObjectIDByIdent('ONLINE', $device);
-            $deviceStateID       = @IPS_GetObjectIDByIdent('STATE', $device);
-            $deviceOnline        = ($deviceOnlineID) ? GetValueBoolean($deviceOnlineID) : false;
+            $deviceStateID       = @IPS_GetObjectIDByIdent("STATE", $device);
             $deviceState         = ($deviceStateID) ? GetValueBoolean($deviceStateID) : false;
 
             $deviceHueID         = @IPS_GetObjectIDByIdent("HUE", $device);
@@ -492,8 +499,9 @@ class lightifyGroup extends lightifyControl {
             $deviceLevel         = ($deviceLevelID) ? GetValueInteger($deviceLevelID) : vtNoValue;
             $deviceSaturation    = ($deviceSaturationID) ? GetValueInteger($deviceSaturationID) : vtNoValue;
 
-            if ($online === false && $deviceOnline === true) $newOnline = true;
-            if ($state === false && $deviceState === true) $newState = true;
+            if ($state === false && $deviceState === true) {
+              $newState = true;
+            }
 
             if ($newState && $hue == vtNoValue && $deviceHue != vtNoValue) {
               $hue = $deviceHue;
@@ -518,7 +526,7 @@ class lightifyGroup extends lightifyControl {
 
           //State
           if ($stateID = @$this->GetIDForIdent("STATE")) {
-            $this->MaintainAction("STATE", $newOnline);
+            $this->EnableAction("STATE");
           }
 
           if ($stateID === false) {
@@ -528,14 +536,22 @@ class lightifyGroup extends lightifyControl {
           }
 
           if ($stateID) {
-            if ($newState != ($state = GetValueBoolean($stateID))) {
+            $state = GetValueBoolean($stateID);
+
+            if ($state != $newState) {
               SetValueBoolean($stateID, $newState);
             }
           }
 
           //Hue
           if ($hueID = @$this->GetIDForIdent("HUE")) {
-	          $action = ($hue == vtNoValue) ? false : true;
+            if ($showControl) {
+              IPS_SetHidden($hueID, !$newState);
+            } else {
+              IPS_SetHidden($hueID, false);
+            }
+
+            $action = ($hue == vtNoValue) ? false : true;
             $this->MaintainAction("HUE", $action);
           }
 
@@ -553,7 +569,13 @@ class lightifyGroup extends lightifyControl {
 
           //Color
           if ($colorID = @$this->GetIDForIdent("COLOR")) {
-	          $action = ($color == vtNoValue) ? false : true;
+            if ($showControl) {
+              IPS_SetHidden($colorID, !$newState);
+            } else {
+              IPS_SetHidden($colorID, false);
+            }
+
+            $action = ($color == vtNoValue) ? false : true;
             $this->MaintainAction("COLOR", $action);
           }
 
@@ -572,7 +594,13 @@ class lightifyGroup extends lightifyControl {
 
           //Color temperature
           if ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
-	          $action = ($temperature == vtNoValue) ? false : true;
+            if ($showControl) {
+              IPS_SetHidden($temperatureID, !$newState);
+            } else {
+              IPS_SetHidden($temperatureID, false);
+            }
+
+            $action = ($temperature == vtNoValue) ? false : true;
             $this->MaintainAction("COLOR_TEMPERATURE", $action);
           }
 
@@ -590,7 +618,13 @@ class lightifyGroup extends lightifyControl {
 
           //Level
           if ($levelID = @$this->GetIDForIdent("LEVEL")) {
-	          $action = ($level == vtNoValue) ? false : true;
+            if ($showControl) {
+              IPS_SetHidden($levelID, !$newState);
+            } else {
+              IPS_SetHidden($levelID, false);
+            }
+
+            $action = ($level == vtNoValue) ? false : true;
             $this->MaintainAction("LEVEL", $action);
           }
 
@@ -609,7 +643,13 @@ class lightifyGroup extends lightifyControl {
 
           //Saturation control
           if ($saturationID = @$this->GetIDForIdent("SATURATION")) {
-	          $action = ($saturation == vtNoValue) ? false : true;
+            if ($showControl) {
+              IPS_SetHidden($saturationID, !$newState);
+            } else {
+              IPS_SetHidden($saturationID, false);
+            }
+
+            $action = ($saturation == vtNoValue) ? false : true;
             $this->MaintainAction("SATURATION", $action);
           }
 

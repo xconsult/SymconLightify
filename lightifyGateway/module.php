@@ -24,9 +24,9 @@ define('LIGHITFY_GATEWAY_OFFLINE',        5019);
 class lightifyGateway extends IPSModule {
 
   const LIST_CATEGORY_INDEX     = 10;
-  const LIST_DEVICE_INDEX       = 13;
-  const LIST_GROUP_INDEX        = 14;
-  const LIST_SCENE_INDEX        = 15;
+  const LIST_DEVICE_INDEX       = 14;
+  const LIST_GROUP_INDEX        = 15;
+  const LIST_SCENE_INDEX        = 16;
 
   const GATEWAY_SERIAL_LENGTH   =  11;
   const CLOUD_REQUEST_INTERVALL =  60; //seconds
@@ -124,6 +124,7 @@ class lightifyGateway extends IPSModule {
     $this->RegisterPropertyString("listGroup", vtNoString);
     $this->RegisterPropertyString("listScene", vtNoString);
     $this->RegisterPropertyBoolean("deviceInfo", false);
+    $this->RegisterPropertyBoolean("showControl", false);
 
     $this->RegisterPropertyInteger("debug", classConstant::DEBUG_DISABLED);
     $this->RegisterPropertyBoolean("message", false);
@@ -281,6 +282,7 @@ class lightifyGateway extends IPSModule {
           ]
         },
         { "type": "CheckBox",     "name": "deviceInfo",         "caption": " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" },
+        { "type": "CheckBox",     "name": "showControl",        "caption": " Automatically hide/show available properties based on the device state"                        },
         '.$formDevice.'
         '.$formGroup.'
         '.$formScene.'
@@ -1123,7 +1125,7 @@ class lightifyGateway extends IPSModule {
         for ($i = 1, $j = 0, $m = 0, $n = 0; $i <= $ncount; $i++) {
           $itemType    = ord($data{10});
           $implemented = true;
-          $hasGroup    = false;
+          $withGroup   = false;
 
           //Decode Device label
           switch ($itemType) {
@@ -1141,12 +1143,12 @@ class lightifyGateway extends IPSModule {
 
             case classConstant::TYPE_LIGHT_EXT_COLOR:
               $classInfo = "Lampe";
-              $hasGroup  = true;
+              $withGroup = true;
               break;
 
             case classConstant::TYPE_PLUG_ONOFF:
               $classInfo = "Steckdose";
-              $hasGroup  = true;
+              $withGroup = true;
               break;
 
             case classConstant::TYPE_SENSOR_MOTION:
@@ -1180,7 +1182,8 @@ class lightifyGateway extends IPSModule {
 
           if ($implemented) {
             $deviceID     = $i;
-            $localDevice .= chr($deviceID).substr($data, 0, classConstant::DATA_DEVICE_LENGTH);
+            //$localDevice .= chr($deviceID).substr($data, 0, classConstant::DATA_DEVICE_LENGTH);
+            $localDevice .= "i".str_pad($deviceID, 3, "0", STR_PAD_LEFT).substr($data, 0, classConstant::DATA_DEVICE_LENGTH);
             $classInfo    = str_pad($classInfo, classConstant::DATA_CLASS_INFO, " ", STR_PAD_RIGHT);
 
             $uint64       = substr($data, 2, classConstant::UUID_DEVICE_LENGTH);
@@ -1189,7 +1192,7 @@ class lightifyGateway extends IPSModule {
             $j += 1;
 
             //Device group
-            if ($hasGroup) {
+            if ($withGroup) {
               $deviceGroup .= $uint64.substr($data, 16, 2);
               $n += 1; 
             }
@@ -1316,8 +1319,12 @@ class lightifyGateway extends IPSModule {
             }
           }
 
-          $localGroup  .= substr($data,0, classConstant::DATA_GROUP_LENGTH);
-          $groupDevice .= chr($groupID).chr($n).$buffer;
+          //$localGroup  .= substr($data, 0, classConstant::DATA_GROUP_LENGTH);
+          //$groupDevice .= chr($groupID).chr($n).$buffer;
+
+          $groupID      = "i".str_pad($groupID, 3, "0", STR_PAD_LEFT);
+          $localGroup  .= $groupID.substr($data, 1, classConstant::DATA_GROUP_LENGTH);
+          $groupDevice .= $groupID.chr($n).$buffer;
           $groupList   .= substr($data,0, classConstant::DATA_GROUP_LENGTH).chr($n);
           //IPS_LogMessage("SymconOSR", "<READDATA>   ".$i."/".$groupID."/".$k."/".$this->lightifyBase->decodeData($buffer));
 
@@ -1421,8 +1428,12 @@ class lightifyGateway extends IPSModule {
         $data = substr($data, 2);
 
         for ($i = 1; $i <= $ncount; $i++) {
-          $deviceID    = ord($data{0});
-          $data        = substr($data, 1);
+          //$deviceID    = ord($data{0});
+          //$data        = substr($data, 1);
+
+          $deviceID    = (int)substr($data, 1, 3);
+          $data        = substr($data, 4);
+
           $itemType    = ord($data{10});
           $implemented = true;
 
@@ -1494,7 +1505,11 @@ class lightifyGateway extends IPSModule {
             $uintUUID   = $data{0}.$data{1}.chr(classConstant::TYPE_DEVICE_GROUP).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
             $groupID    = ord($data{0});
 
-            $groupName  = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
+            $groupID    = (int)substr($data, 1, 3);
+            $data       = substr($data, 4);
+
+            //$groupName  = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
+            $groupName  = trim(substr($data, 0, classConstant::DATA_NAME_LENGTH));
             $InstanceID = $this->lightifyBase->getObjectByProperty(classConstant::MODULE_GROUP, "uintUUID", $uintUUID);
 
             if ($InstanceID === false) {

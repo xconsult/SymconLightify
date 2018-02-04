@@ -60,6 +60,7 @@ class lightifyDevice extends lightifyControl {
       }
     }
 
+    $this->SetReceiveDataFilter(".*i".str_pad($deviceID, 3, "0", STR_PAD_LEFT).".*");
     $this->SetStatus($status);
   }
 
@@ -70,8 +71,8 @@ class lightifyDevice extends lightifyControl {
     }
 
     if ($this->parentID) {
-      $connectMode = IPS_GetProperty($this->parentID, "connectMode");
-      $deviceInfo  = IPS_GetProperty($this->parentID, "deviceInfo");
+      $connectMode  = IPS_GetProperty($this->parentID, "connectMode");
+      $deviceInfo   = IPS_GetProperty($this->parentID, "deviceInfo");
 
       $localDevice = $this->GetBuffer("localDevice");
       $itemType    = $this->ReadPropertyInteger("itemType");
@@ -154,7 +155,7 @@ class lightifyDevice extends lightifyControl {
 
 
   public function ReceiveData($jsonString) {
-    $deviceID = $this->ReadPropertyInteger("deviceID");
+    $deviceID = str_pad($this->ReadPropertyInteger("deviceID"), 3, "0", STR_PAD_LEFT);
     $data     = json_decode($jsonString);
 
     $this->debug   = $data->debug;
@@ -184,7 +185,8 @@ class lightifyDevice extends lightifyControl {
             }
           }
 
-          $this->setDeviceInfo($data->method, $data->mode, $localDevice);
+          $showControl = IPS_GetProperty($data->id, "showControl");
+          $this->setDeviceInfo($data->method, $data->mode, $localDevice, false, $showControl);
         }
         break;
 
@@ -271,7 +273,9 @@ class lightifyDevice extends lightifyControl {
             }
           }
 
-          $this->setDeviceInfo(classConstant::METHOD_CREATE_CHILD, classConstant::MODE_DEVICE_LOCAL, $localDevice);
+          $showControl = IPS_GetProperty($this->parentID, "showControl");
+          $this->setDeviceInfo(classConstant::METHOD_CREATE_CHILD, classConstant::MODE_DEVICE_LOCAL, $localDevice, false, $showControl);
+
           return 102;
         }
 
@@ -289,10 +293,14 @@ class lightifyDevice extends lightifyControl {
     $localDevice = vtNoString;
 
     for ($i = 1; $i <= $ncount; $i++) {
-      $localID = ord($buffer{0});
-      $buffer  = substr($buffer, 1);
+      //$localID = ord($buffer{0});
+      //$buffer  = substr($buffer, 1);
 
-      if ($deviceID == $localID) {
+      $localID = substr($buffer, 1, 3);
+      $buffer  = substr($buffer, 4);
+      //IPS_LogMessage("SymconOSR", "<DEVICE|GETDEVICELOCAL>   ".IPS_GetName($this->InstanceID)."/".$deviceID."/".$localID);
+
+      if ($localID == $deviceID) {
         $localDevice = substr($buffer, 0, classConstant::DATA_DEVICE_LENGTH);
         break;
       }
@@ -311,7 +319,7 @@ class lightifyDevice extends lightifyControl {
     foreach ($cloudBuffer as $device) {
       list($cloudID) = $device;
 
-      if ($deviceID == $cloudID) {
+      if ($cloudID == $deviceID) {
         $cloudDevice = json_encode($device);
         break;
       }
@@ -321,7 +329,7 @@ class lightifyDevice extends lightifyControl {
   }
 
 
-  private function setDeviceInfo($method, $mode, $data, $apply = false) {
+  private function setDeviceInfo($method, $mode, $data, $apply, $showControl = false) {
     $itemType = ord($data{10});
 
     switch ($mode) {
@@ -350,10 +358,9 @@ class lightifyDevice extends lightifyControl {
         $temperature     = $saturation = vtNoString;
 
         if ($itemLight || $itemPlug) {
-          $online    = (ord($data{15}) == classConstant::STATE_ONLINE) ? true : false; //Online: 2 - Offline: 0 - Unknown: 1
-          $state     = ($online) ? ord($data{18}) : false;
-          $newOnline = $online; 
-          $newState  = $state;
+          $newOnline = (ord($data{15}) == classConstant::STATE_ONLINE) ? true : false; //Online: 2 - Offline: 0 - Unknown: 1
+          $newState  = ($newOnline) ? ord($data{18}) : false;
+          $online    = $state = false;
         }
 
         if ($itemLight) {
@@ -382,22 +389,7 @@ class lightifyDevice extends lightifyControl {
         $zigBee   = dechex(ord($data{0})).dechex(ord($data{1}));
         $firmware = vtNoString;
 
-        if (false === ($stateID = @$this->GetIDForIdent("STATE"))) {
-          if ($method == classConstant::METHOD_CREATE_CHILD) {
-            $stateID = $this->RegisterVariableBoolean("STATE", "State", "OSR.Switch", 313);
-          }
-        }
-
-        if ($stateID !== false) {
-          if ($newState != ($state = GetValueBoolean($stateID))) {
-            SetValueBoolean($stateID, $newState);
-          }
-
-          if ($itemLight || $itemPlug) {
-            $this->MaintainAction("STATE", $newOnline);
-          }
-        }
-
+/*
         if ($itemLight || $itemPlug) {
           if (false === ($onlineID = @$this->GetIDForIdent("ONLINE"))) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -407,11 +399,34 @@ class lightifyDevice extends lightifyControl {
           }
 
           if ($onlineID !== false) {
-            if ($newOnline != ($online = GetValueBoolean($onlineID))) {
+            $online = GetValueBoolean($onlineID);
+
+            if ($online != $newOnline) {
               SetValueBoolean($onlineID, $newOnline);
             }
           }
+        }
+*/
 
+        if (false === ($stateID = @$this->GetIDForIdent("STATE"))) {
+          if ($method == classConstant::METHOD_CREATE_CHILD) {
+            $stateID = $this->RegisterVariableBoolean("STATE", "State", "OSR.Switch", 313);
+          }
+        }
+
+        if ($stateID !== false) {
+           $state = GetValueBoolean($stateID);
+
+          if ($state != $newState) {
+            SetValueBoolean($stateID, $newState);
+          }
+
+          if ($itemLight || $itemPlug) {
+            $this->MaintainAction("STATE", $newOnline);
+          }
+        }
+
+        if ($itemLight || $itemPlug) {
           if ($deviceRGB) {
             if (false == ($hueID = @$this->GetIDForIdent("HUE"))) {
               if ($method == classConstant::METHOD_CREATE_CHILD) {
@@ -422,6 +437,12 @@ class lightifyDevice extends lightifyControl {
             if ($hueID !== false) {
               if (GetValueInteger($hueID) != $hue) {
                 SetValueInteger($hueID, $hue);
+              }
+
+              if ($showControl) {
+                IPS_SetHidden($hueID, !$newState);
+              } else {
+                IPS_SetHidden($hueID, false);
               }
 
               $this->MaintainAction("HUE", $newState);
@@ -439,6 +460,12 @@ class lightifyDevice extends lightifyControl {
                 SetValueInteger($colorID, $color);
               }
 
+              if ($showControl) {
+                IPS_SetHidden($colorID, !$newState);
+              } else {
+                IPS_SetHidden($colorID, false);
+              }
+
               $this->MaintainAction("COLOR", $newState);
             }
 
@@ -453,8 +480,13 @@ class lightifyDevice extends lightifyControl {
               if (GetValueInteger($saturationID) != $saturation) {
                 SetValueInteger($saturationID, $saturation);
               }
-
               $this->MaintainAction("SATURATION", $newState);
+
+              if ($showControl) {
+                IPS_SetHidden($saturationID, !$newState);
+              } else {
+                IPS_SetHidden($saturationID, false);
+              }
             }
           }
 
@@ -471,8 +503,13 @@ class lightifyDevice extends lightifyControl {
               if (GetValueInteger($temperatureID) != $temperature) {
                 SetValueInteger($temperatureID, $temperature);
               }
-
               $this->MaintainAction("COLOR_TEMPERATURE", $newState);
+
+              if ($showControl) {
+                IPS_SetHidden($temperatureID, !$newState);
+              } else {
+                IPS_SetHidden($temperatureID, false);
+              }
             }
           }
 
@@ -488,8 +525,13 @@ class lightifyDevice extends lightifyControl {
               if (GetValueInteger($levelID) != $level) {
                 SetValueInteger($levelID, $level);
               }
-
               $this->MaintainAction("LEVEL", $newState);
+
+              if ($showControl) {
+                IPS_SetHidden($levelID, !$newState);
+              } else {
+                IPS_SetHidden($levelID, false);
+              }
             }
           }
         }

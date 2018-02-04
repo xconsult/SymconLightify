@@ -497,7 +497,7 @@ abstract class lightifyControl extends IPSModule {
             return false;
 
           case "STATE":
-            if (($this->itemDevice && $online) || $this->itemGroup) {
+            if ($this->itemDevice || $this->itemGroup) {
               if ($value == 0 || $value == 1) {
                 if (false !== ($result = $lightifyConnect->setState($uintUUID, $flag, $value))) {
                   SetValue($stateID, $value);
@@ -522,7 +522,7 @@ abstract class lightifyControl extends IPSModule {
             return false;
 
           case "COLOR":
-            if ((($this->deviceRGB && $online) || $this->itemGroup) && $state) {
+            if (($this->deviceRGB || $this->itemGroup) && $state) {
               $hueID        = @$this->GetIDForIdent("HUE");
               $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
               $colorID      = @$this->GetIDForIdent("COLOR");
@@ -556,7 +556,7 @@ abstract class lightifyControl extends IPSModule {
             return false;
 
           case "COLOR_TEMPERATURE":
-            if ((($this->deviceCCT && $online) || $this->itemGroup) && $state) {
+            if (($this->deviceCCT || $this->itemGroup) && $state) {
               $temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
               $temperature   = ($temperatureID) ? GetValueInteger($temperatureID) : $temperature;
               $value         = $this->getValueRange($key, $value);
@@ -575,7 +575,7 @@ abstract class lightifyControl extends IPSModule {
             return false;
 
           case "LEVEL":
-            if ((($this->itemLight && $online) || $this->itemGroup) && $state) {
+            if (($this->itemLight || $this->itemGroup) && $state) {
               $levelID = @$this->GetIDForIdent("LEVEL");
               $level   = ($levelID) ? GetValueInteger($levelID) : $level;
               $value   = $this->getValueRange($key, $value);
@@ -594,7 +594,7 @@ abstract class lightifyControl extends IPSModule {
             return false;
 
           case "SATURATION":
-            if ((($this->deviceRGB && $online) || $this->itemGroup) && $state) {
+            if (($this->deviceRGB || $this->itemGroup) && $state) {
               $hueID        = @$this->GetIDForIdent("HUE");
               $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
               $colorID      = @$this->GetIDForIdent("COLOR");
