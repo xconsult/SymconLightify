@@ -1,6 +1,6 @@
-<?
+<?php
 
-require_once(__DIR__.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."libs".DIRECTORY_SEPARATOR."lightifyControl.php");
+require_once __DIR__.'/../libs/lightifyControl.php';
 
 
 class lightifyDevice extends lightifyControl {
@@ -60,7 +60,7 @@ class lightifyDevice extends lightifyControl {
       }
     }
 
-    $this->SetReceiveDataFilter(".*i".str_pad($deviceID, 3, "0", STR_PAD_LEFT).".*");
+    //$this->SetReceiveDataFilter(".*i".str_pad($deviceID, 3, "0", STR_PAD_LEFT).".*");
     $this->SetStatus($status);
   }
 
@@ -80,7 +80,7 @@ class lightifyDevice extends lightifyControl {
       $itemClass = $this->ReadPropertyInteger("itemClass");
       $formLabel = ($itemClass == vtNoValue) ? '{ "label": "Select...",  "value":   -1 },' : vtNoString;
 
-      $infoText = ($itemClass != vtNoValue && $deviceInfo && empty($localDevice) === false) ? '
+      $infoText = ($itemClass != vtNoValue && $deviceInfo && !empty($localDevice)) ? '
         { "type": "Label", "label": "----------------------------------------- Geräte spezifische Informationen ------------------------------------------------" },
         { "type": "ValidationTextBox", "name": "UUID",         "caption": "UUID" }' : vtNoString;
 
@@ -112,9 +112,12 @@ class lightifyDevice extends lightifyControl {
 
         default:
           $cloudDevice = $this->GetBuffer("cloudDevice");
-          if (empty($infoText) === false) $infoText .= ",";
 
-          $infoText = ($connectMode == classConstant::CONNECT_LOCAL_CLOUD && empty($cloudDevice) === false && empty($infoText) === false) ? $infoText.'
+          if (!empty($infoText)) {
+            $infoText .= ",";
+	        }
+
+          $infoText = ($connectMode == classConstant::CONNECT_LOCAL_CLOUD && !empty($cloudDevice) && !empty($infoText)) ? $infoText.'
             { "type": "ValidationTextBox", "name": "manufacturer", "caption": "Manufacturer" },
             { "type": "ValidationTextBox", "name": "deviceModel",  "caption": "Model"        },
             { "type": "ValidationTextBox", "name": "deviceLabel",  "caption": "Capabilities" },' : $infoText;
@@ -155,7 +158,7 @@ class lightifyDevice extends lightifyControl {
 
 
   public function ReceiveData($jsonString) {
-    $deviceID = str_pad($this->ReadPropertyInteger("deviceID"), 3, "0", STR_PAD_LEFT);
+    $deviceID = $this->ReadPropertyInteger("deviceID");
     $data     = json_decode($jsonString);
 
     $this->debug   = $data->debug;
@@ -170,7 +173,7 @@ class lightifyDevice extends lightifyControl {
         $localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
         $this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 
-        if ($localCount > 0 && empty($localDevice) === false) {
+        if ($localCount > 0 && !empty($localDevice)) {
           $info = $localCount."/".$this->lightifyBase->decodeData($localDevice);
 
           if ($data->debug % 2 || $data->message) {
@@ -194,7 +197,7 @@ class lightifyDevice extends lightifyControl {
         $cloudDevice = $this->getDeviceCloud($deviceID, $data->buffer);
         $this->SetBuffer("cloudDevice", $cloudDevice);
 
-        if (empty($cloudDevice) === false) {
+        if (!empty($cloudDevice)) {
           if ($data->debug % 2 || $data->message) {
             $info = $this->lightifyBase->decodeData($cloudDevice);
 
@@ -235,7 +238,7 @@ class lightifyDevice extends lightifyControl {
         $localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
         $this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 
-        if (empty($localDevice) === false) {
+        if (!empty($localDevice)) {
           $uintUUID  = substr($localDevice, 2, classConstant::UUID_DEVICE_LENGTH);
           $itemType  = ord($localDevice{10});
 
@@ -267,7 +270,7 @@ class lightifyDevice extends lightifyControl {
               $cloudDevice = $this->getDeviceCloud($deviceID, $cloudData->buffer);
               $this->SetBuffer("cloudDevice", $cloudDevice);
 
-              if (empty($cloudDevice) === false) {
+              if (!empty($cloudDevice)) {
                 $this->setDeviceInfo(classConstant::METHOD_CREATE_CHILD, classConstant::MODE_DEVICE_CLOUD, $cloudDevice, true);
               }
             }
@@ -293,12 +296,11 @@ class lightifyDevice extends lightifyControl {
     $localDevice = vtNoString;
 
     for ($i = 1; $i <= $ncount; $i++) {
-      //$localID = ord($buffer{0});
-      //$buffer  = substr($buffer, 1);
+      $localID = ord($buffer{0});
+      $buffer  = substr($buffer, 1);
 
-      $localID = substr($buffer, 1, 3);
-      $buffer  = substr($buffer, 4);
-      //IPS_LogMessage("SymconOSR", "<DEVICE|GETDEVICELOCAL>   ".IPS_GetName($this->InstanceID)."/".$deviceID."/".$localID);
+      //$localID = substr($buffer, 1, 3);
+      //$buffer  = substr($buffer, 4);
 
       if ($localID == $deviceID) {
         $localDevice = substr($buffer, 0, classConstant::DATA_DEVICE_LENGTH);

@@ -1,4 +1,4 @@
-<?
+<?php
 
 //Socket functions
 class lightifyConnect extends stdClass {

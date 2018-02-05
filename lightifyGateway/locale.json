@@ -13,7 +13,7 @@
       "Categories"                                                                                     : "Kategorien",
       "Category"                                                                                       : "Kategorien",
       " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" : " Geräte Informationen anzeigen (UUID, Hersteller, Modell, Eigenschaften, ZigBee, Firmware)",
-      " Automatically hide/show available properties based on the device state"                        : "Geräte Eigenschaften automatisch aus- und einblenden in Abhängigkeit vom Geräte Status",
+      " Automatically hide/show available properties based on the device state"                        : " Geräte Eigenschaften automatisch aus- und einblenden in Abhängigkeit vom Geräte Status",
       "State"                                                                                          : "Status",
       " Synchronise values"                                                                            : " Werte aktualisieren",
       "Devices"                                                                                        : "Geräte",

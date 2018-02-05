@@ -1,4 +1,4 @@
-<?
+<?php
 
 //Commands
 class stdCommand extends stdClass {

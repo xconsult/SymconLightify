@@ -1,8 +1,8 @@
-<?
+<?php
 
-require_once(__DIR__.DIRECTORY_SEPARATOR."classModule.php");
-require_once(__DIR__.DIRECTORY_SEPARATOR."lightifyClass.php");
-require_once(__DIR__.DIRECTORY_SEPARATOR."lightifyConnect.php");
+require_once __DIR__.'/../libs/classModule.php';
+require_once __DIR__.'/../libs/lightifyClass.php';
+require_once __DIR__.'/../libs/lightifyConnect.php';
 
 
 define('BODY_CMD_SET',        "/set?idx=");
@@ -96,7 +96,7 @@ abstract class lightifyControl extends IPSModule {
        $this->itemScene = true;
      }
 
-    if ($this->itemGroup === false && $this->itemScene === false) {
+    if (!$this->itemGroup && !$this->itemScene) {
       if ($this->itemType & 8) {
          $this->deviceRGB = true;
        }
@@ -237,7 +237,7 @@ abstract class lightifyControl extends IPSModule {
           $state   = ($stateID) ? GetValueBoolean($stateID) : false;
 
           if ($this->itemLight) {
-            if ($this->transition === false) {
+            if (!$this->transition) {
               //$this->transition = IPS_GetProperty($this->InstanceID, "transition")*10;
               $this->transition = $this->ReadPropertyFloat("transition")*10;
             }

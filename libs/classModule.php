@@ -1,12 +1,14 @@
-<?
+<?php
 
-if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt sind.
+if (!defined('IPS_BASE')) {
   // --- BASE MESSAGE
   define('IPS_BASE',                         10000);             //Kernel Base Message
   define('IPS_MODULBASE',                    20000);             //Modul Base Message
   define('IPS_KERNELSTARTED',         IPS_BASE + 1);             //Post Ready Message
   define('IPS_KERNELSHUTDOWN',        IPS_BASE + 2);             //Pre Shutdown Message, Runlevel UNINIT Follows
+}
 
+if (!defined('IPS_KERNELMESSAGE')) {
   // --- KERNEL
   define('IPS_KERNELMESSAGE',         IPS_BASE + 100);           //Kernel Message
   define('KR_CREATE',                 IPS_KERNELMESSAGE + 1);    //Kernel is beeing created
@@ -14,7 +16,9 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   define('KR_READY',                  IPS_KERNELMESSAGE + 3);    //Kernel is ready and running
   define('KR_UNINIT',                 IPS_KERNELMESSAGE + 4);    //Got Shutdown Message, unloading all stuff
   define('KR_SHUTDOWN',               IPS_KERNELMESSAGE + 5);    //Uninit Complete, Destroying Kernel Inteface
+}
 
+if (!defined('IPS_LOGMESSAGE')) {
   // --- KERNEL LOGMESSAGE
   define('IPS_LOGMESSAGE',            IPS_BASE + 200);           //Logmessage Message
   define('KL_MESSAGE',                IPS_LOGMESSAGE + 1);       //Normal Message                      | FG: Black | BG: White  | STLYE : NONE
@@ -24,12 +28,16 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   define('KL_ERROR',                  IPS_LOGMESSAGE + 5);       //Error Message                       | FG: Black | BG: Red    | STLYE : BOLD
   define('KL_DEBUG',                  IPS_LOGMESSAGE + 6);       //Debug Informations + Script Results | FG: Grey  | BG: White  | STLYE : NONE
   define('KL_CUSTOM',                 IPS_LOGMESSAGE + 7);       //User Message                        | FG: Black | BG: White  | STLYE : NONE
+}
 
+if (!defined('IPS_MODULEMESSAGE')) {
   // --- MODULE LOADER
   define('IPS_MODULEMESSAGE',         IPS_BASE + 300);           //Module Loader Message
   define('ML_LOAD',                   IPS_MODULEMESSAGE + 1);    //Module loaded
   define('ML_UNLOAD',                 IPS_MODULEMESSAGE + 2);    //Module unloaded
+}
 
+if (!defined('IPS_OBJECTMESSAGE')) {
   // --- OBJECT MANAGER
   define('IPS_OBJECTMESSAGE',         IPS_BASE + 400);           //Object Manager Message
   define('OM_REGISTER',               IPS_OBJECTMESSAGE + 1);    //Object was registered
@@ -46,7 +54,9 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   define('OM_CHILDADDED',             IPS_OBJECTMESSAGE + 12);   //Child for Object was added
   define('OM_CHILDREMOVED',           IPS_OBJECTMESSAGE + 13);   //Child for Object was removed
   define('OM_CHANGEIDENT',            IPS_OBJECTMESSAGE + 14);   //Ident was Changed
+}
 
+if (!defined('IPS_INSTANCEMESSAGE')) {
   // --- INSTANCE MANAGER
   define('IPS_INSTANCEMESSAGE',       IPS_BASE + 500);           //Instance Manager Message
   define('IM_CREATE',                 IPS_INSTANCEMESSAGE + 1);  //Instance created
@@ -59,7 +69,9 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   define('IM_SEARCHUPDATE',           IPS_INSTANCEMESSAGE + 8);  //Searching found new results
   define('IM_SEARCHPROGRESS',         IPS_INSTANCEMESSAGE + 9);  //Searching progress in %
   define('IM_SEARCHCOMPLETE',         IPS_INSTANCEMESSAGE + 10); //Searching is complete
+}
 
+if (!defined('IPS_VARIABLEMESSAGE')) {
   // --- VARIABLE MANAGER
   define('IPS_VARIABLEMESSAGE',       IPS_BASE + 600);           //Variable Manager Message
   define('VM_CREATE',                 IPS_VARIABLEMESSAGE + 1);  //Variable Created
@@ -67,14 +79,18 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   define('VM_UPDATE',                 IPS_VARIABLEMESSAGE + 3);  //On Variable Update
   define('VM_CHANGEPROFILENAME',      IPS_VARIABLEMESSAGE + 4);  //On Profile Name Change
   define('VM_CHANGEPROFILEACTION',    IPS_VARIABLEMESSAGE + 5);  //On Profile Action Change
+}
 
+if (!defined('IPS_SCRIPTMESSAGE')) {
   // --- SCRIPT MANAGER
   define('IPS_SCRIPTMESSAGE',         IPS_BASE + 700);           //Script Manager Message
   define('SM_CREATE',                 IPS_SCRIPTMESSAGE + 1);    //On Script Create
   define('SM_DELETE',                 IPS_SCRIPTMESSAGE + 2);    //On Script Delete
   define('SM_CHANGEFILE',             IPS_SCRIPTMESSAGE + 3);    //On Script File changed
   define('SM_BROKEN',                 IPS_SCRIPTMESSAGE + 4);    //Script Broken Status changed
+}
 
+if (!defined('IPS_EVENTMESSAGE')) {
   // --- EVENT MANAGER
   define('IPS_EVENTMESSAGE',          IPS_BASE + 800);           //Event Scripter Message
   define('EM_CREATE',                 IPS_EVENTMESSAGE + 1);     //On Event Create
@@ -91,7 +107,9 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   define('EM_CHANGECYCLICDATETO',     IPS_EVENTMESSAGE + 12);
   define('EM_CHANGECYCLICTIMEFROM',   IPS_EVENTMESSAGE + 13);
   define('EM_CHANGECYCLICTIMETO',     IPS_EVENTMESSAGE + 14);
+}
 
+if (!defined('IPS_MEDIAMESSAGE')) {
   // --- MEDIA MANAGER
   define('IPS_MEDIAMESSAGE',          IPS_BASE + 900);           //Media Manager Message
   define('MM_CREATE',                 IPS_MEDIAMESSAGE + 1);     //On Media Create
@@ -99,24 +117,32 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   define('MM_CHANGEFILE',             IPS_MEDIAMESSAGE + 3);     //On Media File changed
   define('MM_AVAILABLE',              IPS_MEDIAMESSAGE + 4);     //Media Available Status changed
   define('MM_UPDATE',                 IPS_MEDIAMESSAGE + 5);
+}
 
+if (!defined('IPS_LINKMESSAGE')) {
   // --- LINK MANAGER
   define('IPS_LINKMESSAGE',           IPS_BASE + 1000);          //Link Manager Message
   define('LM_CREATE',                 IPS_LINKMESSAGE + 1);      //On Link Create
   define('LM_DELETE',                 IPS_LINKMESSAGE + 2);      //On Link Delete
   define('LM_CHANGETARGET',           IPS_LINKMESSAGE + 3);      //On Link TargetID change
+}
 
+if (!defined('IPS_FLOWMESSAGE')) {
   // --- DATA HANDLER
-  define('IPS_DATAMESSAGE',           IPS_BASE + 1100);          //Data Handler Message
-  define('DM_CONNECT',                IPS_DATAMESSAGE + 1);      //On Instance Connect
-  define('DM_DISCONNECT',             IPS_DATAMESSAGE + 2);      //On Instance Disconnect
+  define('IPS_FLOWMESSAGE',           IPS_BASE + 1100);          //Data Handler Message
+  define('DM_CONNECT',                IPS_FLOWMESSAGE + 1);      //On Instance Connect
+  define('DM_DISCONNECT',             IPS_FLOWMESSAGE + 2);      //On Instance Disconnect
+}
 
+if (!defined('IPS_ENGINEMESSAGE')) {
   // --- SCRIPT ENGINE
   define('IPS_ENGINEMESSAGE',         IPS_BASE + 1200);          //Script Engine Message
   define('SE_UPDATE',                 IPS_ENGINEMESSAGE + 1);    //On Library Refresh
   define('SE_EXECUTE',                IPS_ENGINEMESSAGE + 2);    //On Script Finished execution
   define('SE_RUNNING',                IPS_ENGINEMESSAGE + 3);    //On Script Started execution
+}
 
+if (!defined('IPS_PROFILEMESSAGE')) {
   // --- PROFILE POOL
   define('IPS_PROFILEMESSAGE',        IPS_BASE + 1300);
   define('PM_CREATE',                 IPS_PROFILEMESSAGE + 1);
@@ -128,7 +154,9 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   define('PM_ASSOCIATIONADDED',       IPS_PROFILEMESSAGE + 7);
   define('PM_ASSOCIATIONREMOVED',     IPS_PROFILEMESSAGE + 8);
   define('PM_ASSOCIATIONCHANGED',     IPS_PROFILEMESSAGE + 9);
+}
 
+if (!defined('IPS_TIMERMESSAGE')) {
   // --- TIMER POOL
   define('IPS_TIMERMESSAGE',          IPS_BASE + 1400);          //Timer Pool Message
   define('TM_REGISTER',               IPS_TIMERMESSAGE + 1);
@@ -136,7 +164,9 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   define('TM_SETINTERVAL',            IPS_TIMERMESSAGE + 3);
   define('TM_UPDATE',                 IPS_TIMERMESSAGE + 4);
   define('TM_RUNNING',                IPS_TIMERMESSAGE + 5);
+}
 
+if (!defined('IS_SBASE')) {
   // --- STATUS CODES
   define('IS_SBASE',                           100);             //Status Codes
   define('IS_CREATING',               IS_SBASE + 1);             //Module is being created
@@ -147,14 +177,9 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
   // --- ERROR CODES
   define('IS_EBASE',                           200);             //Default Error Codes
   define('IS_NOTCREATED',             IS_EBASE + 1);             //Instance could not be created
+}
 
-  // --- Search Handling
-  define('FOUND_UNKNOWN',     0); //Undefined value
-  define('FOUND_NEW',         1); //Device is new and not configured yet
-  define('FOUND_OLD',         2); //Device is already configues (InstanceID should be set)
-  define('FOUND_CURRENT',     3); //Device is already configues (InstanceID is from the current/searching Instance)
-  define('FOUND_UNSUPPORTED', 4); //Device is not supported by Module
-
+if (!defined('vtBoolean')) {
   define('vtBoolean', 0);
   define('vtInteger', 1);
   define('vtFloat',   2);
@@ -170,10 +195,10 @@ if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt si
 class classModule extends stdClass {
 
   public function getParentInfo(integer $id) {
-    $parentID = $this->getParentInstance($id);
+    $parentID = classModule::getParentInstance($id);
 
     if ($parentID > 0) {
-      $status = $this->getParentStatus($parentID);
+      $status = classModule::getParentStatus($parentID);
 
       if ($status) {
         return $parentID;
@@ -190,7 +215,7 @@ class classModule extends stdClass {
   }
 
 
-  public function getParentInstance(integer $id) {
+  public static function getParentInstance(integer $id) {
     $parentID = null;
 
     if (IPS_InstanceExists($id)) {
@@ -207,7 +232,7 @@ class classModule extends stdClass {
   }
 
 
-  public function getParentStatus(integer $id) {
+  public static function getParentStatus(integer $id) {
     $instanceID = IPS_GetInstance($id);
     return $instanceID['InstanceStatus'];
   }
