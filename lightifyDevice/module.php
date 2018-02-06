@@ -239,8 +239,9 @@ class lightifyDevice extends lightifyControl {
         $this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 
         if (!empty($localDevice)) {
-          $uintUUID  = substr($localDevice, 2, classConstant::UUID_DEVICE_LENGTH);
           $itemType  = ord($localDevice{10});
+          $uintUUID  = substr($localDevice, 2, classConstant::UUID_DEVICE_LENGTH);
+          $UUID      = $this->lightifyBase->ChrToUUID($uintUUID);
 
           if ($this->ReadPropertyString("uintUUID") != $uintUUID) {
             IPS_SetProperty($this->InstanceID, "uintUUID", (string)$uintUUID);
@@ -250,13 +251,11 @@ class lightifyDevice extends lightifyControl {
             IPS_SetProperty($this->InstanceID, "itemType", (integer)$itemType);
           }
 
-          if (IPS_GetProperty($this->parentID, "deviceInfo")) {
-            $UUID = $this->lightifyBase->ChrToUUID($uintUUID);
+          if ($this->ReadPropertyString("UUID") != $UUID) {
+            IPS_SetProperty($this->InstanceID, "UUID", (string)$UUID);
+          }
 
-            if ($this->ReadPropertyString("UUID") != $UUID) {
-              IPS_SetProperty($this->InstanceID, "UUID", (string)$UUID);
-            }
-
+          if (IPS_GetProperty($this->parentID, "connectMode") == classConstant::CONNECT_LOCAL_CLOUD) {
             $jsonString = $this->SendDataToParent(json_encode(array(
               'DataID' => classConstant::TX_GATEWAY,
               'method' => classConstant::METHOD_APPLY_CHILD,
