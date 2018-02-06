@@ -1327,7 +1327,7 @@ class lightifyGateway extends IPSModule {
 
           //$groupID      = "i".str_pad($groupID, 3, "0", STR_PAD_LEFT);
           //$localGroup  .= $groupID.substr($data, 1, classConstant::DATA_GROUP_LENGTH);
-          $groupDevice .= $groupID.chr($n).$buffer;
+          //$groupDevice .= $groupID.chr($n).$buffer;
           $groupList   .= substr($data,0, classConstant::DATA_GROUP_LENGTH).chr($n);
           //IPS_LogMessage("SymconOSR", "<READDATA>   ".$i."/".$groupID."/".$k."/".$this->lightifyBase->decodeData($buffer));
 
