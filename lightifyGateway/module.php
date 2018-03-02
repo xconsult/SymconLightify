@@ -1379,10 +1379,11 @@ class lightifyGateway extends IPSModule {
         return false;
 
       case classConstant::GET_GROUP_SCENE:
-        $cloudGroup  = json_decode($this->GetBuffer("cloudGroup"));
-        $itemType    = classConstant::TYPE_GROUP_SCENE;
+        $cloudGroup = json_decode($this->GetBuffer("cloudGroup"));
+        $itemType   = classConstant::TYPE_GROUP_SCENE;
 
-        $cloudScene  = vtNoString;
+        $cloudScene = vtNoString;
+        $sceneList  = vtNoString;
         $i = 0;
 
         foreach ($cloudGroup as $group) {
