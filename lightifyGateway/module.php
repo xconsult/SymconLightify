@@ -1359,7 +1359,7 @@ class lightifyGateway extends IPSModule
             $deviceName = trim(substr($data, 26, classConstant::DATA_NAME_LENGTH));
 
             foreach ($cloudBuffer->devices as $devices => $device) {
-              $cloudID = $gatewayID."-d".str_pad($deviceID, 2, "0", STR_PAD_LEFT);
+              $cloudID = $gatewayID."-d".str_pad((string)$deviceID, 2, "0", STR_PAD_LEFT);
 
               if ($cloudID == $device->id) {
                 $zigBee      = dechex(ord($data{0})).dechex(ord($data{1}));
