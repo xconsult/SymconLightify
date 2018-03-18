@@ -504,8 +504,6 @@ trait LightifyControl
           case "STATE":
             if ($this->itemDevice || $this->itemGroup) {
               if ($value == 0 || $value == 1) {
-                IPS_LogMessage("SymconOSR", "<Lightify|SetValue>   key: ".$key."  value: ".$value);
-
                 if (false !== ($result = $lightifyConnect->setState($uintUUID, $flag, $value))) {
                   SetValue($stateID, $value);
                   $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
@@ -538,7 +536,7 @@ trait LightifyControl
               $value        = $this->getValueRange($key, $value);
 
               if ($value != $color) {
-                $hex = str_pad(dechex($value), 6, 0, STR_PAD_LEFT);
+                $hex = str_pad(dechex($value), 6, "0", STR_PAD_LEFT);
                 $hsv = $this->lightifyBase->HEX2HSV($hex);
                 $rgb = $this->lightifyBase->HEX2RGB($hex);
 
@@ -651,8 +649,6 @@ trait LightifyControl
 
   private function getValueRange($key, $value)
   {
-
-    IPS_LogMessage("SymconOSR", "<Lightify|getValueRange>   key: ".$key."  value: ".$value);
 
     switch ($key) {
       case "COLOR":

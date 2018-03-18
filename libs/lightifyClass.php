@@ -271,7 +271,7 @@ class lightifyBase
   public function getRequestID($uniqueID)
   {
 
-    $arrayID   = str_split(str_pad(dechex($uniqueID), self::UUID_DEVICE_LENGTH, 0, STR_PAD_RIGHT), 2);
+    $arrayID   = str_split(str_pad(dechex($uniqueID), self::UUID_DEVICE_LENGTH, "0", STR_PAD_RIGHT), 2);
     $requestID = vtNoString;
 
     foreach ($arrayID as $item) {
@@ -405,9 +405,9 @@ class lightifyBase
 
     $rgb = $this->HSV2RGB($h, $s, $v);
 
-    $r = str_pad(dechex($rgb['r']), 2, 0, STR_PAD_LEFT);
-    $g = str_pad(dechex($rgb['g']), 2, 0, STR_PAD_LEFT);
-    $b = str_pad(dechex($rgb['b']), 2, 0, STR_PAD_LEFT);
+    $r = str_pad(dechex($rgb['r']), 2, "0", STR_PAD_LEFT);
+    $g = str_pad(dechex($rgb['g']), 2, "0", STR_PAD_LEFT);
+    $b = str_pad(dechex($rgb['b']), 2, "0", STR_PAD_LEFT);
 
     return $r.$g.$b;
   }
