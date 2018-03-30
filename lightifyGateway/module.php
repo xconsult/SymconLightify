@@ -29,9 +29,9 @@ class lightifyGateway extends IPSModule
   const GATEWAY_SERIAL_LENGTH   = 11;
 
   const LIST_CATEGORY_INDEX     =  8;
-  const LIST_DEVICE_INDEX       = 12;
-  const LIST_GROUP_INDEX        = 13;
-  const LIST_SCENE_INDEX        = 14;
+  const LIST_DEVICE_INDEX       = 11;
+  const LIST_GROUP_INDEX        = 12;
+  const LIST_SCENE_INDEX        = 13;
 
   const OAUTH_AUTHORIZE         = "https://oauth.ipmagic.de/authorize/";
   const OAUTH_FORWARD           = "https://oauth.ipmagic.de/forward/";
@@ -55,7 +55,7 @@ class lightifyGateway extends IPSModule
   const LIGHTIFY_MAXREDIRS      = 10;
   const LIGHTIFY_TIMEOUT        = 30;
 
-  protected $oauthIdentifier = "osram_lightify";
+  protected $oAuthIdent = "osram_lightify";
 
   protected $classModule;
   protected $lightifyBase;
@@ -137,7 +137,6 @@ class lightifyGateway extends IPSModule
     $this->RegisterPropertyString("listGroup", vtNoString);
     $this->RegisterPropertyString("listScene", vtNoString);
     $this->RegisterPropertyBoolean("deviceInfo", false);
-    $this->RegisterPropertyBoolean("showControl", false);
 
     $this->RegisterPropertyInteger("debug", classConstant::DEBUG_DISABLED);
     $this->RegisterPropertyBoolean("message", false);
@@ -230,7 +229,7 @@ class lightifyGateway extends IPSModule
         $localUpdate = $this->ReadPropertyInteger("localUpdate")*1000;
 
         if ($connect == classConstant::CONNECT_LOCAL_CLOUD) {
-          $this->RegisterOAuth($this->oauthIdentifier);
+          $this->RegisterOAuth($this->oAuthIdent);
         }
 
         $this->getLightifyData(classConstant::METHOD_APPLY_LOCAL);
@@ -329,7 +328,6 @@ class lightifyGateway extends IPSModule
           ]
         },
         { "type": "CheckBox",     "name": "deviceInfo",         "caption": " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" },
-        { "type": "CheckBox",     "name": "showControl",        "caption": " Automatically hide/show available properties based on the device state"                        },
         '.$formDevice.'
         '.$formGroup.'
         '.$formScene.'
@@ -357,9 +355,9 @@ class lightifyGateway extends IPSModule
         { "code": 104, "icon": "inactive", "caption": "Enter all required informations" },
         { "code": 201, "icon": "inactive", "caption": "Lightify gateway is closed"      },
         { "code": 202, "icon": "error",    "caption": "Invalid IP address"              },
-        { "code": 203, "icon": "error",    "caption": "Ping timeout < 0ms"              },
-        { "code": 204, "icon": "error",    "caption": "Update interval < 3s"            },
-        { "code": 205, "icon": "error",    "caption": "Invalid Serial number!"          },
+        { "code": 203, "icon": "error",    "caption": "Invalid Serial number!"          },
+        { "code": 204, "icon": "error",    "caption": "Ping timeout < 0ms"              },
+        { "code": 205, "icon": "error",    "caption": "Update interval < 3s"            },
         { "code": 299, "icon": "error",    "caption": "Unknown error"                   }
       ]
     }';
@@ -593,14 +591,14 @@ class lightifyGateway extends IPSModule
 
     if ($connect == classConstant::CONNECT_LOCAL_CLOUD) {
       if (strlen($this->ReadPropertyString("serialNumber")) != self::GATEWAY_SERIAL_LENGTH) {
-        $this->SetStatus(205);
+        $this->SetStatus(203);
         return false;
       }
     }
 
     if ($filterIP) {
       if ($localUpdate < TIMER_SYNC_LOCAL_MIN) {
-        $this->SetStatus(204);
+        $this->SetStatus(205);
         return false;
       }
     } else {
@@ -609,7 +607,7 @@ class lightifyGateway extends IPSModule
     }
 
     if ($this->ReadPropertyInteger("timeOut") < 0) {
-      $this->SetStatus(203);
+      $this->SetStatus(204);
       return false;
     }
 
@@ -628,7 +626,7 @@ class lightifyGateway extends IPSModule
 
     if ($this->ReadPropertyInteger("connectMode") == classConstant::CONNECT_LOCAL_CLOUD) {
       //Return everything which will open the browser
-      return self::OAUTH_AUTHORIZE.$this->oauthIdentifier."?username=".urlencode(IPS_GetLicensee());
+      return self::OAUTH_AUTHORIZE.$this->oAuthIdent."?username=".urlencode(IPS_GetLicensee());
     }
 
     echo "Lightify API registration available in cloud connection mode only!\n";
@@ -659,7 +657,7 @@ class lightifyGateway extends IPSModule
     //Exchange our Authentication Code for a permanent Refresh Token and a temporary Access Token
     $cURL    = curl_init();
     $options = array(
-      CURLOPT_URL            => self::OAUTH_ACCESS_TOKEN.$this->oauthIdentifier,
+      CURLOPT_URL            => self::OAUTH_ACCESS_TOKEN.$this->oAuthIdent,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_ENCODING       => vtNoString,
       CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
@@ -752,7 +750,7 @@ class lightifyGateway extends IPSModule
 
     $cURL    = curl_init();
     $options = array(
-      CURLOPT_URL            => self::OAUTH_ACCESS_TOKEN.$this->oauthIdentifier,
+      CURLOPT_URL            => self::OAUTH_ACCESS_TOKEN.$this->oAuthIdent,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_ENCODING       => vtNoString,
       CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
@@ -937,7 +935,6 @@ class lightifyGateway extends IPSModule
       IPS_LogMessage("SymconOSR", "<Gateway|cloudRequest:result>   ".$result);
     }
 
-    //IPS_LogMessage("SymconOSR", "<Gateway|CLOUDREQUEST:result>   ".$result);
     return $result;
   }
 

@@ -184,7 +184,6 @@ class lightifyDevice extends IPSModule
     $deviceID = $this->ReadPropertyInteger("deviceID");
     $data     = json_decode($jsonString);
 
-    $showControl = IPS_GetProperty($data->id, "showControl");
     $debug       = IPS_GetProperty($data->id, "debug");
     $message     = IPS_GetProperty($data->id, "message");
 
@@ -212,7 +211,7 @@ class lightifyDevice extends IPSModule
             }
           }
 
-          $this->setDeviceInfo($data->method, $data->mode, $localDevice, $showControl);
+          $this->setDeviceInfo($data->method, $data->mode, $localDevice);
         }
         break;
 
@@ -233,7 +232,7 @@ class lightifyDevice extends IPSModule
             }
           }
 
-          $this->setDeviceInfo($data->method, $data->mode, $cloudDevice, $showControl, true);
+          $this->setDeviceInfo($data->method, $data->mode, $cloudDevice, true);
         }
         break;
     }
@@ -245,7 +244,6 @@ class lightifyDevice extends IPSModule
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $connectMode = IPS_GetProperty($parentID, "connectMode");
-      $showControl = IPS_GetProperty($parentID, "showControl");
 
       $jsonString = $this->SendDataToParent(json_encode(array(
         'DataID' => classConstant::TX_GATEWAY,
@@ -294,12 +292,12 @@ class lightifyDevice extends IPSModule
               $this->SetBuffer("cloudDevice", $cloudDevice);
 
               if (!empty($cloudDevice)) {
-                $this->setDeviceInfo(classConstant::METHOD_CREATE_CHILD, classConstant::MODE_DEVICE_CLOUD, $cloudDevice, $showControl, true);
+                $this->setDeviceInfo(classConstant::METHOD_CREATE_CHILD, classConstant::MODE_DEVICE_CLOUD, $cloudDevice, true);
               }
             }
           }
 
-          $this->setDeviceInfo(classConstant::METHOD_CREATE_CHILD, classConstant::MODE_DEVICE_LOCAL, $localDevice, $showControl);
+          $this->setDeviceInfo(classConstant::METHOD_CREATE_CHILD, classConstant::MODE_DEVICE_LOCAL, $localDevice);
           return 102;
         }
 
@@ -353,7 +351,7 @@ class lightifyDevice extends IPSModule
   }
 
 
-  private function setDeviceInfo($method, $mode, $data, $control, $apply = false)
+  private function setDeviceInfo($method, $mode, $data, $apply = false)
   {
 
     $itemType = ord($data{10});
@@ -383,18 +381,17 @@ class lightifyDevice extends IPSModule
         $hue    = $color = $brightness = vtNoString;
         $temperature     = $saturation = vtNoString;
 
+        $newOnline = (ord($data{15}) == classConstant::STATE_ONLINE) ? true : false; //Online: 2 - Offline: 0 - Unknown: 1
+        $online    = $state = false;
+
         if ($itemLight || $itemPlug) {
-          $newOnline = (ord($data{15}) == classConstant::STATE_ONLINE) ? true : false; //Online: 2 - Offline: 0 - Unknown: 1
           $newState  = ($newOnline) ? (bool)ord($data{18}) : false;
-          $online    = $state = false;
+        } else {
+          $newState = (bool)ord($data{22}); //State = red
         }
 
         if ($itemLight) {
           $brightness = ord($data{19});
-        }
-
-        if ($itemMotion) {
-          $newState = (bool)ord($data{22}); //State = red
         }
 
         $white = ord($data{25});
@@ -415,6 +412,23 @@ class lightifyDevice extends IPSModule
         $zigBee   = dechex(ord($data{0})).dechex(ord($data{1}));
         $firmware = vtNoString;
 
+        if (false === ($onlineID = @$this->GetIDForIdent("ONLINE"))) {
+          if ($method == classConstant::METHOD_CREATE_CHILD) {
+            $onlineID = $this->RegisterVariableBoolean("ONLINE", "Online", "OSR.Switch", 312);
+          }
+        }
+
+        if ($onlineID !== false) {
+           $online = GetValueBoolean($onlineID);
+
+          if ($online != $newOnline) {
+            SetValueBoolean($onlineID, $newOnline);
+          }
+
+          IPS_SetDisabled($onlineID, true);
+          IPS_SetHidden($onlineID, true);
+        }
+
         if (false === ($stateID = @$this->GetIDForIdent("STATE"))) {
           if ($method == classConstant::METHOD_CREATE_CHILD) {
             $stateID = $this->RegisterVariableBoolean("STATE", "State", "OSR.Switch", 313);
@@ -429,7 +443,7 @@ class lightifyDevice extends IPSModule
           }
 
           if ($itemLight || $itemPlug) {
-            $this->MaintainAction("STATE", $newOnline);
+            $this->EnableAction("STATE");
           }
         }
 
@@ -446,13 +460,8 @@ class lightifyDevice extends IPSModule
                 SetValueInteger($hueID, $hue);
               }
 
-              if ($control) {
-                IPS_SetHidden($hueID, !$newState);
-              } else {
-                IPS_SetHidden($hueID, false);
-              }
-
-              $this->MaintainAction("HUE", $newState);
+              IPS_SetDisabled($hueID, true);
+              IPS_SetHidden($hueID, true);
             }
 
             if (false == ($colorID = @$this->GetIDForIdent("COLOR"))) {
@@ -467,13 +476,8 @@ class lightifyDevice extends IPSModule
                 SetValueInteger($colorID, $color);
               }
 
-              if ($control) {
-                IPS_SetHidden($colorID, !$newState);
-              } else {
-                IPS_SetHidden($colorID, false);
-              }
-
-              $this->MaintainAction("COLOR", $newState);
+             //$this->MaintainAction("COLOR", $newState);
+              $this->EnableAction("COLOR");
             }
 
             if (false == ($saturationID = @$this->GetIDForIdent("SATURATION"))) {
@@ -488,13 +492,7 @@ class lightifyDevice extends IPSModule
                 SetValueInteger($saturationID, $saturation);
               }
 
-              if ($control) {
-                IPS_SetHidden($saturationID, !$newState);
-              } else {
-                IPS_SetHidden($saturationID, false);
-              }
-
-              $this->MaintainAction("SATURATION", $newState);
+              $this->EnableAction("SATURATION");
             }
           }
 
@@ -512,13 +510,7 @@ class lightifyDevice extends IPSModule
                 SetValueInteger($temperatureID, $temperature);
               }
 
-              if ($control) {
-                IPS_SetHidden($temperatureID, !$newState);
-              } else {
-                IPS_SetHidden($temperatureID, false);
-              }
-
-              $this->MaintainAction("COLOR_TEMPERATURE", $newState);
+              $this->EnableAction("COLOR_TEMPERATURE");
             }
           }
 
@@ -535,13 +527,7 @@ class lightifyDevice extends IPSModule
                 SetValueInteger($brightnessID, $brightness);
               }
 
-              if ($control) {
-                IPS_SetHidden($brightnessID, !$newState);
-              } else {
-                IPS_SetHidden($brightnessID, false);
-              }
-
-              $this->MaintainAction("BRIGHTNESS", $newState);
+              $this->EnableAction("BRIGHTNESS");
             }
           }
         }

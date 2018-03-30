@@ -254,7 +254,6 @@ class lightifyGroup extends IPSModule
     $itemID = $this->ReadPropertyInteger("itemID");
     $data   = json_decode($jsonString);
 
-    $showControl = IPS_GetProperty($data->id, "showControl");
     $debug       = IPS_GetProperty($data->id, "debug");
     $message     = IPS_GetProperty($data->id, "message");
 
@@ -282,7 +281,7 @@ class lightifyGroup extends IPSModule
               }
             }
 
-            $this->setGroupInfo($data->mode, $data->method, $groupDevice, $showControl);
+            $this->setGroupInfo($data->mode, $data->method, $groupDevice);
           }
         }
         break;
@@ -321,8 +320,6 @@ class lightifyGroup extends IPSModule
   {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
-      $showControl = IPS_GetProperty($parentID, "showControl");
-
       $jsonString = $this->SendDataToParent(json_encode(array(
         'DataID' => classConstant::TX_GATEWAY,
         'method' => classConstant::METHOD_APPLY_CHILD,
@@ -350,7 +347,7 @@ class lightifyGroup extends IPSModule
             IPS_SetProperty($this->InstanceID, "itemType", (int)$itemType);
           }
 
-          $this->setGroupInfo(classConstant::MODE_GROUP_LOCAL, classConstant::METHOD_CREATE_CHILD, $groupDevice, $showControl);
+          $this->setGroupInfo(classConstant::MODE_GROUP_LOCAL, classConstant::METHOD_CREATE_CHILD, $groupDevice);
           return 102;
         }
 
@@ -454,7 +451,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  private function setGroupInfo($mode, $method, $data, $showControl)
+  private function setGroupInfo($mode, $method, $data)
   {
 
     switch ($mode) {
@@ -546,14 +543,8 @@ class lightifyGroup extends IPSModule
 
           //Hue
           if ($hueID = @$this->GetIDForIdent("HUE")) {
-            if ($showControl) {
-              IPS_SetHidden($hueID, !$newState);
-            } else {
-              IPS_SetHidden($hueID, false);
-            }
-
-            $action = ($hue == vtNoValue) ? false : true;
-            $this->MaintainAction("HUE", $action);
+            IPS_SetDisabled($hueID, true);
+            IPS_SetHidden($hueID, true);
           }
 
           if (!$hueID) {
@@ -570,14 +561,7 @@ class lightifyGroup extends IPSModule
 
           //Color
           if ($colorID = @$this->GetIDForIdent("COLOR")) {
-            if ($showControl) {
-              IPS_SetHidden($colorID, !$newState);
-            } else {
-              IPS_SetHidden($colorID, false);
-            }
-
-            $action = ($color == vtNoValue) ? false : true;
-            $this->MaintainAction("COLOR", $action);
+            $this->EnableAction("COLOR");
           }
 
           if (!$colorID) {
@@ -595,14 +579,7 @@ class lightifyGroup extends IPSModule
 
           //Color temperature
           if ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
-            if ($showControl) {
-              IPS_SetHidden($temperatureID, !$newState);
-            } else {
-              IPS_SetHidden($temperatureID, false);
-            }
-
-            $action = ($temperature == vtNoValue) ? false : true;
-            $this->MaintainAction("COLOR_TEMPERATURE", $action);
+            $this->EnableAction("COLOR_TEMPERATURE");
           }
 
           if (!$temperatureID) {
@@ -619,14 +596,7 @@ class lightifyGroup extends IPSModule
 
           //Brightness
           if ($brightnessID = @$this->GetIDForIdent("BRIGHTNESS")) {
-            if ($showControl) {
-              IPS_SetHidden($brightnessID, !$newState);
-            } else {
-              IPS_SetHidden($brightnessID, false);
-            }
-
-            $action = ($brightness == vtNoValue) ? false : true;
-            $this->MaintainAction("BRIGHTNESS", $action);
+            $this->EnableAction("BRIGHTNESS");
           }
 
           if (!$brightnessID) {
@@ -644,14 +614,7 @@ class lightifyGroup extends IPSModule
 
           //Saturation control
           if ($saturationID = @$this->GetIDForIdent("SATURATION")) {
-            if ($showControl) {
-              IPS_SetHidden($saturationID, !$newState);
-            } else {
-              IPS_SetHidden($saturationID, false);
-            }
-
-            $action = ($saturation == vtNoValue) ? false : true;
-            $this->MaintainAction("SATURATION", $action);
+            $this->EnableAction("SATURATION");
           }
 
           if (!$saturationID) {

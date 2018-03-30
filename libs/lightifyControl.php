@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 require_once __DIR__.'/../libs/baseModule.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 require_once __DIR__.'/../libs/lightifyConnect.php';
@@ -502,7 +504,7 @@ trait LightifyControl
             return false;
 
           case "STATE":
-            if ($this->itemDevice || $this->itemGroup) {
+            if (($this->itemDevice && $online) || $this->itemGroup) {
               if ($value == 0 || $value == 1) {
                 if (false !== ($result = $lightifyConnect->setState($uintUUID, $flag, $value))) {
                   SetValue($stateID, $value);
