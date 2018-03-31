@@ -1,7 +1,8 @@
 <?php
 
 //Commands
-class stdCommand extends stdClass {
+class stdCommand
+{
 
   # 13 List paired devices (broadcast)
   # 1E List configured groups/zones (broadcast)
@@ -46,7 +47,8 @@ class stdCommand extends stdClass {
 
 
 //Constants
-class classConstant extends stdClass {
+class classConstant
+{
 
   const IPS_BOOLEAN = 0;
   const IPS_INTEGER = 1;
@@ -78,15 +80,16 @@ class classConstant extends stdClass {
 
   const METHOD_PARENT_CONFIG   = 1201;
   const METHOD_LOAD_LOCAL      = 1202;
-  const METHOD_APPLY_LOCAL     = 1203;
-  const METHOD_UPDATE_PARENT   = 1204;
-  const METHOD_LOAD_CHILD      = 1205;
-  const METHOD_APPLY_CHILD     = 1206;
-  const METHOD_CREATE_CHILD    = 1207;
-  const METHOD_UPDATE_CHILD    = 1208;
-  const METHOD_LOAD_CLOUD      = 1209;
-  const METHOD_WRITE_CLOUD     = 1210;
-  const METHOD_LOAD_INSTANCE   = 1211;
+  const METHOD_RELOAD_LOCAL    = 1203;
+  const METHOD_APPLY_LOCAL     = 1204;
+  const METHOD_UPDATE_PARENT   = 1205;
+  const METHOD_LOAD_CHILD      = 1206;
+  const METHOD_APPLY_CHILD     = 1207;
+  const METHOD_CREATE_CHILD    = 1208;
+  const METHOD_UPDATE_CHILD    = 1209;
+  const METHOD_LOAD_CLOUD      = 1210;
+  const METHOD_WRITE_CLOUD     = 1211;
+  const METHOD_LOAD_INSTANCE   = 1212;
 
   const MODE_GATEWAY_LOCAL     = 1401;
   const MODE_DEVICE_LOCAL      = 1402;
@@ -162,7 +165,7 @@ class classConstant extends stdClass {
 
   const TYPE_FIXED_WHITE       = 1;  //Fixed White
   const TYPE_LIGHT_CCT         = 2;  //Tuneable White
-  const TYPE_LIGHT_DIMABLE     = 4;  //Can only control level
+  const TYPE_LIGHT_DIMABLE     = 4;  //Can only control brightness
   const TYPE_LIGHT_COLOR       = 8;  //Fixed White and RGB
   const TYPE_LIGHT_EXT_COLOR   = 10; //Tuneable White and RGBW
   const TYPE_PLUG_ONOFF        = 16; //Only On/off capable lamp/device
@@ -203,13 +206,13 @@ class classConstant extends stdClass {
   const STATE_UNKNOWN         = 1;
   const STATE_OFFLINE         = 0;
 
-  const CTEMP_DEFAULT         = 2702;
-  const CTEMP_DIMABLE_MIN     = 2702;
-  const CTEMP_DIMABLE_MAX     = 6535;
-  const CTEMP_CCT_MIN         = 2702;
-  const CTEMP_CCT_MAX         = 6535;
+  const CTEMP_DEFAULT         = 2700;
+  const CTEMP_DIMABLE_MIN     = 2700;
+  const CTEMP_DIMABLE_MAX     = 6500;
+  const CTEMP_CCT_MIN         = 2700;
+  const CTEMP_CCT_MAX         = 6500;
   const CTEMP_COLOR_MIN       = 2000;
-  const CTEMP_COLOR_MAX       = 6535;
+  const CTEMP_COLOR_MAX       = 8000;
 
   const HUE_MIN               = 0;
   const HUE_MAX               = 360;
@@ -227,40 +230,47 @@ class classConstant extends stdClass {
   const COLOR_SPEED_MIN       = 5;
   const COLOR_SPEED_MAX       = 65535;
 
-  const SCENE_RELAX           = 2702;
-  const SCENE_ACTIVE          = 6535;
+  const SCENE_RELAX           = 2700;
+  const SCENE_ACTIVE          = 6500;
   const SCENE_PLANT_LIGHT     = "ff2a6D";
 
   const GET_WIFI_CONFIG       = 0x00;
   const SET_WIFI_CONFIG       = 0x01;
   const SCAN_WIFI_CONFIG      = 0x03;
 
-  const REQUESTID_HIGH_VALUE  = 4294967295;
+  const REQUEST_ID_HIGH       = 4294967295;
   const INFO_NOT_AVAILABLE    = "---- Information nicht verfügbar ----";
 
-  const LIST_KEY_VALUES       = "ALL_LIGHTS,SAVE,NAME,SCENE,DEFAULT,SOFT_ON,SOFT_OFF,TRANSITION,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION";
-  const LIST_KEY_IDENTS       = "HUE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION,MOTION,SCENE,ZIGBEE,FIRMWARE";
+  const LIST_KEY_VALUES       = "ALL_LIGHTS,SAVE,NAME,SCENE,DEFAULT,SOFT_ON,SOFT_OFF,TRANSITION,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,BRIGHTNESS,LEVEL,SATURATION";
+  const LIST_KEY_IDENTS       = "HUE,COLOR,COLOR_TEMPERATURE,BRIGHTNESS,LEVEL,SATURATION,MOTION,SCENE,ZIGBEE,FIRMWARE";
 
 }
 
 
 //Base functions  
-class lightifyBase extends stdClass {
+class lightifyBase
+{
 
-  public function getObjectByProperty($moduleID, $property, $value) {
+  public function getObjectByProperty($moduleID, $property, $value)
+  {
+
     $Instances = IPS_GetInstanceListBymoduleID($moduleID);
 
     foreach ($Instances as $objectID) {
-      if (@IPS_GetProperty($objectID, $property) == $value) return $objectID;
+      if (@IPS_GetProperty($objectID, $property) == $value) {
+        return $objectID;
+      }
     }
 
     return false;
   }
 
 
-  public function getRequestID($uniqueID) {
-    $arrayID   = str_split(str_pad(dechex($uniqueID), self::UUID_DEVICE_LENGTH, 0, STR_PAD_RIGHT), 2);
-    $requestID = "";
+  public function getRequestID($uniqueID)
+  {
+
+    $arrayID   = str_split(str_pad(dechex($uniqueID), self::UUID_DEVICE_LENGTH, "0", STR_PAD_RIGHT), 2);
+    $requestID = vtNoString;
 
     foreach ($arrayID as $item) {
       $requestID .= chr($item);
@@ -270,8 +280,10 @@ class lightifyBase extends stdClass {
   }
 
 
-  public function decodeData($data) {
-    $Decode = "";
+  public function decodeData($data)
+  {
+
+    $Decode = vtNoString;
 
     for ($i = 0; $i < strlen($data); $i++) {
       $Decode = $Decode." ".sprintf("%02d", ord($data{$i}));
@@ -281,7 +293,9 @@ class lightifyBase extends stdClass {
   }
 
 
-  public function decodeGroup($lowBits, $highBits) {
+  public function decodeGroup($lowBits, $highBits)
+  {
+
     $binary = strrev(sprintf("%08s%08s", decbin($highBits), decbin($lowBits)));
     $split  = str_split($binary);
     $count  = count($split);
@@ -295,9 +309,11 @@ class lightifyBase extends stdClass {
   }
 
 
-  public function UUIDtoChr($UUID) {
+  public function UUIDtoChr($UUID)
+  {
+
     $UUID   = explode(":", $UUID);
-    $result = "";
+    $result = vtNoString;
 
     foreach ($UUID as $value) {
       $result = chr(hexdec($value)).$result;
@@ -310,7 +326,9 @@ class lightifyBase extends stdClass {
   }
 
 
-  public function chrToUUID($UUID) {
+  public function chrToUUID($UUID)
+  {
+
     $length = strlen($UUID);
     $result = array();
 
@@ -322,7 +340,9 @@ class lightifyBase extends stdClass {
   }
 
 
-  public function nameToChr($name) {
+  public function nameToChr($name)
+  {
+
     $result = "";
 
     for ($i = 0; $i < self::DATA_NAME_LENGTH; ++$i) {
@@ -333,7 +353,9 @@ class lightifyBase extends stdClass {
   }
 
 
-  public function HEX2HSV($hex) {
+  public function HEX2HSV($hex)
+  {
+
     $r = substr($hex, 0, 2);
     $g = substr($hex, 2, 2);
     $b = substr($hex, 4, 2);
@@ -342,7 +364,9 @@ class lightifyBase extends stdClass {
   }
 
 
-  private function RGB2HSV($r, $g, $b) {
+  private function RGB2HSV($r, $g, $b)
+  {
+
     $r /= 255; $g /= 255; $b /= 255;
 
     $maxRGB = max($r, $g, $b);
@@ -374,18 +398,22 @@ class lightifyBase extends stdClass {
   }
 
 
-  public function HSV2HEX($h, $s, $v) {
+  public function HSV2HEX($h, $s, $v)
+  {
+
     $rgb = $this->HSV2RGB($h, $s, $v);
 
-    $r = str_pad(dechex($rgb['r']), 2, 0, STR_PAD_LEFT);
-    $g = str_pad(dechex($rgb['g']), 2, 0, STR_PAD_LEFT);
-    $b = str_pad(dechex($rgb['b']), 2, 0, STR_PAD_LEFT);
+    $r = str_pad(dechex($rgb['r']), 2, "0", STR_PAD_LEFT);
+    $g = str_pad(dechex($rgb['g']), 2, "0", STR_PAD_LEFT);
+    $b = str_pad(dechex($rgb['b']), 2, "0", STR_PAD_LEFT);
 
     return $r.$g.$b;
   }
 
 
-  private function HSV2RGB($h, $s, $v) {
+  private function HSV2RGB($h, $s, $v)
+  {
+
     if ($h < 0) $h = 0;
     if ($h > 360) $h = 360;
     if ($s < 0) $s = 0;
@@ -441,7 +469,9 @@ class lightifyBase extends stdClass {
   }
 
 
-  public function RGB2HEX($rgb) {
+  public function RGB2HEX($rgb)
+  {
+
     $hex  = str_pad(dechex($rgb['r']), 2, "0", STR_PAD_LEFT);
     $hex .= str_pad(dechex($rgb['g']), 2, "0", STR_PAD_LEFT);
     $hex .= str_pad(dechex($rgb['b']), 2, "0", STR_PAD_LEFT);
@@ -450,8 +480,10 @@ class lightifyBase extends stdClass {
   }
 
 
-  public function HEX2RGB($hex) {
-    if(strlen($hex) == 3) {
+  public function HEX2RGB($hex)
+  {
+
+    if (strlen($hex) == 3) {
       $r = hexdec($hex[0].$hex[0]);
       $g = hexdec($hex[1].$hex[1]);
       $b = hexdec($hex[2].$hex[2]);

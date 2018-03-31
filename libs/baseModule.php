@@ -184,67 +184,92 @@ if (!defined('vtBoolean')) {
   define('vtInteger', 1);
   define('vtFloat',   2);
   define('vtString',  3);
+}
 
+if (!defined('vtNoValue')) {
   define('vtNoValue',  -1);
   define('vtNoString', "");
-
   define('vtNoForm', "{}");
 }
 
 
-class classModule extends stdClass {
+trait ParentInstance
+{
 
-  public function getParentInfo(integer $id) {
-    $parentID = classModule::getParentInstance($id);
+  private function getParentInfo($id)
+  {
+
+    $parentID = $this->getParentInstance($id);
 
     if ($parentID > 0) {
-      $status = classModule::getParentStatus($parentID);
+      $status = $this->getParentStatus($parentID);
 
       if ($status) {
         return $parentID;
-      } else {
-	      $error = "Parent not active [Instance #".$id."]";
-        IPS_LogMessage("SymconOSR", "<LIGHTIFY>   ".$error);
       }
-    } else {
-	    $error = "Parent does not exist [Instance #".$id."]";
-      IPS_LogMessage("SymconOSR", "<LIGHTIFY>   ".$error);
     }
 
     return false;
   }
 
 
-  public static function getParentInstance(integer $id) {
-    $parentID = null;
+  private function getParentInstance($id)
+  {
+
+    $parentID = 0;
 
     if (IPS_InstanceExists($id)) {
       $instanceID = IPS_GetInstance($id);
       $parentID   = $instanceID['ConnectionID'];
-    } else {
-	    $error = "[Instance #".$id."] does not exist";
-      IPS_LogMessage("SymconOSR", "<LIGHTIFY>   ".$error);
-
-      return null;
     }
 
     return $parentID;
   }
 
 
-  public static function getParentStatus(integer $id) {
+  private function getParentStatus($id)
+  {
+
     $instanceID = IPS_GetInstance($id);
     return $instanceID['InstanceStatus'];
   }
 
+}
 
-  public function secureTouch(string $fname, string $prefix) {
-    if (file_exists($fname)) {
-      return;
+
+trait WebOAuth
+{
+
+  private function RegisterOAuth($WebOAuth)
+  {
+
+    $ids = IPS_GetInstanceListByModuleID('{F99BF07D-CECA-438B-A497-E4B55F139D37}');
+
+    if (count($ids) > 0 && (IPS_GetInstance($ids[0])['InstanceStatus'] == 102)) { //Instance is active
+      $clientIDs = json_decode(IPS_GetProperty($ids[0], 'ClientIDs'), true);
+      $match     = false;
+
+      //Search or Update WebHook client to our instanceID
+      foreach ($clientIDs as $idx => $clientID) {
+        if ($clientID['ClientID'] == $WebOAuth) {
+          if ($clientID['TargetID'] == $this->InstanceID) return;
+
+          $clientIDs[$idx]['TargetID'] = $this->InstanceID;
+          $match = true;
+        }
+      }
+
+      //add a new client
+      if (!$match) {
+        $clientIDs[] = array(
+          'ClientID' => $WebOAuth,
+          'TargetID' => $this->InstanceID
+        );
+      }
+
+      IPS_SetProperty($ids[0], 'ClientIDs', json_encode($clientIDs));
+      IPS_ApplyChanges($ids[0]);
     }
-
-    $FN = tempnam(sys_get_temp_dir(), $prefix);
-    rename($FN, $fname);
   }
 
 }
