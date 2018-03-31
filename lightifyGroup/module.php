@@ -523,13 +523,10 @@ class lightifyGroup extends IPSModule
           }
 
           //State
-          if ($stateID = @$this->GetIDForIdent("STATE")) {
-            $this->EnableAction("STATE");
-          }
-
-          if (!$stateID) {
+          if (false == ($stateID = @$this->GetIDForIdent("STATE"))) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
               $stateID = $this->RegisterVariableBoolean("STATE", "State", "OSR.Switch", 313);
+              $this->EnableAction("STATE");
             }
           }
 
@@ -542,14 +539,12 @@ class lightifyGroup extends IPSModule
           }
 
           //Hue
-          if ($hueID = @$this->GetIDForIdent("HUE")) {
-            IPS_SetDisabled($hueID, true);
-            IPS_SetHidden($hueID, true);
-          }
-
-          if (!$hueID) {
+          if (false == ($hueID = @$this->GetIDForIdent("HUE"))) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
               $hueID = $this->RegisterVariableInteger("HUE", "Hue", "OSR.Hue", 314);
+
+              IPS_SetDisabled($hueID, true);
+              IPS_SetHidden($hueID, true);
             }
           }
 
@@ -560,14 +555,12 @@ class lightifyGroup extends IPSModule
           }
 
           //Color
-          if ($colorID = @$this->GetIDForIdent("COLOR")) {
-            $this->EnableAction("COLOR");
-          }
-
-          if (!$colorID) {
+          if (false == ($colorID = @$this->GetIDForIdent("COLOR"))) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
               $colorID = $this->RegisterVariableInteger("COLOR", "Color", "~HexColor", 315);
               IPS_SetIcon($colorID, "Paintbrush");
+
+              $this->EnableAction("COLOR");
             }
           }
 
@@ -578,13 +571,10 @@ class lightifyGroup extends IPSModule
           }
 
           //Color temperature
-          if ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE")) {
-            $this->EnableAction("COLOR_TEMPERATURE");
-          }
-
-          if (!$temperatureID) {
+          if (false == ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE"))) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
               $temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTempExt", 316);
+              $this->EnableAction("COLOR_TEMPERATURE");
             }
           }
 
@@ -595,14 +585,12 @@ class lightifyGroup extends IPSModule
           }
 
           //Brightness
-          if ($brightnessID = @$this->GetIDForIdent("BRIGHTNESS")) {
-            $this->EnableAction("BRIGHTNESS");
-          }
-
-          if (!$brightnessID) {
+          if (false == ($brightnessID = @$this->GetIDForIdent("BRIGHTNESS"))) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
               $brightnessID = $this->RegisterVariableInteger("BRIGHTNESS", "Brightness", "OSR.Intensity", 317);
               IPS_SetIcon($brightnessID, "Sun");
+
+              $this->EnableAction("BRIGHTNESS");
             }
           }
 
@@ -613,14 +601,12 @@ class lightifyGroup extends IPSModule
           }
 
           //Saturation control
-          if ($saturationID = @$this->GetIDForIdent("SATURATION")) {
-            $this->EnableAction("SATURATION");
-          }
-
-          if (!$saturationID) {
+          if (false == ($saturationID = @$this->GetIDForIdent("SATURATION"))) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
               $saturationID = $this->RegisterVariableInteger("SATURATION", "Saturation", "OSR.Intensity", 318);
               IPS_SetIcon($saturationID, "Intensity");
+
+              $this->EnableAction("SATURATION");
             }
           }
 
@@ -643,9 +629,7 @@ class lightifyGroup extends IPSModule
   {
 
     //Create and update switch
-    $sceneID = @$this->GetIDForIdent("SCENE");
-
-    if (!$sceneID) {
+    if (false == ($sceneID = @$this->GetIDForIdent("SCENE"))) {
       if ($method == classConstant::METHOD_CREATE_CHILD) {
         $sceneID = $this->RegisterVariableInteger("SCENE", "Szene", "OSR.Scene", 311);
         $this->EnableAction("SCENE");
