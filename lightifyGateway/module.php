@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/../libs/baseModule.php';
+require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 require_once __DIR__.'/../libs/lightifyConnect.php';
 
@@ -194,13 +194,9 @@ class lightifyGateway extends IPSModule
   {
 
     switch ($Message) {
-      case IPS_KERNELMESSAGE:
-        switch ($Data[0]) {
-          case KR_READY:
-            $this->SetBuffer("applyMode", 1);
-            $this->ApplyChanges();
-            break;
-        }
+      case IPS_KERNELSTARTED:
+        $this->SetBuffer("applyMode", 1);
+        $this->ApplyChanges();
         break;
     }
   }
@@ -209,7 +205,7 @@ class lightifyGateway extends IPSModule
   public function ApplyChanges()
   {
 
-    $this->RegisterMessage(0, IPS_KERNELMESSAGE);
+    $this->RegisterMessage(0, IPS_KERNELSTARTED);
     parent::ApplyChanges();
 
     if (IPS_GetKernelRunlevel() != KR_READY) return;

@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/../libs/baseModule.php';
+require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 require_once __DIR__.'/../libs/lightifyConnect.php';
 
