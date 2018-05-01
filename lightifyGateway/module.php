@@ -933,7 +933,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function getLightifyData($localMethod)
+  public function getLightifyData(int $localMethod)
   {
 
     if (IPS_GetKernelRunlevel() != KR_READY) return;
