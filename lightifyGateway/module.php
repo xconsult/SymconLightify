@@ -956,9 +956,9 @@ class lightifyGateway extends IPSModule
         }
 
         //Get paired devices
-        if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01)))) {
+        if (false !== ($data = $lightifySocket->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01)))) {
           if (strlen($data) >= (2 + classConstant::DATA_DEVICE_LENGTH)) {
-            $localDevice = $this->readData(stdCommand::GET_DEVICE_LIST, $data);
+            $localDevice = $this->readData(classCommand::GET_DEVICE_LIST, $data);
             $this->SetBuffer("localDevice", $localDevice);
           } else {
             $this->SetBuffer("deviceList", vtNoString);
@@ -967,9 +967,9 @@ class lightifyGateway extends IPSModule
         }
 
         //Get Group/Zone list
-        if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_GROUP_LIST, chr(0x00)))) {
+        if (false !== ($data = $lightifySocket->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00)))) {
           if (strlen($data) >= (2 + classConstant::DATA_GROUP_LENGTH)) {
-            $localGroup = $this->readData(stdCommand::GET_GROUP_LIST, $data);
+            $localGroup = $this->readData(classCommand::GET_GROUP_LIST, $data);
             $this->SetBuffer("localGroup", $localGroup);
           } else {
             $this->SetBuffer("groupList", vtNoString);
@@ -1135,7 +1135,7 @@ class lightifyGateway extends IPSModule
 
     //Get Gateway WiFi configuration
     if ($ssidID) {
-      if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_GATEWAY_WIFI, classConstant::SCAN_WIFI_CONFIG))) {
+      if (false !== ($data = $lightifySocket->sendRaw(classCommand::GET_GATEWAY_WIFI, classConstant::SCAN_WIFI_CONFIG))) {
         if (strlen($data) >= (2+classConstant::DATA_WIFI_LENGTH)) {
           if (false !== ($SSID = $this->getWiFi($data))) {
             if (GetValueString($ssidID) != $SSID) {
@@ -1148,7 +1148,7 @@ class lightifyGateway extends IPSModule
 
     //Get gateway firmware version
     if ($firmwareID) {
-      if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_GATEWAY_FIRMWARE, chr(0x00)))) {
+      if (false !== ($data = $lightifySocket->sendRaw(classCommand::GET_GATEWAY_FIRMWARE, chr(0x00)))) {
         $firmware = ord($data{0}).".".ord($data{1}).".".ord($data{2}).".".ord($data{3});
 
         if (GetValueString($firmwareID) != $firmware) {
@@ -1198,7 +1198,7 @@ class lightifyGateway extends IPSModule
   {
 
     switch ($command) {
-      case stdCommand::GET_DEVICE_LIST:
+      case classCommand::GET_DEVICE_LIST:
         $ncount = ord($data{0}) + ord($data{1});
         $data   = substr($data, 2);
 
@@ -1405,7 +1405,7 @@ class lightifyGateway extends IPSModule
         }
         break;
 
-      case stdCommand::GET_GROUP_LIST:
+      case classCommand::GET_GROUP_LIST:
         $ncount      = ord($data{0}) + ord($data{1});
         $data        = substr($data, 2);
 

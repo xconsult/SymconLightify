@@ -301,10 +301,10 @@ trait LightifyControl
 
           case "NAME":
             if ($this->itemScene == false) {
-              $command = stdCommand::SET_DEVICE_NAME;
+              $command = classCommand::SET_DEVICE_NAME;
 
               if ($this->itemGroup) {
-                $command  = stdCommand::SET_GROUP_NAME;
+                $command  = classCommand::SET_GROUP_NAME;
                 $uintUUID = chr(hexdec(@$this->GetIDForIdent("groupID"))).chr(0x00);
               }
 
@@ -367,8 +367,8 @@ trait LightifyControl
                   $lightifyConnect->setBrightness($uintUUID, $flag, classConstant::INTENSITY_MAX);
 
                   if ($this->itemLight) {
-                    $lightifyConnect->setSoftTime($uintUUID, stdCommand::SET_LIGHT_SOFT_ON, classConstant::TRANSITION_DEFAULT);
-                    $lightifyConnect->setSoftTime($uintUUID, stdCommand::SET_LIGHT_SOFT_OFF, classConstant::TRANSITION_DEFAULT);
+                    $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_ON, classConstant::TRANSITION_DEFAULT);
+                    $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_OFF, classConstant::TRANSITION_DEFAULT);
                     IPS_SetProperty($this->InstanceID, "transition", classConstant::TRANSITION_DEFAULT/10);
 
                     if (IPS_HasChanges($this->InstanceID)) {
@@ -394,11 +394,11 @@ trait LightifyControl
             return false;
 
           case "SOFT_ON":
-            $command = stdCommand::SET_LIGHT_SOFT_ON;
+            $command = classCommand::SET_LIGHT_SOFT_ON;
             //fall-trough
 
           case "SOFT_OFF":
-            $command = (!isset($command)) ? stdCommand::SET_LIGHT_SOFT_OFF : $command;
+            $command = (!isset($command)) ? classCommand::SET_LIGHT_SOFT_OFF : $command;
             //fall-trough
 
           case "TRANSITION":

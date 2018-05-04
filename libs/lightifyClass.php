@@ -1,7 +1,7 @@
 <?php
 
 //Commands
-class stdCommand
+class classCommand
 {
 
   # 13 List paired devices (broadcast)
