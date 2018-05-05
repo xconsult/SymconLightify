@@ -1334,12 +1334,13 @@ class lightifyGateway extends IPSModule
       case classConstant::GET_DEVICE_CLOUD:
         $cloudBuffer = $this->cloudGET(self::RESSOURCE_DEVICES);
         if (empty($cloudBuffer)) return vtNoString;
+        //IPS_LogMessage("SymconOSR", $cloudBuffer);
 
         $cloudBuffer = json_decode($cloudBuffer);
         $labelBuffer = json_decode($this->GetBuffer("deviceLabel"));
         $gateway     = $cloudBuffer->devices[0];
 
-        if ($gateway->name == strtoupper($this->ReadPropertyString("serialNumber"))) {
+        //if ($gateway->name == strtoupper($this->ReadPropertyString("serialNumber"))) {
           $gatewayID = $gateway->id;
           unset($cloudBuffer->devices[0]);
 
@@ -1404,7 +1405,7 @@ class lightifyGateway extends IPSModule
 
             return $cloudDevice;
           }
-        }
+        //}
         break;
 
       case classCommand::GET_GROUP_LIST:
