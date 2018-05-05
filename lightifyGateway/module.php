@@ -339,7 +339,7 @@ class lightifyGateway extends IPSModule
         { "type": "Label",        "label": "----------------------------------------------------------------------------------------------------------------------------------" }
       ],
       "actions": [
-        { "type": "Button", "label": "Registrieren", "onClick": "echo OSR_osramRegister($id)"       },
+        { "type": "Button", "label": "Registrieren", "onClick": "echo OSR_LightifyRegister($id)"       },
         { "type": "Label",  "label": "Drücken Sie Erstellen | Aktualisieren, um die am Gateway registrierten Geräte/Gruppen/Szenen und Einstellungen automatisch anzulegen" },
         { "type": "Button", "label": "Create | Update", "onClick": "OSR_getLightifyData($id, 1208)" }
       ],
@@ -615,7 +615,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function osramRegister()
+  public function LightifyRegister()
   {
 
     if ($this->ReadPropertyInteger("connectMode") == classConstant::CONNECT_LOCAL_CLOUD) {

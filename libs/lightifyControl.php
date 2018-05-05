@@ -164,7 +164,10 @@ trait LightifyControl
   public function RequestAction($Ident, $Value)
   {
 
-    switch ($Ident) {
+    $key   = (string)$Ident;
+    $value = (int)$Value;
+
+    switch ($key) {
       case "ALL_LIGHTS":
         //fall-through
 
@@ -186,12 +189,12 @@ trait LightifyControl
         //fall-through
 
       case "SATURATION":
-        return $this->SetValue($Ident, $Value);
+        return $this->SetValue($key, $value);
     }
   }
 
 
-  public function SetValue(string $key, int $value)
+  public function SetValue($key, $value)
   {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
@@ -666,7 +669,7 @@ trait LightifyControl
   }
 
 
-  public function SetValueEx(string $key, int $value, int $transition)
+  public function SetValueEx($key, $value, $transition)
   {
 
     $this->transition = $this->getValueRange("TRANSITION_TIME", $transition);
@@ -756,7 +759,7 @@ trait LightifyControl
   }
 
 
-  public function GetValue(string $key)
+  public function GetValue($key)
   {
 
     if ($objectID = @IPS_GetObjectIDByIdent($key, $this->InstanceID)) {
@@ -767,7 +770,7 @@ trait LightifyControl
   }
 
 
-  public function GetValueEx(string $key)
+  public function GetValueEx($key)
   {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
