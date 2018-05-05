@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 //Commands
-class stdCommand
+class classCommand
 {
 
   # 13 List paired devices (broadcast)

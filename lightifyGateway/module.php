@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__.'/../libs/baseModule.php';
+require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 require_once __DIR__.'/../libs/lightifyConnect.php';
 
@@ -126,7 +126,7 @@ class lightifyGateway extends IPSModule
     
     $this->RegisterPropertyInteger("timeOut", classConstant::MAX_PING_TIMEOUT);
     $this->RegisterPropertyInteger("localUpdate", TIMER_SYNC_LOCAL);
-    $this->RegisterTimer("localTimer", 0, "OSR_getLightifyData($this->InstanceID, 1202);");
+    $this->RegisterTimer("localTimer", 0, "OSR_GetLightifyData($this->InstanceID, 1202);");
 
     //Cloud Access Token
     $this->RegisterPropertyString("osramToken", vtNoString);
@@ -196,13 +196,9 @@ class lightifyGateway extends IPSModule
   {
 
     switch ($Message) {
-      case IPS_KERNELMESSAGE:
-        switch ($Data[0]) {
-          case KR_READY:
-            $this->SetBuffer("applyMode", 1);
-            $this->ApplyChanges();
-            break;
-        }
+      case IPS_KERNELSTARTED:
+        $this->SetBuffer("applyMode", 1);
+        $this->ApplyChanges();
         break;
     }
   }
@@ -211,7 +207,7 @@ class lightifyGateway extends IPSModule
   public function ApplyChanges()
   {
 
-    $this->RegisterMessage(0, IPS_KERNELMESSAGE);
+    $this->RegisterMessage(0, IPS_KERNELSTARTED);
     parent::ApplyChanges();
 
     if (IPS_GetKernelRunlevel() != KR_READY) return;
@@ -232,7 +228,7 @@ class lightifyGateway extends IPSModule
           $this->RegisterOAuth($this->oAuthIdent);
         }
 
-        $this->getLightifyData(classConstant::METHOD_APPLY_LOCAL);
+        $this->GetLightifyData(classConstant::METHOD_APPLY_LOCAL);
       }
 
       $this->SetTimerInterval("localTimer", $localUpdate);
@@ -345,9 +341,9 @@ class lightifyGateway extends IPSModule
         { "type": "Label",        "label": "----------------------------------------------------------------------------------------------------------------------------------" }
       ],
       "actions": [
-        { "type": "Button", "label": "Registrieren", "onClick": "echo OSR_osramRegister($id)"       },
+        { "type": "Button", "label": "Registrieren", "onClick": "echo OSR_LightifyRegister($id)"       },
         { "type": "Label",  "label": "Drücken Sie Erstellen | Aktualisieren, um die am Gateway registrierten Geräte/Gruppen/Szenen und Einstellungen automatisch anzulegen" },
-        { "type": "Button", "label": "Create | Update", "onClick": "OSR_getLightifyData($id, 1208)" }
+        { "type": "Button", "label": "Create | Update", "onClick": "OSR_GetLightifyData($id, 1208)" }
       ],
       "status": [
         { "code": 101, "icon": "inactive", "caption": "Lightify gateway is closed"      },
@@ -514,7 +510,7 @@ class lightifyGateway extends IPSModule
 
     switch ($data->method) {
       case classConstant::METHOD_RELOAD_LOCAL:
-        $this->getLightifyData($data->method);
+        $this->GetLightifyData($data->method);
         break;
 
       case classConstant::METHOD_LOAD_CLOUD:
@@ -621,7 +617,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function osramRegister()
+  public function LightifyRegister()
   {
 
     if ($this->ReadPropertyInteger("connectMode") == classConstant::CONNECT_LOCAL_CLOUD) {
@@ -939,7 +935,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function getLightifyData($localMethod)
+  public function GetLightifyData(int $localMethod)
   {
 
     if (IPS_GetKernelRunlevel() != KR_READY) return;
@@ -962,9 +958,9 @@ class lightifyGateway extends IPSModule
         }
 
         //Get paired devices
-        if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01)))) {
+        if (false !== ($data = $lightifySocket->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01)))) {
           if (strlen($data) >= (2 + classConstant::DATA_DEVICE_LENGTH)) {
-            $localDevice = $this->readData(stdCommand::GET_DEVICE_LIST, $data);
+            $localDevice = $this->readData(classCommand::GET_DEVICE_LIST, $data);
             $this->SetBuffer("localDevice", $localDevice);
           } else {
             $this->SetBuffer("deviceList", vtNoString);
@@ -973,9 +969,9 @@ class lightifyGateway extends IPSModule
         }
 
         //Get Group/Zone list
-        if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_GROUP_LIST, chr(0x00)))) {
+        if (false !== ($data = $lightifySocket->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00)))) {
           if (strlen($data) >= (2 + classConstant::DATA_GROUP_LENGTH)) {
-            $localGroup = $this->readData(stdCommand::GET_GROUP_LIST, $data);
+            $localGroup = $this->readData(classCommand::GET_GROUP_LIST, $data);
             $this->SetBuffer("localGroup", $localGroup);
           } else {
             $this->SetBuffer("groupList", vtNoString);
@@ -1141,7 +1137,7 @@ class lightifyGateway extends IPSModule
 
     //Get Gateway WiFi configuration
     if ($ssidID) {
-      if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_GATEWAY_WIFI, classConstant::SCAN_WIFI_CONFIG))) {
+      if (false !== ($data = $lightifySocket->sendRaw(classCommand::GET_GATEWAY_WIFI, classConstant::SCAN_WIFI_CONFIG))) {
         if (strlen($data) >= (2+classConstant::DATA_WIFI_LENGTH)) {
           if (false !== ($SSID = $this->getWiFi($data))) {
             if (GetValueString($ssidID) != $SSID) {
@@ -1154,7 +1150,7 @@ class lightifyGateway extends IPSModule
 
     //Get gateway firmware version
     if ($firmwareID) {
-      if (false !== ($data = $lightifySocket->sendRaw(stdCommand::GET_GATEWAY_FIRMWARE, chr(0x00)))) {
+      if (false !== ($data = $lightifySocket->sendRaw(classCommand::GET_GATEWAY_FIRMWARE, chr(0x00)))) {
         $firmware = ord($data{0}).".".ord($data{1}).".".ord($data{2}).".".ord($data{3});
 
         if (GetValueString($firmwareID) != $firmware) {
@@ -1204,7 +1200,7 @@ class lightifyGateway extends IPSModule
   {
 
     switch ($command) {
-      case stdCommand::GET_DEVICE_LIST:
+      case classCommand::GET_DEVICE_LIST:
         $ncount = ord($data{0}) + ord($data{1});
         $data   = substr($data, 2);
 
@@ -1411,7 +1407,7 @@ class lightifyGateway extends IPSModule
         }
         break;
 
-      case stdCommand::GET_GROUP_LIST:
+      case classCommand::GET_GROUP_LIST:
         $ncount      = ord($data{0}) + ord($data{1});
         $data        = substr($data, 2);
 

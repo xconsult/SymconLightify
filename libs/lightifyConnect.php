@@ -123,7 +123,7 @@ class lightifyConnect
   {
 
     $args   = str_repeat(chr(0xFF), 8).chr(dechex($value));
-    $buffer = $this->sendRaw(stdCommand::SET_DEVICE_STATE, chr(0x00), $args);
+    $buffer = $this->sendRaw(classCommand::SET_DEVICE_STATE, chr(0x00), $args);
 
     if ($buffer !== false) {
       return $buffer;
@@ -137,7 +137,7 @@ class lightifyConnect
   {
 
     $args   = $uintUUID.chr((int)$value);
-    $buffer = $this->sendRaw(stdCommand::SET_DEVICE_STATE, $flag, $args);
+    $buffer = $this->sendRaw(classCommand::SET_DEVICE_STATE, $flag, $args);
 
     if ($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) {
       return $buffer;
@@ -159,7 +159,7 @@ class lightifyConnect
   {
 
     $args   = $uintUUID.chr($value['r']).chr($value['g']).chr($value['b']).chr(0xFF).chr(dechex($transition)).chr(0x00);
-    $buffer = $this->sendRaw(stdCommand::SET_LIGHT_COLOR, $flag, $args.chr(0x00));
+    $buffer = $this->sendRaw(classCommand::SET_LIGHT_COLOR, $flag, $args.chr(0x00));
 
     if ($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) {
       return $buffer;
@@ -179,7 +179,7 @@ class lightifyConnect
     }
 
     $args   = $uintUUID.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(dechex($transition)).chr(0x00);
-    $buffer = $this->sendRaw(stdCommand::SET_COLOR_TEMPERATURE, $flag, $args.chr(0x00));
+    $buffer = $this->sendRaw(classCommand::SET_COLOR_TEMPERATURE, $flag, $args.chr(0x00));
 
     if ($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) {
       return $buffer;
@@ -193,7 +193,7 @@ class lightifyConnect
   {
 
     $args   = $uintUUID.chr((int)$value).chr(dechex($transition)).chr(0x00);
-    $buffer = $this->sendRaw(stdCommand::SET_LIGHT_LEVEL, $flag, $args.chr(0x00));
+    $buffer = $this->sendRaw(classCommand::SET_LIGHT_LEVEL, $flag, $args.chr(0x00));
 
     if ($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) {
       return $buffer;
@@ -207,7 +207,7 @@ class lightifyConnect
   {
 
     $args   = $uintUUID.chr($value['r']).chr($value['g']).chr($value['b']).chr(0x00).chr(dechex($transition)).chr(0x00);
-    $buffer = $this->sendRaw(stdCommand::SET_LIGHT_COLOR, $flag, $args.chr(0x00));
+    $buffer = $this->sendRaw(classCommand::SET_LIGHT_COLOR, $flag, $args.chr(0x00));
 
     if ($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) {
       return $buffer;
@@ -220,7 +220,7 @@ class lightifyConnect
   public function saveLightState($uintUUID)
   {
 
-    $buffer = $this->sendRaw(stdCommand::SAVE_LIGHT_STATE, chr(0x00), $uintUUID.chr(0x00));
+    $buffer = $this->sendRaw(classCommand::SAVE_LIGHT_STATE, chr(0x00), $uintUUID.chr(0x00));
 
     if ($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) {
       return $buffer;
@@ -247,21 +247,21 @@ class lightifyConnect
   public function getPairedDevices()
   {
 
-    return $this->sendRaw(stdCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01));
+    return $this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01));
   }
 
 
   public function getGroupList()
   {
 
-    return $this->sendRaw(stdCommand::GET_GROUP_LIST, chr(0x00));
+    return $this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00));
   }
 
 
   public function activateGroupScene($sceneID)
   {
 
-    $buffer = $this->sendRaw(stdCommand::ACTIVATE_GROUP_SCENE, chr(0x00), chr($sceneID));
+    $buffer = $this->sendRaw(classCommand::ACTIVATE_GROUP_SCENE, chr(0x00), chr($sceneID));
 
     if (!$buffer && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) {
       return $buffer;
@@ -274,7 +274,7 @@ class lightifyConnect
   public function getDeviceInfo($uintUUID)
   {
 
-    $buffer = $this->sendRaw(stdCommand::GET_DEVICE_INFO, chr(0x00), $uintUUID);
+    $buffer = $this->sendRaw(classCommand::GET_DEVICE_INFO, chr(0x00), $uintUUID);
 
     if ($buffer !== false && strlen($buffer) == classConstant::BUFFER_ONLINE_LENGTH) {
       return $buffer;
@@ -287,7 +287,7 @@ class lightifyConnect
   public function getGroupInfo($uintUUID)
   {
 
-    return $this->sendRaw(stdCommand::GET_GROUP_INFO, chr(0x00), $uintUUID);
+    return $this->sendRaw(classCommand::GET_GROUP_INFO, chr(0x00), $uintUUID);
   }
 
 
@@ -298,7 +298,7 @@ class lightifyConnect
     $value  = str_repeat("0", 4-strlen($value)).$value;
 
     $args   = $uintUUID.(($loop) ? chr(0x01) : chr(0x00)).chr(substr($value, 2, 2)).chr(substr($value, 0, 2));
-    $buffer = $this->sendRaw(stdCommand::CYCLE_LIGHT_COLOR, chr(0x00), $args);
+    $buffer = $this->sendRaw(classCommand::CYCLE_LIGHT_COLOR, chr(0x00), $args);
 
     if ($buffer !== false && strlen($buffer) == classConstant::BUFFER_REPLY_LENGTH) {
       return $buffer;
@@ -311,14 +311,14 @@ class lightifyConnect
   public function getGatewayFirmware()
   {
 
-    return $this->sendRaw(stdCommand::GET_GATEWAY_FIRMWARE, chr(0x00));
+    return $this->sendRaw(classCommand::GET_GATEWAY_FIRMWARE, chr(0x00));
   }
 
 
   public function getGatewayWiFi($flags)
   {
 
-    return $this->sendRaw(stdCommand::GET_GATEWAY_WIFI, $flags);
+    return $this->sendRaw(classCommand::GET_GATEWAY_WIFI, $flags);
   }
 
 
