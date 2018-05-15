@@ -538,57 +538,61 @@ trait LightifyControl
             return false;
 
           case "COLOR":
-            if (($this->deviceRGB || $this->itemGroup) && $online) {
-              if ($this->setStateOn($state)) {
-                $hueID        = @$this->GetIDForIdent("HUE");
-                $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
-                $colorID      = @$this->GetIDForIdent("COLOR");
-                $color        = ($colorID) ? GetValueInteger($colorID) : $color;
-                $saturationID = @$this->GetIDForIdent("SATURATION");
-                $value        = $this->getValueRange($key, $value);
+            if (($this->deviceRGB && $online) || $this->itemGroup) {
+              if ($this->deviceRGB) {
+                $this->setStateOn($state);
+              }
 
-                if ($value != $color) {
-                  $hex = str_pad(dechex($value), 6, "0", STR_PAD_LEFT);
-                  $hsv = $this->lightifyBase->HEX2HSV($hex);
-                  $rgb = $this->lightifyBase->HEX2RGB($hex);
+              $hueID        = @$this->GetIDForIdent("HUE");
+              $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
+              $colorID      = @$this->GetIDForIdent("COLOR");
+              $color        = ($colorID) ? GetValueInteger($colorID) : $color;
+              $saturationID = @$this->GetIDForIdent("SATURATION");
+              $value        = $this->getValueRange($key, $value);
 
-                  if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $rgb, $this->transition))) {
-                    if ($hueID && GetValue($hueID) != $hsv['h']) {
-                      SetValue($hueID, $hsv['h']);
-                    }
+              if ($value != $color) {
+                $hex = str_pad(dechex($value), 6, "0", STR_PAD_LEFT);
+                $hsv = $this->lightifyBase->HEX2HSV($hex);
+                $rgb = $this->lightifyBase->HEX2RGB($hex);
 
-                    if ($saturationID && GetValue($saturationID) != $hsv['s']) {
-                      SetValue($saturationID, $hsv['s']);
-                    }
-
-                    if ($colorID) {
-                      SetValue($colorID, $value);
-                    }
-
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                    return true;
+                if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $rgb, $this->transition))) {
+                  if ($hueID && GetValue($hueID) != $hsv['h']) {
+                    SetValue($hueID, $hsv['h']);
                   }
+
+                  if ($saturationID && GetValue($saturationID) != $hsv['s']) {
+                    SetValue($saturationID, $hsv['s']);
+                  }
+
+                  if ($colorID) {
+                    SetValue($colorID, $value);
+                  }
+
+                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                  return true;
                 }
               }
             }
             return false;
 
           case "COLOR_TEMPERATURE":
-            if (($this->deviceCCT || $this->itemGroup) && $online) {
-              if ($this->setStateOn($state)) {
-                $temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
-                $temperature   = ($temperatureID) ? GetValueInteger($temperatureID) : $temperature;
-                $value         = $this->getValueRange($key, $value);
+            if (($this->deviceCCT && $online) || $this->itemGroup) {
+              if ($this->deviceCCT) {
+                $this->setStateOn($state);
+              }
 
-                if ($value != $temperature) {
-                  if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $value, $this->transition))) {
-                    if ($temperatureID) {
-                      SetValue($temperatureID, $value);
-                    }
+              $temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
+              $temperature   = ($temperatureID) ? GetValueInteger($temperatureID) : $temperature;
+              $value         = $this->getValueRange($key, $value);
 
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                    return true;
+              if ($value != $temperature) {
+                if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $value, $this->transition))) {
+                  if ($temperatureID) {
+                    SetValue($temperatureID, $value);
                   }
+
+                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                  return true;
                 }
               }
             }
@@ -596,54 +600,58 @@ trait LightifyControl
 
           case "BRIGHTNESS":
           case "LEVEL":
-            if (($this->itemLight || $this->itemGroup) && $online) {
-              if ($this->setStateOn($state)) {
-                $brightnessID = @$this->GetIDForIdent("BRIGHTNESS");
-                $brightness   = ($brightnessID) ? GetValueInteger($brightnessID) : $brightness;
-                $value        = $this->getValueRange($key, $value);
+            if (($this->itemLight && $online) || $this->itemGroup) {
+              if ($this->itemLight) {
+                $this->setStateOn($state);
+              }
 
-                if ($value != $brightness) {
-                  if (false !== ($result = $lightifyConnect->setBrightness($uintUUID, $flag, $value, $this->transition))) {
-                    if ($brightnessID) {
-                      SetValue($brightnessID, $value);
-                    }
+              $brightnessID = @$this->GetIDForIdent("BRIGHTNESS");
+              $brightness   = ($brightnessID) ? GetValueInteger($brightnessID) : $brightness;
+              $value        = $this->getValueRange($key, $value);
 
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                    return true;
+              if ($value != $brightness) {
+                if (false !== ($result = $lightifyConnect->setBrightness($uintUUID, $flag, $value, $this->transition))) {
+                  if ($brightnessID) {
+                    SetValue($brightnessID, $value);
                   }
+
+                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                  return true;
                 }
               }
             }
             return false;
 
           case "SATURATION":
-            if (($this->deviceRGB || $this->itemGroup) && $online) {
-              if ($this->setStateOn($state)) {
-                $hueID        = @$this->GetIDForIdent("HUE");
-                $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
-                $colorID      = @$this->GetIDForIdent("COLOR");
-                $color        = ($colorID) ? GetValueInteger($colorID) : $color;
-                $saturationID = @$this->GetIDForIdent("SATURATION");
-                $saturation   = ($saturationID) ? GetValueInteger($saturationID) : $saturation;
-                $value        = $this->getValueRange($key, $value);
+            if (($this->deviceRGB && $online) || $this->itemGroup) {
+              if ($this->deviceRGB) {
+                $this->setStateOn($state);
+              }
 
-                if ($value != $saturation) {
-                  $hex   = $this->lightifyBase->HSV2HEX($hue, $value, 100);
-                  $rgb   = $this->lightifyBase->HEX2RGB($hex);
-                  $color = hexdec($hex);
+              $hueID        = @$this->GetIDForIdent("HUE");
+              $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
+              $colorID      = @$this->GetIDForIdent("COLOR");
+              $color        = ($colorID) ? GetValueInteger($colorID) : $color;
+              $saturationID = @$this->GetIDForIdent("SATURATION");
+              $saturation   = ($saturationID) ? GetValueInteger($saturationID) : $saturation;
+              $value        = $this->getValueRange($key, $value);
 
-                  if (false !== ($result = $lightifyConnect->setSaturation($uintUUID, $flag, $rgb, $this->transition))) {
-                    if ($this->deviceRGB && $colorID && GetValue($colorID) != $color) {
-                      SetValue($colorID, $color);
-                    }
+              if ($value != $saturation) {
+                $hex   = $this->lightifyBase->HSV2HEX($hue, $value, 100);
+                $rgb   = $this->lightifyBase->HEX2RGB($hex);
+                $color = hexdec($hex);
 
-                    if ($this->itemLight && $saturationID) {
-                      SetValue($saturationID, $value);
-                    }
-
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                    return true;
+                if (false !== ($result = $lightifyConnect->setSaturation($uintUUID, $flag, $rgb, $this->transition))) {
+                  if ($this->deviceRGB && $colorID && GetValue($colorID) != $color) {
+                    SetValue($colorID, $color);
                   }
+
+                  if ($this->itemLight && $saturationID) {
+                    SetValue($saturationID, $value);
+                  }
+
+                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                  return true;
                 }
               }
             }
