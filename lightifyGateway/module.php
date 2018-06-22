@@ -246,7 +246,7 @@ class lightifyGateway extends IPSModule
 
     if (!empty($deviceList) && ord($deviceList{0}) > 0) {
       $formDevice = '
-        { "type": "Label",        "label": "----------------------------------------------- Registrierte Geräte/Gruppen/Szenen --------------------------------------" },
+        { "type": "Label",        "label": "" },
         { "type": "List",         "name":  "listDevice",        "caption": "Devices",
           "columns": [
             { "label": "ID",          "name": "deviceID",     "width":  "30px" },
@@ -300,10 +300,10 @@ class lightifyGateway extends IPSModule
         },
         { "name": "gatewayIP",    "type":  "ValidationTextBox", "caption": "Gateway IP"          },
         { "name": "serialNumber", "type":  "ValidationTextBox", "caption": "Serial number"       },
-        { "type": "Label",        "label": "----------------------------------------------------------------------------------------------------------------------------------" },
+        { "type": "Label",        "label": "" },
         { "name": "timeOut",      "type":  "NumberSpinner",     "caption": "Ping timeout [ms]"   },
         { "name": "localUpdate",  "type":  "NumberSpinner",     "caption": "Update interval [s]" },
-        { "type": "Label",        "label": "----------------------------------------------------------- Auswahl ------------------------------------------------------------" },
+        { "type": "Label",        "label": "" },
         { "type": "List",         "name":  "listCategory",      "caption": "Categories",
           "columns": [
             { "label": "Type",        "name": "Device",     "width":  "55px" },
@@ -325,7 +325,7 @@ class lightifyGateway extends IPSModule
         '.$formDevice.'
         '.$formGroup.'
         '.$formScene.'
-        { "type": "Label",        "label": "----------------------------------------------------------------------------------------------------------------------------------" },
+        { "type": "Label",        "label": "" },
         { "type": "Select", "name": "debug", "caption": "Debug",
           "options": [
             { "label": "Disabled",            "value": 0  },
@@ -336,7 +336,7 @@ class lightifyGateway extends IPSModule
           ]
         },
         { "type": "CheckBox",     "name":  "message",           "caption": " Messages" },
-        { "type": "Label",        "label": "----------------------------------------------------------------------------------------------------------------------------------" }
+        { "type": "Label",        "label": "" }
       ],
       "actions": [
         { "type": "Button", "label": "Registrieren", "onClick": "echo OSR_LightifyRegister($id)"       },

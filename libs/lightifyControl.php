@@ -200,465 +200,468 @@ trait LightifyControl
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $this->setEnvironment();
 
+      $open    = IPS_GetProperty($parentID, "open");
       $debug   = IPS_GetProperty($parentID, "debug");
       $message = IPS_GetProperty($parentID, "message");
 
-      if ($lightifyConnect = $this->localConnect($parentID, $debug, $message)) {
-        $key = strtoupper($key);
+      if ($open) {
+        if ($lightifyConnect = $this->localConnect($parentID, $debug, $message)) {
+          $key = strtoupper($key);
 
-        if (in_array($key, explode(",", classConstant::LIST_KEY_VALUES)) === false) {
-          if ($debug % 2 || $message) {
-            $error = "usage: [".$this->InstanceID."|".$this->name."] {key} not valid!";
+          if (in_array($key, explode(",", classConstant::LIST_KEY_VALUES)) === false) {
+            if ($debug % 2 || $message) {
+              $error = "usage: [".$this->InstanceID."|".$this->name."] {key} not valid!";
 
-            if ($debug % 2) {
-              IPS_SendDebug($parentID, "<Lightify|SetValue:error>", $error, 0);
-            }
+              if ($debug % 2) {
+                IPS_SendDebug($parentID, "<Lightify|SetValue:error>", $error, 0);
+              }
 
-            if ($message) {
-              IPS_LogMessage("SymconOSR", "<Lightify|SetValue:error>   ".$error);
-            }
+              if ($message) {
+                IPS_LogMessage("SymconOSR", "<Lightify|SetValue:error>   ".$error);
+              }
 
-            return false;
-          }
-        }
-
-        $uintUUID = @IPS_GetProperty($this->InstanceID, "uintUUID");
-        $online   = false;
-
-        if ($this->itemDevice) {
-          $flag     = chr(0x00);
-          $onlineID = @$this->GetIDForIdent("ONLINE");
-          $online   = ($onlineID) ? GetValueBoolean($onlineID) : false;
-        }
-
-        if ($this->itemGroup || $this->itemScene) {
-          $flag     = chr(0x02);
-          $uintUUID = str_pad(substr($uintUUID, 0, 1), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
-
-          if ($this->itemGroup) {
-            $this->transition = classConstant::TRANSITION_DEFAULT;
-          }
-        }
-
-        if ($this->itemDevice || $this->itemGroup) {
-          $stateID = @$this->GetIDForIdent("STATE");
-          $state   = ($stateID) ? GetValueBoolean($stateID) : false;
-
-          if ($this->itemLight) {
-            if (!$this->transition) {
-              //$this->transition = IPS_GetProperty($this->InstanceID, "transition")*10;
-              $this->transition = $this->ReadPropertyFloat("transition")*10;
+              return false;
             }
           }
-        }
 
-        switch($key) {
-          case "ALL_LIGHTS":
-            $stateID = @$this->GetIDForIdent("ALL_LIGHTS");
+          $uintUUID = @IPS_GetProperty($this->InstanceID, "uintUUID");
+          $online   = false;
+
+          if ($this->itemDevice) {
+            $flag     = chr(0x00);
+            $onlineID = @$this->GetIDForIdent("ONLINE");
+            $online   = ($onlineID) ? GetValueBoolean($onlineID) : false;
+          }
+
+          if ($this->itemGroup || $this->itemScene) {
+            $flag     = chr(0x02);
+            $uintUUID = str_pad(substr($uintUUID, 0, 1), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
+
+            if ($this->itemGroup) {
+              $this->transition = classConstant::TRANSITION_DEFAULT;
+            }
+          }
+
+          if ($this->itemDevice || $this->itemGroup) {
+            $stateID = @$this->GetIDForIdent("STATE");
             $state   = ($stateID) ? GetValueBoolean($stateID) : false;
 
-            if (($value == 0 && $state !== false) || $value == 1) {
-              if (false !== ($result = $lightifyConnect->setAllDevices($value))) {
-                SetValue(@$this->GetIDForIdent($key), $value);
-                $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                return true;
-              }
-            } else {
-              if ($debug % 2 || $message) {
-                $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true/false'";
-
-                if ($debug % 2) {
-                  IPS_SendDebug($parentID, "<Lightify|SetValue|ALL>", $info, 0);
-                }
-
-                if ($message) {
-                  IPS_LogMessage("SymconOSR", "<Lightify|SetValue|ALL>   ".$info);
-                }
-              }
-            }
-            return false;
-
-          case "SAVE":
             if ($this->itemLight) {
-              if ($value == 1) {
-                $result = $lightifyConnect->saveLightState($uintUUID);
-
-                if ($result !== false) {
-                  return true;
-                }
-              } else {
-                if ($debug % 2 || $message) {
-                  $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
-
-                  if ($debug % 2) {
-                    IPS_SendDebug($parentID, "<Lightify|SetValue:save>", $info, 0);
-                  }
-
-                  if ($message) {
-                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue:save>   ".$info);
-                  }
-                }
+              if (!$this->transition) {
+                //$this->transition = IPS_GetProperty($this->InstanceID, "transition")*10;
+                $this->transition = $this->ReadPropertyFloat("transition")*10;
               }
             }
-            return false;
+          }
 
-          case "NAME":
-            if ($this->itemScene == false) {
-              $command = classCommand::SET_DEVICE_NAME;
+          switch($key) {
+            case "ALL_LIGHTS":
+              $stateID = @$this->GetIDForIdent("ALL_LIGHTS");
+              $state   = ($stateID) ? GetValueBoolean($stateID) : false;
 
-              if ($this->itemGroup) {
-                $command  = classCommand::SET_GROUP_NAME;
-                $uintUUID = chr(hexdec(@$this->GetIDForIdent("groupID"))).chr(0x00);
-              }
-
-              if (is_string($value)) {
-                $name = substr(trim($value), 0, classConstant::DATA_NAME_LENGTH);
-
-                if (false !== ($result = $lightifyConnect->setName($uintUUID, $command, $flag, $name))) {
-                  if (@IPS_GetName($this->InstanceID) != $name) {
-                    IPS_SetName($this->InstanceID, (string)$name);
-                  }
-
-                  return true;
-                }
-              } else {
-                if ($debug % 2 || $message) {
-                  $info = "usage: [".$this->InstanceID."|".$this->name."] {name} musst be a string";
-
-                  if ($debug % 2) {
-                    IPS_SendDebug($parentID, "<Lightify|SetValue:name>", $info, 0);
-                  }
-
-                  if ($message) {
-                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue:name>   ".$info);
-                  }
-                }
-              }
-            }
-            return false;
-
-          case "SCENE":
-            if ($this->itemScene) {
-              if (is_int($value)) {
-                if (false !== ($result = $lightifyConnect->activateGroupScene($value))) {
+              if (($value == 0 && $state !== false) || $value == 1) {
+                if (false !== ($result = $lightifyConnect->setAllDevices($value))) {
+                  SetValue(@$this->GetIDForIdent($key), $value);
                   $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                   return true;
                 }
               } else {
                 if ($debug % 2 || $message) {
-                  $info = "usage: [".$this->InstanceID."|".$this->name."] {sceneID} musst be numeric";
+                  $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true/false'";
 
                   if ($debug % 2) {
-                    IPS_SendDebug($parentID, "<Lightify|SetValue:scene>", $info, 0);
+                    IPS_SendDebug($parentID, "<Lightify|SetValue|ALL>", $info, 0);
                   }
 
                   if ($message) {
-                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue:scene>   ".$info);
+                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue|ALL>   ".$info);
                   }
                 }
               }
-            }
-            return false;
+              return false;
 
-          case "DEFAULT":
-            if (($this->itemLight && $online) || $this->itemGroup) {
-              if ($value == 1) {
-                if ($this->setStateOn($state)) {
-                  //Reset light to default values
-                  $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::COLOR_DEFAULT));
-                  $lightifyConnect->setColorTemperature($uintUUID, $flag, classConstant::CTEMP_DEFAULT);
-                  $lightifyConnect->setBrightness($uintUUID, $flag, classConstant::INTENSITY_MAX);
-
-                  if ($this->itemLight) {
-                    $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_ON, classConstant::TRANSITION_DEFAULT);
-                    $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_OFF, classConstant::TRANSITION_DEFAULT);
-                    IPS_SetProperty($this->InstanceID, "transition", classConstant::TRANSITION_DEFAULT/10);
-
-                    if (IPS_HasChanges($this->InstanceID)) {
-                      IPS_ApplyChanges($this->InstanceID);
-                    }
-                  }
-                }
-                return true;
-              } else {
-                if ($debug % 2 || $message) {
-                  $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
-
-                  if ($debug % 2) {
-                    IPS_SendDebug($parentID, "<Lightify|SetValue:default>", $info, 0);
-                  }
-
-                  if ($message) {
-                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue:default>   ".$info);
-                  }
-                }
-              }
-            }
-            return false;
-
-          case "SOFT_ON":
-            $command = classCommand::SET_LIGHT_SOFT_ON;
-            //fall-trough
-
-          case "SOFT_OFF":
-            $command = (!isset($command)) ? classCommand::SET_LIGHT_SOFT_OFF : $command;
-            //fall-trough
-
-          case "TRANSITION":
-            if ($this->itemLight) {
-              $value = ($value) ? $this->getValueRange("TRANSITION_TIME", $value) : classConstant::TRANSITION_DEFAULT/10;
-
-              if (isset($command) == false) {
-                if ($this->ReadPropertyFloat("transition") != $value) {
-                  IPS_SetProperty($this->InstanceID, "transition", $value);
-                  IPS_ApplyChanges($this->InstanceID);
-                }
-                return true;
-              } else {
-                $result = $lightifyConnect->setSoftTime($uintUUID, $command, $value*10);
-
-                if ($result !== false) {
-                  return true;
-                }
-              }
-            }
-            return false;
-
-          case "RELAX":
-            $temperature = classConstant::SCENE_RELAX;
-            //fall-trough
-
-          case "ACTIVE":
-            if (($this->itemLight && $online) || $this->itemGroup) {
-              $temperature = (isset($temperature)) ? $temperature : classConstant::SCENE_ACTIVE;
-
-              if ($value == 1) {
-                if ($this->setStateOn($state)) {
-                  if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $temperature))) {
-                    if ($this->itemLight && GetValue($this->InstanceID) != $value) {
-                      SetValue($this->InstanceID, $value);
-                    }
-
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                    return true;
-                  }
-                }
-              } else {
-                if ($debug % 2 || $message) {
-                  $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
-
-                  if ($debug % 2) {
-                    IPS_SendDebug($parentID, "<Lightify|SetValue:active>", $info, 0);
-                  }
-
-                  if ($message) {
-                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue:active>   ".$info);
-                  }
-                }
-              }
-            }
-            return false;
-
-          case "PLANT_LIGHT":
-            if (($this->itemLight && $online) || $this->itemGroup) {
-              if ($value == 1) {
-                if ($this->setStateOn($state)) {
-                  if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::SCENE_PLANT_LIGHT)))) {
-                    if ($this->itemLight && GetValue($this->InstanceID) != $value) {
-                      SetValue($this->InstanceID, $value);
-                    }
-
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                    return true;
-                  }
-                }
-              } else {
-                if ($debug % 2 || $message) {
-                  $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
-
-                  if ($debug % 2) {
-                    IPS_SendDebug($parentID, "<Lightify|SetValue:plant>", $info, 0);
-                  }
-
-                  if ($message) {
-                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue:plant>   ".$info);
-                  }
-                }
-              }
-            }
-            return false;
-
-          case "LIGHTIFY_LOOP":
-            if (($this->deviceRGB && $online) || $this->itemGroup) {
-              if ($value == 0 || $value == 1) {
-                if ($this->setStateOn($state)) {
-                  if (false !== ($result = $lightifyConnect->sceneLightifyLoop($uintUUID, $flag, $value, 3268))){
-                    return true;
-                  }
-                }
-              } else {
-                if ($debug % 2 || $message) {
-                  $info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be 'true/false'";
-
-                  if ($debug % 2) {
-                    IPS_SendDebug($parentID, "<Lightify|SetValue:loop>", $info, 0);
-                  }
-
-                  if ($message) {
-                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue:loop>   ".$info);
-                  }
-                }
-              }
-            }
-            return false;
-
-          case "STATE":
-            if (($this->itemDevice && $online) || $this->itemGroup) {
-              if ($value == 0 || $value == 1) {
-                if (false !== ($result = $lightifyConnect->setState($uintUUID, $flag, $value))) {
-                  SetValue($stateID, $value);
-                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-
-                  return true;
-                }
-              } else {
-                if ($debug % 2 || $message) {
-                  $info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be 'true/false'";
-
-                  if ($debug % 2) {
-                    IPS_SendDebug($parentID, "<Lightify|SetValue:state>", $info, 0);
-                  }
-
-                  if ($message) {
-                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue:state>   ".$info);
-                  }
-                }
-              }
-            }
-            return false;
-
-          case "COLOR":
-            if (($this->deviceRGB && $online) || $this->itemGroup) {
-              if ($this->deviceRGB) {
-                $this->setStateOn($state);
-              }
-
-              $hueID        = @$this->GetIDForIdent("HUE");
-              $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
-              $colorID      = @$this->GetIDForIdent("COLOR");
-              $color        = ($colorID) ? GetValueInteger($colorID) : $color;
-              $saturationID = @$this->GetIDForIdent("SATURATION");
-              $value        = $this->getValueRange($key, $value);
-
-              if ($value != $color) {
-                $hex = str_pad(dechex($value), 6, "0", STR_PAD_LEFT);
-                $hsv = $this->lightifyBase->HEX2HSV($hex);
-                $rgb = $this->lightifyBase->HEX2RGB($hex);
-
-                if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $rgb, $this->transition))) {
-                  if ($hueID && GetValue($hueID) != $hsv['h']) {
-                    SetValue($hueID, $hsv['h']);
-                  }
-
-                  if ($saturationID && GetValue($saturationID) != $hsv['s']) {
-                    SetValue($saturationID, $hsv['s']);
-                  }
-
-                  if ($colorID) {
-                    SetValue($colorID, $value);
-                  }
-
-                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                  return true;
-                }
-              }
-            }
-            return false;
-
-          case "COLOR_TEMPERATURE":
-            if (($this->deviceCCT && $online) || $this->itemGroup) {
-              if ($this->deviceCCT) {
-                $this->setStateOn($state);
-              }
-
-              $temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
-              $temperature   = ($temperatureID) ? GetValueInteger($temperatureID) : $temperature;
-              $value         = $this->getValueRange($key, $value);
-
-              if ($value != $temperature) {
-                if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $value, $this->transition))) {
-                  if ($temperatureID) {
-                    SetValue($temperatureID, $value);
-                  }
-
-                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                  return true;
-                }
-              }
-            }
-            return false;
-
-          case "BRIGHTNESS":
-          case "LEVEL":
-            if (($this->itemLight && $online) || $this->itemGroup) {
+            case "SAVE":
               if ($this->itemLight) {
-                $this->setStateOn($state);
-              }
+                if ($value == 1) {
+                  $result = $lightifyConnect->saveLightState($uintUUID);
 
-              $brightnessID = @$this->GetIDForIdent("BRIGHTNESS");
-              $brightness   = ($brightnessID) ? GetValueInteger($brightnessID) : $brightness;
-              $value        = $this->getValueRange($key, $value);
-
-              if ($value != $brightness) {
-                if (false !== ($result = $lightifyConnect->setBrightness($uintUUID, $flag, $value, $this->transition))) {
-                  if ($brightnessID) {
-                    SetValue($brightnessID, $value);
+                  if ($result !== false) {
+                    return true;
                   }
+                } else {
+                  if ($debug % 2 || $message) {
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
 
-                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                  return true;
+                    if ($debug % 2) {
+                      IPS_SendDebug($parentID, "<Lightify|SetValue:save>", $info, 0);
+                    }
+
+                    if ($message) {
+                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:save>   ".$info);
+                    }
+                  }
                 }
               }
-            }
-            return false;
+              return false;
 
-          case "SATURATION":
-            if (($this->deviceRGB && $online) || $this->itemGroup) {
-              if ($this->deviceRGB) {
-                $this->setStateOn($state);
-              }
+            case "NAME":
+              if ($this->itemScene == false) {
+                $command = classCommand::SET_DEVICE_NAME;
 
-              $hueID        = @$this->GetIDForIdent("HUE");
-              $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
-              $colorID      = @$this->GetIDForIdent("COLOR");
-              $color        = ($colorID) ? GetValueInteger($colorID) : $color;
-              $saturationID = @$this->GetIDForIdent("SATURATION");
-              $saturation   = ($saturationID) ? GetValueInteger($saturationID) : $saturation;
-              $value        = $this->getValueRange($key, $value);
+                if ($this->itemGroup) {
+                  $command  = classCommand::SET_GROUP_NAME;
+                  $uintUUID = chr(hexdec(@$this->GetIDForIdent("groupID"))).chr(0x00);
+                }
 
-              if ($value != $saturation) {
-                $hex   = $this->lightifyBase->HSV2HEX($hue, $value, 100);
-                $rgb   = $this->lightifyBase->HEX2RGB($hex);
-                $color = hexdec($hex);
+                if (is_string($value)) {
+                  $name = substr(trim($value), 0, classConstant::DATA_NAME_LENGTH);
 
-                if (false !== ($result = $lightifyConnect->setSaturation($uintUUID, $flag, $rgb, $this->transition))) {
-                  if ($this->deviceRGB && $colorID && GetValue($colorID) != $color) {
-                    SetValue($colorID, $color);
+                  if (false !== ($result = $lightifyConnect->setName($uintUUID, $command, $flag, $name))) {
+                    if (@IPS_GetName($this->InstanceID) != $name) {
+                      IPS_SetName($this->InstanceID, (string)$name);
+                    }
+
+                    return true;
                   }
+                } else {
+                  if ($debug % 2 || $message) {
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {name} musst be a string";
 
-                  if ($this->itemLight && $saturationID) {
-                    SetValue($saturationID, $value);
+                    if ($debug % 2) {
+                      IPS_SendDebug($parentID, "<Lightify|SetValue:name>", $info, 0);
+                    }
+
+                    if ($message) {
+                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:name>   ".$info);
+                    }
                   }
-
-                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
-                  return true;
                 }
               }
-            }
-            return false;
+              return false;
+
+            case "SCENE":
+              if ($this->itemScene) {
+                if (is_int($value)) {
+                  if (false !== ($result = $lightifyConnect->activateGroupScene($value))) {
+                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    return true;
+                  }
+                } else {
+                  if ($debug % 2 || $message) {
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {sceneID} musst be numeric";
+  
+                    if ($debug % 2) {
+                      IPS_SendDebug($parentID, "<Lightify|SetValue:scene>", $info, 0);
+                    }
+  
+                    if ($message) {
+                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:scene>   ".$info);
+                    }
+                  }
+                }
+              }
+              return false;
+
+            case "DEFAULT":
+              if (($this->itemLight && $online) || $this->itemGroup) {
+                if ($value == 1) {
+                  if ($this->setStateOn($state)) {
+                    //Reset light to default values
+                    $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::COLOR_DEFAULT));
+                    $lightifyConnect->setColorTemperature($uintUUID, $flag, classConstant::CTEMP_DEFAULT);
+                    $lightifyConnect->setBrightness($uintUUID, $flag, classConstant::INTENSITY_MAX);
+
+                    if ($this->itemLight) {
+                      $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_ON, classConstant::TRANSITION_DEFAULT);
+                      $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_OFF, classConstant::TRANSITION_DEFAULT);
+                      IPS_SetProperty($this->InstanceID, "transition", classConstant::TRANSITION_DEFAULT/10);
+
+                      if (IPS_HasChanges($this->InstanceID)) {
+                        IPS_ApplyChanges($this->InstanceID);
+                      }
+                    }
+                  }
+                  return true;
+                } else {
+                  if ($debug % 2 || $message) {
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
+
+                    if ($debug % 2) {
+                      IPS_SendDebug($parentID, "<Lightify|SetValue:default>", $info, 0);
+                    }
+
+                    if ($message) {
+                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:default>   ".$info);
+                    }
+                  }
+                }
+              }
+              return false;
+
+            case "SOFT_ON":
+              $command = classCommand::SET_LIGHT_SOFT_ON;
+              //fall-trough
+
+            case "SOFT_OFF":
+              $command = (!isset($command)) ? classCommand::SET_LIGHT_SOFT_OFF : $command;
+              //fall-trough
+
+            case "TRANSITION":
+              if ($this->itemLight) {
+                $value = ($value) ? $this->getValueRange("TRANSITION_TIME", $value) : classConstant::TRANSITION_DEFAULT/10;
+
+                if (isset($command) == false) {
+                  if ($this->ReadPropertyFloat("transition") != $value) {
+                    IPS_SetProperty($this->InstanceID, "transition", $value);
+                    IPS_ApplyChanges($this->InstanceID);
+                  }
+                  return true;
+                } else {
+                  $result = $lightifyConnect->setSoftTime($uintUUID, $command, $value*10);
+
+                  if ($result !== false) {
+                    return true;
+                  }
+                }
+              }
+              return false;
+
+            case "RELAX":
+              $temperature = classConstant::SCENE_RELAX;
+              //fall-trough
+
+            case "ACTIVE":
+              if (($this->itemLight && $online) || $this->itemGroup) {
+                $temperature = (isset($temperature)) ? $temperature : classConstant::SCENE_ACTIVE;
+
+                if ($value == 1) {
+                  if ($this->setStateOn($state)) {
+                    if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $temperature))) {
+                      if ($this->itemLight && GetValue($this->InstanceID) != $value) {
+                        SetValue($this->InstanceID, $value);
+                      }
+
+                      $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                      return true;
+                    }
+                  }
+                } else {
+                  if ($debug % 2 || $message) {
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
+
+                    if ($debug % 2) {
+                      IPS_SendDebug($parentID, "<Lightify|SetValue:active>", $info, 0);
+                    }
+
+                    if ($message) {
+                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:active>   ".$info);
+                    }
+                  }
+                }
+              }
+              return false;
+
+            case "PLANT_LIGHT":
+              if (($this->itemLight && $online) || $this->itemGroup) {
+                if ($value == 1) {
+                  if ($this->setStateOn($state)) {
+                    if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::SCENE_PLANT_LIGHT)))) {
+                      if ($this->itemLight && GetValue($this->InstanceID) != $value) {
+                        SetValue($this->InstanceID, $value);
+                      }
+
+                      $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                      return true;
+                    }
+                  }
+                } else {
+                  if ($debug % 2 || $message) {
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
+
+                    if ($debug % 2) {
+                      IPS_SendDebug($parentID, "<Lightify|SetValue:plant>", $info, 0);
+                    }
+
+                    if ($message) {
+                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:plant>   ".$info);
+                    }
+                  }
+                }
+              }
+              return false;
+
+            case "LIGHTIFY_LOOP":
+              if (($this->deviceRGB && $online) || $this->itemGroup) {
+                if ($value == 0 || $value == 1) {
+                  if ($this->setStateOn($state)) {
+                    if (false !== ($result = $lightifyConnect->sceneLightifyLoop($uintUUID, $flag, $value, 3268))){
+                      return true;
+                    }
+                  }
+                } else {
+                  if ($debug % 2 || $message) {
+                    $info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be 'true/false'";
+
+                    if ($debug % 2) {
+                      IPS_SendDebug($parentID, "<Lightify|SetValue:loop>", $info, 0);
+                    }
+
+                    if ($message) {
+                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:loop>   ".$info);
+                    }
+                  }
+                }
+              }
+              return false;
+
+            case "STATE":
+              if (($this->itemDevice && $online) || $this->itemGroup) {
+                if ($value == 0 || $value == 1) {
+                  if (false !== ($result = $lightifyConnect->setState($uintUUID, $flag, $value))) {
+                    SetValue($stateID, $value);
+                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+
+                    return true;
+                  }
+                } else {
+                  if ($debug % 2 || $message) {
+                    $info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be 'true/false'";
+
+                    if ($debug % 2) {
+                      IPS_SendDebug($parentID, "<Lightify|SetValue:state>", $info, 0);
+                    }
+
+                    if ($message) {
+                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:state>   ".$info);
+                    }
+                  }
+                }
+              }
+              return false;
+
+            case "COLOR":
+              if (($this->deviceRGB && $online) || $this->itemGroup) {
+                if ($this->deviceRGB) {
+                  $this->setStateOn($state);
+                }
+
+                $hueID        = @$this->GetIDForIdent("HUE");
+                $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
+                $colorID      = @$this->GetIDForIdent("COLOR");
+                $color        = ($colorID) ? GetValueInteger($colorID) : $color;
+                $saturationID = @$this->GetIDForIdent("SATURATION");
+                $value        = $this->getValueRange($key, $value);
+
+                if ($value != $color) {
+                  $hex = str_pad(dechex($value), 6, "0", STR_PAD_LEFT);
+                  $hsv = $this->lightifyBase->HEX2HSV($hex);
+                  $rgb = $this->lightifyBase->HEX2RGB($hex);
+
+                  if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $rgb, $this->transition))) {
+                    if ($hueID && GetValue($hueID) != $hsv['h']) {
+                      SetValue($hueID, $hsv['h']);
+                    }
+
+                    if ($saturationID && GetValue($saturationID) != $hsv['s']) {
+                      SetValue($saturationID, $hsv['s']);
+                    }
+
+                    if ($colorID) {
+                      SetValue($colorID, $value);
+                    }
+
+                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    return true;
+                  }
+                }
+              }
+              return false;
+
+            case "COLOR_TEMPERATURE":
+              if (($this->deviceCCT && $online) || $this->itemGroup) {
+                if ($this->deviceCCT) {
+                  $this->setStateOn($state);
+                }
+
+                $temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
+                $temperature   = ($temperatureID) ? GetValueInteger($temperatureID) : $temperature;
+                $value         = $this->getValueRange($key, $value);
+
+                if ($value != $temperature) {
+                  if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $value, $this->transition))) {
+                    if ($temperatureID) {
+                      SetValue($temperatureID, $value);
+                    }
+
+                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    return true;
+                  }
+                }
+              }
+              return false;
+
+            case "BRIGHTNESS":
+            case "LEVEL":
+              if (($this->itemLight && $online) || $this->itemGroup) {
+                if ($this->itemLight) {
+                  $this->setStateOn($state);
+                }
+
+                $brightnessID = @$this->GetIDForIdent("BRIGHTNESS");
+                $brightness   = ($brightnessID) ? GetValueInteger($brightnessID) : $brightness;
+                $value        = $this->getValueRange($key, $value);
+
+                if ($value != $brightness) {
+                  if (false !== ($result = $lightifyConnect->setBrightness($uintUUID, $flag, $value, $this->transition))) {
+                    if ($brightnessID) {
+                      SetValue($brightnessID, $value);
+                    }
+
+                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    return true;
+                  }
+                }
+              }
+              return false;
+
+            case "SATURATION":
+              if (($this->deviceRGB && $online) || $this->itemGroup) {
+                if ($this->deviceRGB) {
+                  $this->setStateOn($state);
+                }
+
+                $hueID        = @$this->GetIDForIdent("HUE");
+                $hue          = ($hueID) ? GetValueInteger($hueID) : $hue;
+                $colorID      = @$this->GetIDForIdent("COLOR");
+                $color        = ($colorID) ? GetValueInteger($colorID) : $color;
+                $saturationID = @$this->GetIDForIdent("SATURATION");
+                $saturation   = ($saturationID) ? GetValueInteger($saturationID) : $saturation;
+                $value        = $this->getValueRange($key, $value);
+
+                if ($value != $saturation) {
+                  $hex   = $this->lightifyBase->HSV2HEX($hue, $value, 100);
+                  $rgb   = $this->lightifyBase->HEX2RGB($hex);
+                  $color = hexdec($hex);
+
+                  if (false !== ($result = $lightifyConnect->setSaturation($uintUUID, $flag, $rgb, $this->transition))) {
+                    if ($this->deviceRGB && $colorID && GetValue($colorID) != $color) {
+                      SetValue($colorID, $color);
+                    }
+
+                    if ($this->itemLight && $saturationID) {
+                      SetValue($saturationID, $value);
+                    }
+
+                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    return true;
+                  }
+                }
+              }
+              return false;
+          }
+
+          return true;
         }
-
-        return true;
       }
     }
 
@@ -784,20 +787,23 @@ trait LightifyControl
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $itemClass = $this->ReadPropertyInteger("itemClass");
 
+      $open    = IPS_GetProperty($parentID, "open");
       $debug   = IPS_GetProperty($parentID, "debug");
       $message = IPS_GetProperty($parentID, "message");
 
-      if ($lightifyConnect = $this->localConnect($parentID, $debug, $message)) {
-        if ($itemClass == CLASS_LIGHTIFY_LIGHT || $itemClass == CLASS_LIGHTIFY_PLUG || $itemClass == CLASS_LIGHTIFY_SENSOR) {
-          $onlineID = IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
-          $online   = GetValueBoolean($onlineID);
+      if ($open) {
+        if ($lightifyConnect = $this->localConnect($parentID, $debug, $message)) {
+          if ($itemClass == CLASS_LIGHTIFY_LIGHT || $itemClass == CLASS_LIGHTIFY_PLUG || $itemClass == CLASS_LIGHTIFY_SENSOR) {
+            $onlineID = IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
+            $online   = GetValueBoolean($onlineID);
 
-          if ($online) {
-            $uintUUID   = $this->lightifyBase->UUIDtoChr($this->ReadPropertyString("UUID"));
-            $buffer = $lightifyConnect->setDeviceInfo($uintUUID);
+            if ($online) {
+              $uintUUID   = $this->lightifyBase->UUIDtoChr($this->ReadPropertyString("UUID"));
+              $buffer = $lightifyConnect->setDeviceInfo($uintUUID);
 
-            if (is_array($list = $buffer) && in_array($key, $list)) {
-              return $list[$key];
+              if (is_array($list = $buffer) && in_array($key, $list)) {
+                return $list[$key];
+              }
             }
           }
         }
