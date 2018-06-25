@@ -437,9 +437,9 @@ trait LightifyControl
                 if ($value == 1) {
                   if ($this->setStateOn($state)) {
                     if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $temperature))) {
-                      if ($this->itemLight && GetValue($this->InstanceID) != $value) {
-                        SetValue($this->InstanceID, $value);
-                      }
+                      //if ($this->itemLight && GetValue($this->InstanceID) != $value) {
+                        //SetValue($this->InstanceID, $value);
+                      //}
 
                       $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                       return true;
@@ -466,9 +466,9 @@ trait LightifyControl
                 if ($value == 1) {
                   if ($this->setStateOn($state)) {
                     if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::SCENE_PLANT_LIGHT)))) {
-                      if ($this->itemLight && GetValue($this->InstanceID) != $value) {
-                        SetValue($this->InstanceID, $value);
-                      }
+                      //if ($this->itemLight && GetValue($this->InstanceID) != $value) {
+                        //SetValue($this->InstanceID, $value);
+                      //}
 
                       $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                       return true;
