@@ -75,7 +75,6 @@ class classConstant
   const TX_GROUP               = "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}";
 
   const GATEWAY_PORT           = 4000;
-  const MAX_PING_TIMEOUT       = 2500; //milli secondes
 
   const CONNECT_LOCAL_ONLY     = 1001;
   const CONNECT_LOCAL_CLOUD    = 1002;
@@ -139,7 +138,8 @@ class classConstant
   const BUFFER_REPLY_LENGTH    = 11;
   const BUFFER_ONLINE_LENGTH   = 23;
 
-  const DATA_DEVICE_LENGTH     = 50;
+  const DATA_DEVICE_LOADED     = 50;
+  const DATA_DEVICE_LENGTH     = 41;
   const DATA_GROUP_LENGTH      = 18;
   const DATA_SCENE_LENGTH      = 17;
   const DATA_NAME_LENGTH       = 15;
@@ -175,9 +175,9 @@ class classConstant
   const TYPE_DIMMER_2WAY       = 64; //2 Way dimmer
   const TYPE_SWITCH_4WAY       = 65; //4 Way switch
 
-  const TYPE_DEVICE_GROUP     = 0xF0;
-  const TYPE_GROUP_SCENE      = 0xF1;
-  const TYPE_ALL_LIGHTS       = 0xFF;
+  const TYPE_DEVICE_GROUP     = 240; // 0xF0
+  const TYPE_GROUP_SCENE      = 241; // 0xF1
+  const TYPE_ALL_LIGHTS       = 255; // 0xFF
 
   const MODEL_MANUFACTURER    = "OSRAM";
   const MODEL_FIXED_WHITE     = "Light-LIGHTIFY";

@@ -63,6 +63,10 @@ class lightifyDevice extends IPSModule
         return false;
       }
 
+      //Apply filter
+      $filter = ".*-d".preg_quote("\u".str_pad((string)$deviceID, 4, "0", STR_PAD_LEFT)).".*";
+      $this->SetReceiveDataFilter($filter);
+
       if (102 == ($status = $this->setDeviceProperty($deviceID))) {
         //Apply changes
         if (IPS_HasChanges($this->InstanceID)) {
@@ -91,8 +95,8 @@ class lightifyDevice extends IPSModule
       $itemClass = $this->ReadPropertyInteger("itemClass");
       $formLabel = ($itemClass == vtNoValue) ? '{ "label": "Select...",  "value":   -1 },' : vtNoString;
 
-      $infoText = ($itemClass != vtNoValue && $deviceInfo && !empty($localDevice)) ? '
-        { "type": "Label", "label": "----------------------------------------- Geräte spezifische Informationen ------------------------------------------------" },
+      $infoText = ($itemClass != vtNoValue && $deviceInfo && !empty($localDevice)) ? ',
+        { "type": "Label", "label": "" },
         { "type": "ValidationTextBox", "name": "UUID",         "caption": "UUID" }' : vtNoString;
 
       switch ($itemType) {
@@ -125,21 +129,17 @@ class lightifyDevice extends IPSModule
         default:
           $cloudDevice = $this->GetBuffer("cloudDevice");
 
-          if (!empty($infoText)) {
-            $infoText .= ",";
-	        }
-
           if ($connectMode == classConstant::CONNECT_LOCAL_CLOUD && !empty($cloudDevice) && !empty($infoText)) {
             if ($this->ReadPropertyString("manufacturer") != vtNoString) {
-              $infoText = $infoText.'{ "type": "ValidationTextBox", "name": "manufacturer", "caption": "Manufacturer" },';
+              $infoText = $infoText.',{ "type": "ValidationTextBox", "name": "manufacturer", "caption": "Manufacturer" }';
             }
 
             if ($this->ReadPropertyString("deviceModel") != vtNoString) {
-              $infoText = $infoText.'{ "type": "ValidationTextBox", "name": "deviceModel",  "caption": "Model"        },';
+              $infoText = $infoText.',{ "type": "ValidationTextBox", "name": "deviceModel",  "caption": "Model"        }';
             }
 
             if ($this->ReadPropertyString("deviceLabel") != vtNoString) {
-              $infoText = $infoText.'{ "type": "ValidationTextBox", "name": "deviceLabel",  "caption": "Capabilities" },';
+              $infoText = $infoText.',{ "type": "ValidationTextBox", "name": "deviceLabel",  "caption": "Capabilities" }';
             }
           }
 
@@ -153,9 +153,8 @@ class lightifyDevice extends IPSModule
                   { "label": "Plug",   "value": 2002 },
                   { "label": "Sensor", "value": 2003 }
                 ]
-              },
+              }
               '.$infoText.'
-              { "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" }
             ],
             "actions": [
               { "type": "Button", "label": "On",  "onClick": "OSR_SetValue($id, \"STATE\", true)"  },
@@ -171,6 +170,7 @@ class lightifyDevice extends IPSModule
           }';
       }
 
+      IPS_LogMessage("SymconOSR", "<GetConfigurationForm|JSON>   ".$formJSON);
       return $formJSON;
     }
 
@@ -184,8 +184,8 @@ class lightifyDevice extends IPSModule
     $deviceID = $this->ReadPropertyInteger("deviceID");
     $data     = json_decode($jsonString);
 
-    $debug       = IPS_GetProperty($data->id, "debug");
-    $message     = IPS_GetProperty($data->id, "message");
+    $debug   = IPS_GetProperty($data->id, "debug");
+    $message = IPS_GetProperty($data->id, "message");
 
     switch ($data->mode) {
       case classConstant::MODE_DEVICE_LOCAL:
@@ -193,7 +193,7 @@ class lightifyDevice extends IPSModule
         $localCount  = ord($localBuffer{0});
 
         //Store device buffer
-        $localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
+        $localDevice = $this->getDeviceLocal($deviceID, $localCount, substr($localBuffer, 2));
         $this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 
         if ($localCount > 0 && !empty($localDevice)) {
@@ -257,7 +257,7 @@ class lightifyDevice extends IPSModule
         $localCount  = ord($localBuffer{0});
 
         //Store device buffer
-        $localDevice = $this->getDeviceLocal($deviceID, substr($localBuffer, 2), $localCount);
+        $localDevice = $this->getDeviceLocal($deviceID, $localCount, substr($localBuffer, 2));
         $this->SetBuffer("localDevice", $localBuffer{0}.$localDevice);
 
         if (!empty($localDevice)) {
@@ -311,32 +311,33 @@ class lightifyDevice extends IPSModule
   }
 
 
-  private function getDeviceLocal($deviceID, $buffer, $ncount)
+  private function getDeviceLocal($deviceID, $ncount, $data)
   {
 
     $localDevice = vtNoString;
 
     for ($i = 1; $i <= $ncount; $i++) {
-      $localID = ord($buffer{0});
-      $buffer  = substr($buffer, 1);
+      $data    = substr($data, 2);
+      $localID = ord($data{0});
+      $data    = substr($data, 1);
 
       if ($localID == $deviceID) {
-        $localDevice = substr($buffer, 0, classConstant::DATA_DEVICE_LENGTH);
+        $localDevice = substr($data, 0, classConstant::DATA_DEVICE_LENGTH);
         break;
       }
 
-      $buffer = substr($buffer, classConstant::DATA_DEVICE_LENGTH);
+      $data = substr($data, classConstant::DATA_DEVICE_LENGTH);
     }
 
     return $localDevice;
   }
 
 
-  private function getDeviceCloud($deviceID, $buffer)
+  private function getDeviceCloud($deviceID, $data)
   {
 
     $cloudDevice = vtNoString;
-    $cloudBuffer = json_decode($buffer);
+    $cloudBuffer = json_decode($data);
 
     foreach ($cloudBuffer as $device) {
       list($cloudID) = $device;

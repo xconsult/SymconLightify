@@ -116,6 +116,8 @@ class lightifyConnect
 
     IPS_SendDebug($this->parentID, "<Lighitfy|Socket|sendRaw:error>", $error, 0);
     IPS_LogMessage("SymconOSR", "<Lighitfy|Socket|sendRaw:error>   ".$error);
+
+    return false;
   }
 
 

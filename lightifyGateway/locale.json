@@ -36,7 +36,6 @@
       "Enter all required informations"                                                                : "Die notwendigen Informationen eingeben",
       "Lightify gateway is closed"                                                                     : "Lightify gateway ist nicht verbunden",
       "Invalid IP address!"                                                                            : "Ungültige IP Addresse!",
-      "Ping timeout < 0ms"                                                                             : "Ping Zeitüberschreitung < 0ms",
       "Update interval < 3s"                                                                           : "Aktualisierungs Interval < 3s",
       "Unknown error"                                                                                  : "Unbekannter Fehler"
     }

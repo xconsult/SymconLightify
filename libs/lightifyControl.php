@@ -74,6 +74,7 @@ trait LightifyControl
             $ressource = RESSOURCE_GROUP.self::BODY_CMD_SET.$this->ReadPropertyInteger("itemID");
             break;
         }
+
         $buffer = $ressource.self::BODY_CMD_TIME.$data;
         break;
     }
@@ -136,30 +137,19 @@ trait LightifyControl
   {
 
     $gatewayIP = IPS_GetProperty($parentID, "gatewayIP");
-    $timeOut   = IPS_GetProperty($parentID, "timeOut");
 
-    if ($timeOut > 0) {
-      $connect = Sys_Ping($gatewayIP, $timeOut);
-    } else {
-      $connect = true;
-    }
+    try { 
+      $lightifyConnect = new lightifyConnect($parentID, $gatewayIP, $debug, $message);
+    } catch (Exception $ex) {
+      $error = $ex->getMessage();
 
-    if ($connect) {
-      try { 
-        $lightifyConnect = new lightifyConnect($parentID, $gatewayIP, $debug, $message);
-      } catch (Exception $ex) {
-        $error = $ex->getMessage();
+      $this->SendDebug("<Lightify|localConnect:socket>", $error, 0);
+      IPS_LogMessage("SymconOSR", "<Lightify|localConnect:socket>   ".$error);
 
-        $this->SendDebug("<Lightify|localConnect:socket>", $error, 0);
-        IPS_LogMessage("SymconOSR", "<Lightify|localConnect:socket>   ".$error);
-
-        return false;
-      }
-      return $lightifyConnect;
-    } else {
-      IPS_LogMessage("SymconOSR", "<Lightify|localConnect:error>   Lightify gateway not online!");
       return false;
     }
+
+    return $lightifyConnect;
   }
 
 
