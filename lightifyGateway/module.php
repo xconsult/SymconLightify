@@ -1123,8 +1123,6 @@ class lightifyGateway extends IPSModule
             if ($syncGroup) {
               if (!empty($localGroup) && ord($localGroup{0}) > 0 && !empty($groupDevice)) {
                 if (count(IPS_GetInstanceListByModuleID(classConstant::MODULE_GROUP)) > 0) {
-                  IPS_LogMessage("SymconOSR", "<Gateway|GetLightifyData|group:device>   ".$groupDevice);
-
                   $this->SendDataToChildren(json_encode(array(
                     'DataID'  => classConstant::TX_GROUP,
                     'id'      => $this->InstanceID,
