@@ -29,9 +29,9 @@ class lightifyGateway extends IPSModule
   const GATEWAY_SERIAL_LENGTH   = 11;
 
   const LIST_CATEGORY_INDEX     =  6;
-  const LIST_DEVICE_INDEX       =  8;
-  const LIST_GROUP_INDEX        =  9;
-  const LIST_SCENE_INDEX        = 10;
+  const LIST_DEVICE_INDEX       =  9;
+  const LIST_GROUP_INDEX        = 10;
+  const LIST_SCENE_INDEX        = 11;
 
   const OAUTH_AUTHORIZE         = "https://oauth.ipmagic.de/authorize/";
   const OAUTH_FORWARD           = "https://oauth.ipmagic.de/forward/";
@@ -139,6 +139,8 @@ class lightifyGateway extends IPSModule
     $this->RegisterPropertyString("listDevice", vtNoString);
     $this->RegisterPropertyString("listGroup", vtNoString);
     $this->RegisterPropertyString("listScene", vtNoString);
+
+    $this->RegisterPropertyBoolean("reloadLocal", false);
     $this->RegisterPropertyBoolean("deviceInfo", false);
 
     $this->RegisterPropertyInteger("debug", classConstant::DEBUG_DISABLED);
@@ -323,6 +325,7 @@ class lightifyGateway extends IPSModule
             }
           ]
         },
+        { "type": "CheckBox",     "name": "reloadLocal",        "caption": " Reload data instantly (not recommended: higher gateway load and longer response time)"         },
         { "type": "CheckBox",     "name": "deviceInfo",         "caption": " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" },
         '.$formDevice.'
         '.$formGroup.'
@@ -339,9 +342,9 @@ class lightifyGateway extends IPSModule
         { "type": "CheckBox",     "name":  "message",           "caption": " Messages" }
       ],
       "actions": [
-        { "type": "Button", "label": "Registrieren", "onClick": "echo OSR_LightifyRegister($id)"       },
-        { "type": "Label",  "label": "Drücken Sie Erstellen | Aktualisieren, um die am Gateway registrierten Geräte/Gruppen/Szenen und Einstellungen automatisch anzulegen" },
-        { "type": "Button", "label": "Create | Update", "onClick": "OSR_GetLightifyData($id, 1208)" }
+        { "type": "Button", "label": "Register", "onClick": "echo OSR_LightifyRegister($id)"                 },
+        { "type": "Label",  "label": "Press Create | Update to automatically apply the devices and settings" },
+        { "type": "Button", "label": "Create | Update", "onClick": "OSR_GetLightifyData($id, 1208)"          }
       ],
       "status": [
         { "code": 101, "icon": "inactive", "caption": "Lightify gateway is closed"      },
@@ -507,7 +510,9 @@ class lightifyGateway extends IPSModule
 
     switch ($data->method) {
       case classConstant::METHOD_RELOAD_LOCAL:
-        $this->GetLightifyData($data->method);
+        if ($this->ReadPropertyBoolean("reloadLocal")) {
+          $this->GetLightifyData($data->method);
+        }
         break;
 
       case classConstant::METHOD_LOAD_CLOUD:
