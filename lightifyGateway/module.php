@@ -1166,6 +1166,7 @@ class lightifyGateway extends IPSModule
 
     for ($i = 1, $j = 0; $i <= $ncount; $i++) {
       $itemType = ord($data{10});
+      $noType   = false;
 
       //Decode Device label
       switch ($itemType) {
@@ -1181,8 +1182,9 @@ class lightifyGateway extends IPSModule
           break;
 
         default:
-          continue;
+          $noType = true;
       }
+      if ($noType) continue;
 
       $deviceID = chr($i);
       $device   = substr($data, 0, classConstant::DATA_DEVICE_LENGTH);
