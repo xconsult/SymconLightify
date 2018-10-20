@@ -483,8 +483,10 @@ class lightifyGateway extends IPSModule
   {
 
     if ($this->ReadPropertyBoolean("open")) {
-      $data = json_decode($jsonString);
       $this->setEnvironment();
+
+      $data = json_decode($jsonString);
+      $jsonReturn = vtNoString;
 
       switch ($data->method) {
         case classConstant::METHOD_RELOAD_LOCAL:
@@ -506,8 +508,6 @@ class lightifyGateway extends IPSModule
           break;
 
         case classConstant::METHOD_APPLY_CHILD:
-          $jsonReturn = vtNoString;
-
           switch ($data->mode) {
             case classConstant::MODE_DEVICE_LOCAL:
               $localDevice = $this->GetBuffer("localDevice");
@@ -537,7 +537,7 @@ class lightifyGateway extends IPSModule
                 }
               }
               //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|devices:groups>   ".$jsonReturn);
-              return $jsonReturn;
+              break;;
 
             case classConstant::MODE_DEVICE_CLOUD:
               $cloudDevice = $this->GetBuffer("cloudDevice");
@@ -548,7 +548,7 @@ class lightifyGateway extends IPSModule
                   'buffer' => $cloudDevice)
                 );
               }
-              return $jsonReturn;
+              break;;
 
             case classConstant::MODE_GROUP_LOCAL:
               $localGroup  = $this->GetBuffer("localGroup");
@@ -564,7 +564,7 @@ class lightifyGateway extends IPSModule
                   );
                 }
               }
-              return $jsonReturn;
+              break;;
 
             case classConstant::MODE_GROUP_SCENE:
               $cloudScene = $this->GetBuffer("cloudScene");
@@ -575,7 +575,7 @@ class lightifyGateway extends IPSModule
                   'buffer' => utf8_encode($cloudScene))
                 );
               }
-              return $jsonReturn;
+              break;;
 
             case classConstant::MODE_ALL_SWITCH:
               $allLights = $this->GetBuffer("allLights");
@@ -588,12 +588,12 @@ class lightifyGateway extends IPSModule
                 );
               }
               //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:all>   ".$jsonReturn);
-              return $jsonReturn;
+              break;;
           }
       }
     }
 
-    return false;
+    return $jsonReturn;
 
   }
 
@@ -601,7 +601,7 @@ class lightifyGateway extends IPSModule
   private function getMethodState($method, $data)
   {
 
-    //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:data>   ".json_encode($data));
+    IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:data>   ".json_encode($data));
 
     $value  = (int)substr($data, 0, 1); 
     $state = ($value == 1) ? classConstant::SET_STATE_ON : classConstant::SET_STATE_OFF;
@@ -634,17 +634,18 @@ class lightifyGateway extends IPSModule
         $decode  = substr($deviceBuffer, 2);
 
         for ($i = 1; $i <= $ncount; $i++) {
-          $deviceID = ord($decode{2});
-          $decode   = substr($decode, 3);
+          $deviceID  = ord($decode{2});
+          $decode    = substr($decode, 3);
+          $newDevice = substr($decode, 0, classConstant::DATA_DEVICE_LENGTH);
 
           if ($localID == $deviceID) {
             $name = substr($decode, 26, classConstant::DATA_NAME_LENGTH);
-            $newDevice  = substr_replace(substr($decode, 0, classConstant::DATA_DEVICE_LENGTH), chr($value), 18, 1);
+            $newDevice  = substr_replace($newDevice, chr($value), 18, 1);
             //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|new:device>   ".$i."/".$localID."/".$deviceID."/".trim($name)."/".ord($newDevice{18}));
-
-            $newBuffer .= $newDevice;
           }
-          $decode = substr($decode, classConstant::DATA_DEVICE_LENGTH);
+
+          $newBuffer .= $newDevice;
+          $decode     = substr($decode, classConstant::DATA_DEVICE_LENGTH);
         }
         $Devices = substr($Devices, classConstant::ITEM_FILTER_LENGTH);
       }
