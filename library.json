@@ -3,7 +3,10 @@
   "author": "xconsult",
   "name": "SymconLightify",
   "url": "",
-  "version": "2.10",
-  "build": 0,
+  "compatibility": {
+    "version": "5.0"
+  },
+  "version": "4.00",
+  "build": 52,
   "date": 0
 }

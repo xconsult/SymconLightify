@@ -6,6 +6,7 @@ declare(strict_types=1);
 class lightifyConnect
 {
 
+
   protected $lightifyBase;
   protected $lightifySocket;
 
@@ -37,13 +38,14 @@ class lightifyConnect
     stream_set_timeout($this->lightifySocket, 3);
     stream_set_blocking($this->lightifySocket, true);
     //stream_set_chunk_size($this->lightifySocket, 4096);
+
   }
 
 
   public function sendRaw($command, $flag, $args = vtNoValue)
   {
 
-    //$this->requestID = ($this->requestID == classConstant::REQUESTID_HIGH_VALUE) ? 1 : $this->requestID+1;
+    //$this->requestID = ($this->requestID == classConstant::REQUESTID_HIGH) ? 1 : $this->requestID+1;
     //$data = $flag.chr($command).$this->lightifyBase->getRequestID($this->requestID);
     $data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
 
@@ -118,13 +120,14 @@ class lightifyConnect
     IPS_LogMessage("SymconOSR", "<Lighitfy|Socket|sendRaw:error>   ".$error);
 
     return false;
+
   }
 
 
   public function setAllDevices($value)
   {
 
-    $args   = str_repeat(chr(0xFF), 8).chr(dechex($value));
+    $args   = str_repeat(chr(0xFF), 8).chr($value);
     $buffer = $this->sendRaw(classCommand::SET_DEVICE_STATE, chr(0x00), $args);
 
     if ($buffer !== false) {
@@ -132,6 +135,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -146,6 +150,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -154,6 +159,7 @@ class lightifyConnect
 
     $args = $uintUUID.str_pad($name, classConstant::DATA_NAME_LENGTH).chr(0x00);
     return $this->sendRaw($command, $flag, $args);
+
   }
 
 
@@ -168,6 +174,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -188,6 +195,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -202,6 +210,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -216,6 +225,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -229,6 +239,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -243,6 +254,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -250,6 +262,7 @@ class lightifyConnect
   {
 
     return $this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01));
+
   }
 
 
@@ -257,6 +270,7 @@ class lightifyConnect
   {
 
     return $this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00));
+
   }
 
 
@@ -270,6 +284,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -283,6 +298,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -290,6 +306,7 @@ class lightifyConnect
   {
 
     return $this->sendRaw(classCommand::GET_GROUP_INFO, chr(0x00), $uintUUID);
+
   }
 
 
@@ -307,6 +324,7 @@ class lightifyConnect
     }
 
     return false;
+
   }
 
 
@@ -314,6 +332,7 @@ class lightifyConnect
   {
 
     return $this->sendRaw(classCommand::GET_GATEWAY_FIRMWARE, chr(0x00));
+
   }
 
 
@@ -321,6 +340,7 @@ class lightifyConnect
   {
 
     return $this->sendRaw(classCommand::GET_GATEWAY_WIFI, $flags);
+
   }
 
 
@@ -328,6 +348,7 @@ class lightifyConnect
   {
 
     return $this->sendRaw($command, chr(0x00), $value);
+
   }
 
 
@@ -335,6 +356,8 @@ class lightifyConnect
   {
 
     $result = @fclose($this->lightifySocket);
+
   }
+
 
 }

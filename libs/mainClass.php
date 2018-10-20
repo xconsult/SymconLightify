@@ -198,6 +198,7 @@ if (!defined('vtNoValue')) {
 trait ParentInstance
 {
 
+
   private function getParentInfo($id)
   {
 
@@ -212,6 +213,7 @@ trait ParentInstance
     }
 
     return false;
+
   }
 
 
@@ -226,6 +228,7 @@ trait ParentInstance
     }
 
     return $parentID;
+
   }
 
 
@@ -234,13 +237,16 @@ trait ParentInstance
 
     $instanceID = IPS_GetInstance($id);
     return $instanceID['InstanceStatus'];
+
   }
+
 
 }
 
 
 trait WebOAuth
 {
+
 
   private function RegisterOAuth($WebOAuth)
   {
@@ -272,6 +278,31 @@ trait WebOAuth
       IPS_SetProperty($ids[0], 'ClientIDs', json_encode($clientIDs));
       IPS_ApplyChanges($ids[0]);
     }
+
   }
+
+
+}
+
+
+trait InstanceHelper
+{
+
+
+  private function getObjectByProperty($moduleID, $property, $value)
+  {
+
+    $Instances = IPS_GetInstanceListBymoduleID($moduleID);
+
+    foreach ($Instances as $objectID) {
+      if (@IPS_GetProperty($objectID, $property) == $value) {
+        return $objectID;
+      }
+    }
+
+    return false;
+
+  }
+
 
 }

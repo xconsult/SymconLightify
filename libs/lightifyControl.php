@@ -26,25 +26,27 @@ define('WAIT_TIME_SEMAPHORE', 1500); //milliseconds
 trait LightifyControl
 {
 
+
   protected $lightifyBase;
 
-  protected $itemType;
-  protected $transition = false;
+  protected $classType;
+  protected $transition  = false;
 
-  protected $itemGroup  = false;
-  protected $itemScene  = false;
-  protected $itemDummy  = false;
+  protected $classGroup  = false;
+  protected $classScene  = false;
+  protected $classDummy  = false;
 
-  protected $deviceRGB  = false;
-  protected $deviceCCT  = false;
-  protected $deviceCLR  = false;
+  protected $deviceRGB   = false;
+  protected $deviceCCT   = false;
+  protected $deviceCLR   = false;
 
-  protected $itemLight  = false;
-  protected $itemOnOff  = false;
-  protected $itemMotion = false;
-  protected $itemDevice = false;
+  protected $classLight  = false;
+  protected $classOnOff  = false;
+  protected $classMotion = false;
+  protected $classDevice = false;
 
-  use ParentInstance;
+  use ParentInstance,
+      InstanceHelper;
 
 
   public function __construct($InstanceID)
@@ -52,84 +54,96 @@ trait LightifyControl
 
     parent::__construct($InstanceID);
     $this->lightifyBase = new lightifyBase;
+
   }
 
 
   private function sendData($method, $data = null)
   {
 
-    $buffer = $data;
-
     switch ($method) {
       case classConstant::METHOD_LOAD_CLOUD:
         switch (true) {
-          case $this->itemLight:
-            //fall through
-
+          case $this->classLight:
           case $this->itemOnOff:
             $ressource = RESSOURCE_DEVICE.self::BODY_CMD_SET.$this->ReadPropertyInteger("deviceID");
             break;
 
-          case $this->itemGroup:
-            $ressource = RESSOURCE_GROUP.self::BODY_CMD_SET.$this->ReadPropertyInteger("itemID");
+          case $this->classGroup:
+            $ressource = RESSOURCE_GROUP.self::BODY_CMD_SET.$this->ReadPropertyInteger("groupID");
             break;
         }
 
         $buffer = $ressource.self::BODY_CMD_TIME.$data;
         break;
+
+      case classConstant::METHOD_STATE_DEVICE:
+        $buffer = (string)$data.":".utf8_encode($this->GetBuffer("deviceUID"));
+        break;
+
+      case classConstant::METHOD_STATE_GROUP:
+        $buffer = (string)$data.":".utf8_encode($this->GetBuffer("groupUID"));;
+        break;
+
+      case classConstant::METHOD_ALL_DEVICES:
+        $buffer = (string)$data.":".utf8_encode($this->GetBuffer("deviceUID"));
+        break;
     }
+    //IPS_LogMessage("SymconOSR", "<Lightify|sendData:buffer>   ".json_encode($buffer));
 
     $this->SendDataToParent(json_encode(array(
       'DataID' => classConstant::TX_GATEWAY,
       'method' => $method,
       'buffer' => $buffer))
     );
+
   }
 
 
   private function setEnvironment()
   {
 
-    $this->name     = IPS_GetName($this->InstanceID);
-    $this->itemType = $this->ReadPropertyInteger("itemType");
+    $this->name      = IPS_GetName($this->InstanceID);
+    $this->classType = $this->ReadPropertyInteger("classType");
 
-    if ($this->itemType == classConstant::TYPE_DEVICE_GROUP) {
-       $this->itemGroup = true;
+    if ($this->classType == classConstant::TYPE_DEVICE_GROUP) {
+       $this->classGroup = true;
      }
 
-    if ($this->itemType == classConstant::TYPE_GROUP_SCENE) {
-       $this->itemScene = true;
+    if ($this->classType == classConstant::TYPE_GROUP_SCENE) {
+       $this->classScene = true;
      }
 
-    if (!$this->itemGroup && !$this->itemScene) {
-      if ($this->itemType & 8) {
+    if (!$this->classGroup && !$this->classScene) {
+      if ($this->classType & 8) {
          $this->deviceRGB = true;
        }
 
-      if ($this->itemType & 2) {
+      if ($this->classType & 2) {
          $this->deviceCCT = true;
        }
 
-      if ($this->itemType & 4) {
+      if ($this->classType & 4) {
          $this->deviceCLR = true;
        }
 
       if ($this->deviceRGB || $this->deviceCCT || $this->deviceCLR) {
-         $this->itemLight = true;
+         $this->classLight = true;
        }
 
-      if ($this->itemType == classConstant::TYPE_FIXED_WHITE || $this->itemType == classConstant::TYPE_PLUG_ONOFF) {
+      if ($this->classType == classConstant::TYPE_FIXED_WHITE || $this->classType == classConstant::TYPE_PLUG_ONOFF) {
          $this->itemOnOff = true;
        }
 
-      if ($this->itemType == classConstant::TYPE_SENSOR_MOTION) {
-         $this->itemMotion = true;
+      if ($this->classType == classConstant::TYPE_SENSOR_MOTION) {
+         $this->classMotion = true;
        }
 
-      if ($this->itemLight || $this->itemOnOff || $this->itemMotion) {
-         $this->itemDevice = true;
+      if ($this->classLight || $this->itemOnOff || $this->classMotion) {
+         $this->classDevice = true;
        }
     }
+
   }
 
 
@@ -150,6 +164,7 @@ trait LightifyControl
     }
 
     return $lightifyConnect;
+
   }
 
 
@@ -160,120 +175,129 @@ trait LightifyControl
     $value = (int)$Value;
 
     switch ($key) {
-      case "ALL_LIGHTS":
-        //fall-through
+      case "ALL_DEVICES":
+        break;
 
       case "SCENE":
-        $Value = $this->ReadPropertyInteger("itemID");
-        //fall-through
+        $value = $this->ReadPropertyInteger("groupID");
+        break;
 
       case "STATE":
-        //fall-through
-
       case "COLOR":
-        //fall-through
-
       case "COLOR_TEMPERATURE":
-        //fall-through
-
       case "BRIGHTNESS":
       case "LEVEL":
-        //fall-through
-
       case "SATURATION":
-        return $this->SetValue($key, $value);
+        break;
     }
+
+    return $this->WriteValue($key, $value);
   }
 
 
   public function SetValue($key, $value)
   {
 
+    $this->WriteValue($key, $value);
+
+  }
+
+  public function WriteValue(string $key, int $value)
+  {
+
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $this->setEnvironment();
 
-      $open    = IPS_GetProperty($parentID, "open");
+      $open   = IPS_GetProperty($parentID, "open");
+      $reload = IPS_GetProperty($parentID, "reloadLocal");
+
       $debug   = IPS_GetProperty($parentID, "debug");
       $message = IPS_GetProperty($parentID, "message");
 
       if ($open) {
         if ($lightifyConnect = $this->localConnect($parentID, $debug, $message)) {
           $key = strtoupper($key);
+          $uintUUID = @IPS_GetProperty($this->InstanceID, "uintUUID");
 
-          if (in_array($key, explode(",", classConstant::LIST_KEY_VALUES)) === false) {
+          if (in_array($key, explode(",", classConstant::WRITE_KEY_VALUES)) === false) {
             if ($debug % 2 || $message) {
               $error = "usage: [".$this->InstanceID."|".$this->name."] {key} not valid!";
 
               if ($debug % 2) {
-                IPS_SendDebug($parentID, "<Lightify|SetValue:error>", $error, 0);
+                IPS_SendDebug($parentID, "<Lightify|WriteValue:error>", $error, 0);
               }
 
               if ($message) {
-                IPS_LogMessage("SymconOSR", "<Lightify|SetValue:error>   ".$error);
+                IPS_LogMessage("SymconOSR", "<Lightify|WriteValue:error>   ".$error);
               }
-
-              return false;
             }
+
+            return false;
           }
 
-          $uintUUID = @IPS_GetProperty($this->InstanceID, "uintUUID");
-          $online   = false;
-
-          if ($this->itemDevice) {
+          if ($this->classDevice) {
             $flag     = chr(0x00);
             $onlineID = @$this->GetIDForIdent("ONLINE");
             $online   = ($onlineID) ? GetValueBoolean($onlineID) : false;
           }
 
-          if ($this->itemGroup || $this->itemScene) {
+          if ($this->classGroup || $this->classScene) {
             $flag     = chr(0x02);
             $uintUUID = str_pad(substr($uintUUID, 0, 1), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
+            $online   = false;
 
-            if ($this->itemGroup) {
+            if ($this->classGroup) {
               $this->transition = classConstant::TRANSITION_DEFAULT;
             }
           }
 
-          if ($this->itemDevice || $this->itemGroup) {
+          if ($this->classDevice || $this->classGroup) {
             $stateID = @$this->GetIDForIdent("STATE");
             $state   = ($stateID) ? GetValueBoolean($stateID) : false;
 
-            if ($this->itemLight) {
+            if ($this->classLight) {
               if (!$this->transition) {
                 //$this->transition = IPS_GetProperty($this->InstanceID, "transition")*10;
-                $this->transition = $this->ReadPropertyFloat("transition")*10;
+                //$this->transition = $this->ReadPropertyFloat("transition")*10;
               }
             }
           }
 
           switch($key) {
-            case "ALL_LIGHTS":
-              $stateID = @$this->GetIDForIdent("ALL_LIGHTS");
-              $state   = ($stateID) ? GetValueBoolean($stateID) : false;
-
-              if (($value == 0 && $state !== false) || $value == 1) {
+            case "ALL_DEVICES":
+              if ($value == 0  || $value == 1) {
                 if (false !== ($result = $lightifyConnect->setAllDevices($value))) {
-                  SetValue(@$this->GetIDForIdent($key), $value);
-                  $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                  $stateID = @$this->GetIDForIdent("ALL_DEVICES");
+
+                  if ($stateID) {
+                    SetValue($stateID, $value);
+                  }
+
+                  if ($reload) {
+                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                  } else {
+                    $this->sendData(classConstant::METHOD_ALL_DEVICES, $value);
+                  }
+
                   return true;
                 }
               } else {
                 if ($debug % 2 || $message) {
-                  $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true/false'";
+                  $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be '1|0'";
 
                   if ($debug % 2) {
-                    IPS_SendDebug($parentID, "<Lightify|SetValue|ALL>", $info, 0);
+                    IPS_SendDebug($parentID, "<Lightify|WriteValue|all>", $info, 0);
                   }
 
                   if ($message) {
-                    IPS_LogMessage("SymconOSR", "<Lightify|SetValue|ALL>   ".$info);
+                    IPS_LogMessage("SymconOSR", "<Lightify|WriteValue|all>   ".$info);
                   }
                 }
               }
               return false;
 
             case "SAVE":
-              if ($this->itemLight) {
+              if ($this->classLight) {
                 if ($value == 1) {
                   $result = $lightifyConnect->saveLightState($uintUUID);
 
@@ -282,49 +306,14 @@ trait LightifyControl
                   }
                 } else {
                   if ($debug % 2 || $message) {
-                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be '1'";
 
                     if ($debug % 2) {
-                      IPS_SendDebug($parentID, "<Lightify|SetValue:save>", $info, 0);
+                      IPS_SendDebug($parentID, "<Lightify|WriteValue:save>", $info, 0);
                     }
 
                     if ($message) {
-                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:save>   ".$info);
-                    }
-                  }
-                }
-              }
-              return false;
-
-            case "NAME":
-              if ($this->itemScene == false) {
-                $command = classCommand::SET_DEVICE_NAME;
-
-                if ($this->itemGroup) {
-                  $command  = classCommand::SET_GROUP_NAME;
-                  $uintUUID = chr(hexdec(@$this->GetIDForIdent("groupID"))).chr(0x00);
-                }
-
-                if (is_string($value)) {
-                  $name = substr(trim($value), 0, classConstant::DATA_NAME_LENGTH);
-
-                  if (false !== ($result = $lightifyConnect->setName($uintUUID, $command, $flag, $name))) {
-                    if (@IPS_GetName($this->InstanceID) != $name) {
-                      IPS_SetName($this->InstanceID, (string)$name);
-                    }
-
-                    return true;
-                  }
-                } else {
-                  if ($debug % 2 || $message) {
-                    $info = "usage: [".$this->InstanceID."|".$this->name."] {name} musst be a string";
-
-                    if ($debug % 2) {
-                      IPS_SendDebug($parentID, "<Lightify|SetValue:name>", $info, 0);
-                    }
-
-                    if ($message) {
-                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:name>   ".$info);
+                      IPS_LogMessage("SymconOSR", "<Lightify|WriteValue:save>   ".$info);
                     }
                   }
                 }
@@ -332,10 +321,13 @@ trait LightifyControl
               return false;
 
             case "SCENE":
-              if ($this->itemScene) {
+              if ($this->classScene) {
                 if (is_int($value)) {
                   if (false !== ($result = $lightifyConnect->activateGroupScene($value))) {
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    if ($reload) {
+                      $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    }
+
                     return true;
                   }
                 } else {
@@ -343,11 +335,11 @@ trait LightifyControl
                     $info = "usage: [".$this->InstanceID."|".$this->name."] {sceneID} musst be numeric";
   
                     if ($debug % 2) {
-                      IPS_SendDebug($parentID, "<Lightify|SetValue:scene>", $info, 0);
+                      IPS_SendDebug($parentID, "<Lightify|WriteValue:scene>", $info, 0);
                     }
   
                     if ($message) {
-                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:scene>   ".$info);
+                      IPS_LogMessage("SymconOSR", "<Lightify|WriteValue:scene>   ".$info);
                     }
                   }
                 }
@@ -355,7 +347,8 @@ trait LightifyControl
               return false;
 
             case "DEFAULT":
-              if (($this->itemLight && $online) || $this->itemGroup) {
+              /*
+              if (($this->classLight && $online) || $this->classGroup) {
                 if ($value == 1) {
                   if ($this->setStateOn($state)) {
                     //Reset light to default values
@@ -363,7 +356,7 @@ trait LightifyControl
                     $lightifyConnect->setColorTemperature($uintUUID, $flag, classConstant::CTEMP_DEFAULT);
                     $lightifyConnect->setBrightness($uintUUID, $flag, classConstant::INTENSITY_MAX);
 
-                    if ($this->itemLight) {
+                    if ($this->classLight) {
                       $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_ON, classConstant::TRANSITION_DEFAULT);
                       $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_OFF, classConstant::TRANSITION_DEFAULT);
                       IPS_SetProperty($this->InstanceID, "transition", classConstant::TRANSITION_DEFAULT/10);
@@ -373,21 +366,22 @@ trait LightifyControl
                       }
                     }
                   }
+
                   return true;
                 } else {
                   if ($debug % 2 || $message) {
-                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be '1'";
 
                     if ($debug % 2) {
-                      IPS_SendDebug($parentID, "<Lightify|SetValue:default>", $info, 0);
+                      IPS_SendDebug($parentID, "<Lightify|WriteValue:default>", $info, 0);
                     }
 
                     if ($message) {
-                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:default>   ".$info);
+                      IPS_LogMessage("SymconOSR", "<Lightify|WriteValue:default>   ".$info);
                     }
                   }
                 }
-              }
+              } */
               return false;
 
             case "SOFT_ON":
@@ -399,14 +393,16 @@ trait LightifyControl
               //fall-trough
 
             case "TRANSITION":
-              if ($this->itemLight) {
+              if ($this->classLight) {
                 $value = ($value) ? $this->getValueRange("TRANSITION_TIME", $value) : classConstant::TRANSITION_DEFAULT/10;
 
                 if (isset($command) == false) {
+                  /*
                   if ($this->ReadPropertyFloat("transition") != $value) {
                     IPS_SetProperty($this->InstanceID, "transition", $value);
                     IPS_ApplyChanges($this->InstanceID);
-                  }
+                  } */
+
                   return true;
                 } else {
                   $result = $lightifyConnect->setSoftTime($uintUUID, $command, $value*10);
@@ -423,30 +419,29 @@ trait LightifyControl
               //fall-trough
 
             case "ACTIVE":
-              if (($this->itemLight && $online) || $this->itemGroup) {
+              if (($this->classLight && $online) || $this->classGroup) {
                 $temperature = (isset($temperature)) ? $temperature : classConstant::SCENE_ACTIVE;
 
                 if ($value == 1) {
                   if ($this->setStateOn($state)) {
                     if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $temperature))) {
-                      //if ($this->itemLight && GetValue($this->InstanceID) != $value) {
-                        //SetValue($this->InstanceID, $value);
-                      //}
+                      if ($reload) {
+                        $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                      }
 
-                      $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                       return true;
                     }
                   }
                 } else {
                   if ($debug % 2 || $message) {
-                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be '1'";
 
                     if ($debug % 2) {
-                      IPS_SendDebug($parentID, "<Lightify|SetValue:active>", $info, 0);
+                      IPS_SendDebug($parentID, "<Lightify|WriteValue:active>", $info, 0);
                     }
 
                     if ($message) {
-                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:active>   ".$info);
+                      IPS_LogMessage("SymconOSR", "<Lightify|WriteValue:active>   ".$info);
                     }
                   }
                 }
@@ -454,28 +449,27 @@ trait LightifyControl
               return false;
 
             case "PLANT_LIGHT":
-              if (($this->itemLight && $online) || $this->itemGroup) {
+              if (($this->classLight && $online) || $this->classGroup) {
                 if ($value == 1) {
                   if ($this->setStateOn($state)) {
                     if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::SCENE_PLANT_LIGHT)))) {
-                      //if ($this->itemLight && GetValue($this->InstanceID) != $value) {
-                        //SetValue($this->InstanceID, $value);
-                      //}
+                      if ($reload) {
+                        $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                      }
 
-                      $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                       return true;
                     }
                   }
                 } else {
                   if ($debug % 2 || $message) {
-                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be 'true'";
+                    $info = "usage: [".$this->InstanceID."|".$this->name."] {value} musst be '1'";
 
                     if ($debug % 2) {
-                      IPS_SendDebug($parentID, "<Lightify|SetValue:plant>", $info, 0);
+                      IPS_SendDebug($parentID, "<Lightify|WriteValue:plant>", $info, 0);
                     }
 
                     if ($message) {
-                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:plant>   ".$info);
+                      IPS_LogMessage("SymconOSR", "<Lightify|WriteValue:plant>   ".$info);
                     }
                   }
                 }
@@ -483,7 +477,7 @@ trait LightifyControl
               return false;
 
             case "LIGHTIFY_LOOP":
-              if (($this->deviceRGB && $online) || $this->itemGroup) {
+              if (($this->deviceRGB && $online) || $this->classGroup) {
                 if ($value == 0 || $value == 1) {
                   if ($this->setStateOn($state)) {
                     if (false !== ($result = $lightifyConnect->sceneLightifyLoop($uintUUID, $flag, $value, 3268))){
@@ -492,14 +486,14 @@ trait LightifyControl
                   }
                 } else {
                   if ($debug % 2 || $message) {
-                    $info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be 'true/false'";
+                    $info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be '1|0'";
 
                     if ($debug % 2) {
-                      IPS_SendDebug($parentID, "<Lightify|SetValue:loop>", $info, 0);
+                      IPS_SendDebug($parentID, "<Lightify|WriteValue:loop>", $info, 0);
                     }
 
                     if ($message) {
-                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:loop>   ".$info);
+                      IPS_LogMessage("SymconOSR", "<Lightify|WriteValue:loop>   ".$info);
                     }
                   }
                 }
@@ -507,24 +501,35 @@ trait LightifyControl
               return false;
 
             case "STATE":
-              if (($this->itemDevice && $online) || $this->itemGroup) {
+              if (($this->classDevice && $online) || $this->classGroup) {
                 if ($value == 0 || $value == 1) {
                   if (false !== ($result = $lightifyConnect->setState($uintUUID, $flag, $value))) {
-                    SetValue($stateID, $value);
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    if ($stateID) {
+                      SetValue($stateID, $value);
+                    }
+
+                    if ($reload) {
+                      $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    } else {
+                      if ($this->classDevice) {
+                        $this->sendData(classConstant::METHOD_STATE_GROUP, $value);
+                      } else {
+                        $this->sendData(classConstant::METHOD_STATE_DEVICE, $value);
+                      }
+                    }
 
                     return true;
                   }
                 } else {
                   if ($debug % 2 || $message) {
-                    $info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be 'true/false'";
+                    $info = "usage: ".$this->InstanceID."|".$this->name." [value] musst be '1|0'";
 
                     if ($debug % 2) {
-                      IPS_SendDebug($parentID, "<Lightify|SetValue:state>", $info, 0);
+                      IPS_SendDebug($parentID, "<Lightify|WriteValue:state>", $info, 0);
                     }
 
                     if ($message) {
-                      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:state>   ".$info);
+                      IPS_LogMessage("SymconOSR", "<Lightify|WriteValue:state>   ".$info);
                     }
                   }
                 }
@@ -532,7 +537,7 @@ trait LightifyControl
               return false;
 
             case "COLOR":
-              if (($this->deviceRGB && $online) || $this->itemGroup) {
+              if (($this->deviceRGB && $online) || $this->classGroup) {
                 if ($this->deviceRGB) {
                   $this->setStateOn($state);
                 }
@@ -562,7 +567,10 @@ trait LightifyControl
                       SetValue($colorID, $value);
                     }
 
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    if ($reload) {
+                      $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    }
+
                     return true;
                   }
                 }
@@ -570,7 +578,7 @@ trait LightifyControl
               return false;
 
             case "COLOR_TEMPERATURE":
-              if (($this->deviceCCT && $online) || $this->itemGroup) {
+              if (($this->deviceCCT && $online) || $this->classGroup) {
                 if ($this->deviceCCT) {
                   $this->setStateOn($state);
                 }
@@ -585,7 +593,10 @@ trait LightifyControl
                       SetValue($temperatureID, $value);
                     }
 
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    if ($reload) {
+                      $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    }
+
                     return true;
                   }
                 }
@@ -594,8 +605,8 @@ trait LightifyControl
 
             case "BRIGHTNESS":
             case "LEVEL":
-              if (($this->itemLight && $online) || $this->itemGroup) {
-                if ($this->itemLight) {
+              if (($this->classLight && $online) || $this->classGroup) {
+                if ($this->classLight) {
                   $this->setStateOn($state);
                 }
 
@@ -604,20 +615,28 @@ trait LightifyControl
                 $value        = $this->getValueRange($key, $value);
 
                 if ($value != $brightness) {
-                  if (false !== ($result = $lightifyConnect->setBrightness($uintUUID, $flag, $value, $this->transition))) {
-                    if ($brightnessID) {
-                      SetValue($brightnessID, $value);
-                    }
-
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                  if ($value == 0) {
+                    $this->setStateOff($state);
                     return true;
+                  } else {
+                    if (false !== ($result = $lightifyConnect->setBrightness($uintUUID, $flag, $value, $this->transition))) {
+                      if ($brightnessID) {
+                        SetValue($brightnessID, $value);
+                      }
+
+                      if ($reload) {
+                        $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                      }
+
+                      return true;
+                    }
                   }
                 }
               }
               return false;
 
             case "SATURATION":
-              if (($this->deviceRGB && $online) || $this->itemGroup) {
+              if (($this->deviceRGB && $online) || $this->classGroup) {
                 if ($this->deviceRGB) {
                   $this->setStateOn($state);
                 }
@@ -640,11 +659,14 @@ trait LightifyControl
                       SetValue($colorID, $color);
                     }
 
-                    if ($this->itemLight && $saturationID) {
+                    if ($this->classLight && $saturationID) {
                       SetValue($saturationID, $value);
                     }
 
-                    $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    if ($reload) {
+                      $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
+                    }
+
                     return true;
                   }
                 }
@@ -658,6 +680,62 @@ trait LightifyControl
     }
 
     return false;
+
+  }
+
+
+  public function SetValueEx($key, $value, $transition)
+  {
+
+    $this->WriteValueEx($key, $value, $transition);
+
+  }
+
+
+  public function WriteValueEx(string $key, int $value, float $transition)
+  {
+
+    $this->transition = $this->getValueRange("TRANSITION_TIME", $transition);
+    return $this->SetValue($key, $value);
+
+  }
+
+
+  public function WriteName(string $name)
+  {
+
+    if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
+      $this->setEnvironment();
+
+      if (IPS_GetProperty($parentID, "open")) {
+        if ($lightifyConnect = $this->localConnect($parentID, $debug, $message)) {
+          $name = substr(trim($value), 0, classConstant::DATA_NAME_LENGTH);
+
+          if ($this->classDevice) {
+            $flag     = chr(0x00);
+            $command  = classCommand::SET_DEVICE_NAME;
+            $uintUUID = @IPS_GetProperty($this->InstanceID, "uintUUID");
+          }
+
+          if ($this->classGroup) {
+            $flag = chr(0x02);
+            $command  = classCommand::SET_GROUP_NAME;
+            $uintUUID = chr(hexdec(@$this->GetIDForIdent("groupID"))).chr(0x00);
+          }
+
+          if (false !== ($result = $lightifyConnect->setName($uintUUID, $command, $flag, $name))) {
+            if (@IPS_GetName($this->InstanceID) != $name) {
+              IPS_SetName($this->InstanceID, (string)$name);
+            }
+
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+
   }
 
 
@@ -665,18 +743,22 @@ trait LightifyControl
   {
 
     if (!$state) {
-      $state = $this->SetValue("STATE", 1);
+      $state = $this->WriteValue("STATE", 1);
     }
 
     return $state;
   }
 
 
-  public function SetValueEx($key, $value, $transition)
+  private function setStateOff($state)
   {
 
-    $this->transition = $this->getValueRange("TRANSITION_TIME", $transition);
-    return $this->SetValue($key, $value);
+    if ($state) {
+      $state = $this->WriteValue("STATE", 0);
+    }
+
+    return $state;
+
   }
 
 
@@ -698,8 +780,8 @@ trait LightifyControl
         break;
 
       case "COLOR_TEMPERATURE":
-        $minTemperature = ($this->itemType == classConstant::TYPE_LIGHT_EXT_COLOR) ? classConstant::CTEMP_COLOR_MIN : classConstant::CTEMP_CCT_MIN;
-        $maxTemperature = ($this->itemType == classConstant::TYPE_LIGHT_EXT_COLOR) ? classConstant::CTEMP_COLOR_MAX : classConstant::CTEMP_CCT_MAX;
+        $minTemperature = ($this->classType == classConstant::TYPE_LIGHT_EXT_COLOR) ? classConstant::CTEMP_COLOR_MIN : classConstant::CTEMP_CCT_MIN;
+        $maxTemperature = ($this->classType == classConstant::TYPE_LIGHT_EXT_COLOR) ? classConstant::CTEMP_COLOR_MAX : classConstant::CTEMP_CCT_MAX;
 
         if ($value < $minTemperature) {
           $info = "usage: [".$this->InstanceID."|".$this->name."] Color Temperature {".$value."K} out of range. Setting to ".$minTemperature."K";
@@ -755,14 +837,23 @@ trait LightifyControl
     }
 
     if (isset($info)) {
-      IPS_LogMessage("SymconOSR", "<Lightify|SetValue:info>   ".$info);
+      IPS_LogMessage("SymconOSR", "<Lightify|WriteValue:info>   ".$info);
     }
 
     return $value;
+
   }
 
 
   public function GetValue($key)
+  {
+
+    $this->ReadValue($key);
+
+  }
+
+
+  public function ReadValue(string $key)
   {
 
     if ($objectID = @IPS_GetObjectIDByIdent($key, $this->InstanceID)) {
@@ -770,10 +861,19 @@ trait LightifyControl
     }
 
     return false;
+
   }
 
 
   public function GetValueEx($key)
+  {
+
+    $this->ReadValueEx($key);
+
+  }
+
+
+  public function ReadValueEx(string $key)
   {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
@@ -803,6 +903,8 @@ trait LightifyControl
     }
 
     return false;
+
   }
+
 
 }

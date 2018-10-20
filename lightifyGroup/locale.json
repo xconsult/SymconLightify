@@ -6,17 +6,22 @@
       "Group"                             : "Gruppe",
       "Scene"                             : "Szene",
       "Devices"                           : "Geräte",
+      "Hue"                               : "Hue",
       "Color"                             : "Farbe",
       "Temperature"                       : "Temperatur",
-      "Level"                             : "Level",
+      "Brightness"                        : "Helligkeit",
       "Saturation"                        : "Sättigung",
       "time"                              : "Zeit",
+      "Light"                             : "Lampe",
+      "Plug"                              : "Steckdose",
       "On"                                : "An",
       "Off"                               : "Aus",
-      "Activate"                          : "Aktivieren",
+      "Apply"                             : "Anwenden",
       "Group is active"                   : "Gruppe ist aktiv",
       "Lightify gateway is not connected" : "Lightify gateway ist nicht verbunden",
-      "Invalid Group [id]"                : "Ungültige Gruppen [id]"
+      "Invalid Group [id]"                : "Ungültige Gruppen [id]",
+      "State"                             : "Status",
+      "Color Temperature"                 : "Farbtemperatur"
     }
   }
 }
