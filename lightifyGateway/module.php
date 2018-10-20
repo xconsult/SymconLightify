@@ -601,7 +601,7 @@ class lightifyGateway extends IPSModule
   private function getMethodState($method, $data)
   {
 
-    IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:data>   ".json_encode($data));
+    //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:data>   ".json_encode($data));
 
     $value  = (int)substr($data, 0, 1); 
     $state = ($value == 1) ? classConstant::SET_STATE_ON : classConstant::SET_STATE_OFF;
