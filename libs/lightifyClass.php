@@ -222,7 +222,7 @@ class classConstant
   const LABEL_SENSOR_MOTION     = "Active|Inactive";
   const LABEL_DIMMER_2WAY       = "-";
   const LABEL_SWITCH_4WAY       = "-";
-  const LABEL_UNKNOWN           = "Unknown-LIGHTIFY";
+  const LABEL_UNKNOWN           = "-Unknown-";
 
   const CTEMP_DEFAULT           = 2700;
   const CTEMP_DIMABLE_MIN       = 2700;

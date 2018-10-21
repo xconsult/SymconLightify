@@ -1222,7 +1222,7 @@ class lightifyGateway extends IPSModule
                   $bufferUID = $this->setDeviceUID($ncount, $deviceUID, $groupBuffer);
 
                   if (!empty($bufferUID)) {
-                    IPS_LogMessage("SymconOSR", "<Gateway|GetLightifyData|buffer:uid>   ".json_encode(utf8_encode($bufferUID{0}.$bufferUID)));
+                    //IPS_LogMessage("SymconOSR", "<Gateway|GetLightifyData|buffer:uid>   ".json_encode(utf8_encode($bufferUID{0}.$bufferUID)));
                     $this->SetBuffer("deviceUID", $bufferUID);
                   }
                 }
@@ -1269,8 +1269,11 @@ class lightifyGateway extends IPSModule
           break;
 
         default:
-          IPS_LogMessage("SymconOSR", "<Gateway|structDeviceData|devices:local>   Type <".$type."> not defined!");
           $noType = true;
+
+          if ($this->message) {
+            IPS_LogMessage("SymconOSR", "<Gateway|structDeviceData|devices:local>   Device type <".$type."> unknown!");
+          }
       }
 
       if ($noType) continue;
@@ -1364,7 +1367,7 @@ class lightifyGateway extends IPSModule
 
             case classConstant::TYPE_OSRAM_NEW_A:
               $label = classConstant::LABEL_UNKNOWN;
-              $info  = $this->Translate("-undefined-");
+              $info  = $this->Translate("-Unknown-");
               $withGroup = false;
               break;
           }
