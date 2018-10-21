@@ -181,7 +181,7 @@ class classConstant
   const CLASS_LIGHTIFY_GROUP    = 2006;
   const CLASS_LIGHTIFY_SCENE    = 2007;
   const CLASS_ALL_DEVICES       = 2008;
-  const CLASS_UNKNOWN           = 2099;
+  const CLASS_UNKNOWN           = 2050;
 
   const TYPE_FIXED_WHITE        = 1;  //Fixed White
   const TYPE_LIGHT_CCT          = 2;  //Tuneable White
@@ -192,6 +192,7 @@ class classConstant
   const TYPE_SENSOR_MOTION      = 32; //Motion sensor
   const TYPE_DIMMER_2WAY        = 64; //2 Way dimmer
   const TYPE_SWITCH_4WAY        = 65; //4 Way switch
+  const TYPE_UNKNOWN            = 66; //Unknown device
 
   const TYPE_DEVICE_GROUP       = 240; // 0xF0
   const TYPE_GROUP_SCENE        = 241; // 0xF1

@@ -1265,6 +1265,7 @@ class lightifyGateway extends IPSModule
         case classConstant::TYPE_SENSOR_MOTION:
         case classConstant::TYPE_DIMMER_2WAY:
         case classConstant::TYPE_SWITCH_4WAY:
+        case classConstant::TYPE_UNKNOWN:
           break;
 
         default:
@@ -1361,6 +1362,12 @@ class lightifyGateway extends IPSModule
             case classConstant::TYPE_SWITCH_4WAY:
               $label = classConstant::LABEL_SWITCH_4WAY;
               $info  = $this->Translate("Switch");
+              $withGroup = false;
+              break;
+
+            case classConstant::TYPE_UNKNOWN:
+              $label = classConstant::LABEL_UNKNOWN;
+              $info  = "-Unknown-";
               $withGroup = false;
               break;
           }
@@ -1769,6 +1776,11 @@ class lightifyGateway extends IPSModule
               $coded = false;
               break;
 
+            case classConstant::TYPE_UNKNOWN:
+              $class = classConstant::CLASS_UNKNOWN;
+              $categoryID = ($this->syncDevice) ? $this->deviceCategory->categoryID : false;
+              break;
+
             default:
               $class = classConstant::CLASS_LIGHTIFY_LIGHT;
               $categoryID = ($this->syncDevice) ? $this->deviceCategory->categoryID : false;
@@ -1782,7 +1794,7 @@ class lightifyGateway extends IPSModule
               $InstanceID = IPS_CreateInstance(classConstant::MODULE_DEVICE);
 
               $name = trim(substr($data, 26, classConstant::DATA_NAME_LENGTH));
-              $name = (!empty($name)) ? $name : "--unknown--";
+              $name = (!empty($name)) ? $name : "-Unknown-";
               //IPS_LogMessage("SymconOSR", "<createInstance|devices>   ".$i."/".$deviceID."/".$type."/".$name."/".$this->lightifyBase->decodeData($data));
 
               IPS_SetParent($InstanceID, $categoryID);
@@ -1821,7 +1833,7 @@ class lightifyGateway extends IPSModule
               $InstanceID = IPS_CreateInstance(classConstant::MODULE_GROUP);
 
               $name  = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
-              $name = (!empty($name)) ? $name : "--unknown--";
+              $name = (!empty($name)) ? $name : "-Unknown-";
 
               IPS_SetParent($InstanceID, $categoryID);
               IPS_SetPosition($InstanceID, 210+$groupID);
@@ -1861,7 +1873,7 @@ class lightifyGateway extends IPSModule
               $InstanceID = IPS_CreateInstance(classConstant::MODULE_GROUP);
 
               $name = trim(substr($data, 0, classConstant::DATA_NAME_LENGTH));
-              $name = (!empty($name)) ? $name : "--unknown--";
+              $name = (!empty($name)) ? $name : "-Unknown-";
               //IPS_LogMessage("SymconOSR", "<createInstance|scenes>   ".$ncount."/".$sceneID."/".$this->lightifyBase->chrToUUID($uintUUID)."/".$name);
 
               IPS_SetParent($InstanceID, $this->sceneCategory->categoryID);
