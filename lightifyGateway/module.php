@@ -1935,7 +1935,7 @@ class lightifyGateway extends IPSModule
   private function setMethodState($method, $data)
   {
 
-    //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:data>   ".json_encode($data));
+    IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:data>   ".json_encode($data));
 
     $value  = (int)substr($data, 0, 1); 
     $state = ($value == 1) ? classConstant::SET_STATE_ON : classConstant::SET_STATE_OFF;
@@ -1950,6 +1950,33 @@ class lightifyGateway extends IPSModule
           'method' => $state,
           'buffer' => $data))
         );
+      }
+
+      //Update group state
+      $localGroup  = $this->GetBuffer("localGroup");
+      $groupBuffer = $this->GetBuffer("groupBuffer");
+
+      if (!empty($localGroup) && !empty($groupBuffer)) {
+        $ncount = ord($localGroup{0});
+
+        if ($ncount > 0) {
+          $buffer = utf8_encode($groupBuffer);
+        }
+      }
+
+      if (count(IPS_GetInstanceListByModuleID(classConstant::MODULE_GROUP)) > 0) {
+        if ($method == classConstant::METHOD_STATE_DEVICE) $buffer = utf8_encode("-g".chr(classConstant::GROUPID_ALL_DEVICES)).$buffer;
+        //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|buffer>   ".json_encode($buffer));
+
+        if (!empty($buffer)) {
+          $this->SendDataToChildren(json_encode(array(
+            'DataID'  => classConstant::TX_GROUP,
+            'id'      => $this->InstanceID,
+            'mode'    => classConstant::MODE_STATE_GROUP,
+            'method'  => $state,
+            'buffer'  => $buffer))
+          );
+        }
       }
     }
 
@@ -1988,47 +2015,6 @@ class lightifyGateway extends IPSModule
     if (!empty($newBuffer)) {
       //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|new:buffer>   ".json_encode(utf8_encode($newBuffer)));
       $this->SetBuffer("deviceBuffer", $suffix.$newBuffer);
-    }
-
-    if ($method == classConstant::METHOD_STATE_DEVICE) {
-      $allLights = $this->GetBuffer("allLights");
-
-      $ncount = 1;
-      $buffer = utf8_encode(chr($ncount).$allLights);
-      $mode   = classConstant::MODE_STATE_GROUP;
-    }
-
-    if ($method == classConstant::METHOD_ALL_DEVICES) {
-      $localGroup  = $this->GetBuffer("localGroup");
-      $groupBuffer = $this->GetBuffer("groupBuffer");
-
-      if (!empty($localGroup) && !empty($groupBuffer)) {
-        $ncount = ord($localGroup{0});
-
-        if ($ncount > 0) {
-          $buffer = utf8_encode(chr($ncount).$groupBuffer);
-          $mode   = classConstant::MODE_ALL_SWITCH;
-        }
-      }
-    }
-
-    if ($method == classConstant::METHOD_STATE_GROUP) {
-      $buffer = $data;
-      $mode   = classConstant::MODE_STATE_GROUP;
-    }
-
-    if (!empty($buffer)) {
-      if (count(IPS_GetInstanceListByModuleID(classConstant::MODULE_GROUP)) > 0) {
-        //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|buffer>   ".json_encode(utf8_encode($buffer)));
-
-        $this->SendDataToChildren(json_encode(array(
-          'DataID'  => classConstant::TX_GROUP,
-          'id'      => $this->InstanceID,
-          'mode'    => $mode,
-          'method'  => $state,
-          'buffer'  => $buffer))
-        );
-      }
     }
 
   }

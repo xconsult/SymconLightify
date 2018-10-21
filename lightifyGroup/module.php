@@ -401,12 +401,6 @@ class lightifyGroup extends IPSModule
           }
         }
         break;
-
-      /*
-      case classConstant::MODE_ALL_SWITCH:
-        $buffer = json_encode($data->buffer);
-        IPS_LogMessage("SymconOSR", "<Groupp|ReceiveData|all:switch>   ".IPS_GetName($this->InstanceID)." - ".$groupID."/".$buffer);
-        break; */
     }
 
   }
