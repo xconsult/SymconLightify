@@ -192,7 +192,6 @@ class classConstant
   const TYPE_SENSOR_MOTION      = 32; //Motion sensor
   const TYPE_DIMMER_2WAY        = 64; //2 Way dimmer
   const TYPE_SWITCH_4WAY        = 65; //4 Way switch
-  const TYPE_OSRAM_NEW_A        = 66;
 
   const TYPE_DEVICE_GROUP       = 240; // 0xF0
   const TYPE_GROUP_SCENE        = 241; // 0xF1
@@ -285,16 +284,30 @@ class lightifyBase
   }
 
 
-  public function decodeData($data)
+  public function decodeData($data, $space = true)
   {
 
-    $Decode = vtNoString;
+    $decode = vtNoString;
 
     for ($i = 0; $i < strlen($data); $i++) {
-      $Decode = $Decode." ".sprintf("%02d", ord($data{$i}));
+      $decode = $decode.(($space) ? " " : "").sprintf("%02d", ord($data{$i}));
     }
 
-    return $Decode;
+    return $decode;
+
+  }
+
+
+  public function decodeDataHex($data, $space = true)
+  {
+
+    $decode = vtNoString;
+
+    for ($i = 0; $i < strlen($data); $i++) {
+      $decode = $decode.(($space) ? " " : "").sprintf("%02x", ord($data{$i}));
+    }
+
+    return $decode;
 
   }
 

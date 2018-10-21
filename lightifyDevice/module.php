@@ -480,7 +480,7 @@ class lightifyDevice extends IPSModule
         }
 
         $white = ord($data{25});
-        $hex   = $this->lightifyBase->RGB2HEX(array('r' => ord($data{22}), 'g' => ord($data{23}), 'b' => ord($data{24})));
+        $hex   = $this->lightifyBase->RGB2HEX(['r' => ord($data{22}), 'g' => ord($data{23}), 'b' => ord($data{24})]);
         $hsv   = $this->lightifyBase->HEX2HSV($hex);
 
         if ($deviceRGB) {

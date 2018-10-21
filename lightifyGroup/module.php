@@ -132,7 +132,9 @@ class lightifyGroup extends IPSModule
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $device = $this->GetBuffer("groupDevice");
-      $class  = $this->ReadPropertyInteger("groupClass");
+
+      $groupID = $this->ReadPropertyInteger("groupID");
+      $class   = $this->ReadPropertyInteger("groupClass");
 
       switch ($class) {
         case classConstant::CLASS_LIGHTIFY_GROUP:
@@ -141,7 +143,7 @@ class lightifyGroup extends IPSModule
           $formOptions    = [];
           $formOptions [] = ['label' => "Group", 'value' => 2006];
 
-          $formElements [] = ['type' => "NumberSpinner", 'name' => "groupID",     'caption' => "Group [id]"];
+          $formElements [] = ['type' => "NumberSpinner", 'name' => "groupID",    'caption' => "Group [id]"];
           $formElements [] = ['type' => "Select",        'name' => "groupClass", 'caption' => "Class", 'options' => $formOptions];
 
           if (!empty($device) && ord($device{0}) > 0) {
@@ -180,11 +182,11 @@ class lightifyGroup extends IPSModule
           $formOptions    = [];
           $formOptions [] = ['label' => "Scene", 'value' => 2007];
 
-          $formElements [] = ['type' => "NumberSpinner", 'name' => "groupID",     'caption' => "Group/Scene [id]"];
+          $formElements [] = ['type' => "NumberSpinner", 'name' => "groupID",    'caption' => "Scene [id]"];
           $formElements [] = ['type' => "Select",        'name' => "groupClass", 'caption' => "Class", 'options' => $formOptions];
 
           $formActions    = [];
-          $formActions [] = ['type' => "Button", 'label' => "Apply", 'onClick' => "OSR_WriteValue(\$id, \"SCENE\", 1)"];
+          $formActions [] = ['type' => "Button", 'label' => "Apply", 'onClick' => "OSR_WriteValue(\$id, \"SCENE\", $groupID)"];
 
           $formStatus    = [];
           $formStatus [] = ['code' => 102, 'icon' => "active",   'caption' => "Scene is active"];
@@ -214,7 +216,7 @@ class lightifyGroup extends IPSModule
           $formOptions [] = ['label' => "Group", 'value' => 2006];
           $formOptions [] = ['label' => "Scene", 'value' => 2007];
 
-          $formElements [] = ['type' => "NumberSpinner", 'name' => "groupID",     'caption' => "Group/Scene [id]"];
+          $formElements [] = ['type' => "NumberSpinner", 'name' => "groupID",    'caption' => "Group/Scene [id]"];
           $formElements [] = ['type' => "Select",        'name' => "groupClass", 'caption' => "Class", 'options' => $formOptions];
 
           $formStatus    = [];
@@ -506,26 +508,27 @@ class lightifyGroup extends IPSModule
         'method' => classConstant::METHOD_APPLY_CHILD,
         'mode'   => classConstant::MODE_GROUP_SCENE))
       );
+      //IPS_LogMessage("SymconOSR", "<Group|setSceneProperty|scenes:cloud>   ".IPS_GetName($this->InstanceID)." - ".$groupID."/".$jsonString);
 
       if ($jsonString != vtNoString) {
-        $localData   = json_decode($jsonString);
-        $localBuffer = utf8_decode($localData->buffer);
-        $localCount  = ord($localBuffer{0});
+        $data   = json_decode($jsonString);
+        $buffer = utf8_decode($data->buffer);
+        $ncount = ord($buffer{0});
 
         //Store group scene buffer
-        $groupScene = $this->getGroupScene($groupID, $localCount, substr($localBuffer, 2));
-        $this->SetBuffer("groupScene", $groupScene);
+        $scene = $this->getGroupScene($groupID, $ncount, substr($buffer, 2));
+        $this->SetBuffer("groupScene", $scene);
 
-        if (!empty($groupScene)) {
-          $classType = ord($localBuffer{1});
-          $uintUUID = chr($groupID).chr(0x00).chr($classType).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
+        if (!empty($scene)) {
+          $type = ord($buffer{1});
+          $uintUUID = chr($groupID).chr(0x00).chr($type).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
 
           if ($this->ReadPropertyString("uintUUID") != $uintUUID) {
             IPS_SetProperty($this->InstanceID, "uintUUID", $uintUUID);
           }
 
-          if ($this->ReadPropertyInteger("classType") != $classType) {
-            IPS_SetProperty($this->InstanceID, "classType", (int)$classType);
+          if ($this->ReadPropertyInteger("classType") != $type) {
+            IPS_SetProperty($this->InstanceID, "classType", (int)$type);
           }
 
           $this->setSceneInfo(classConstant::MODE_GROUP_SCENE, classConstant::METHOD_CREATE_CHILD);
@@ -543,20 +546,21 @@ class lightifyGroup extends IPSModule
   private function getGroupScene($groupID, $ncount, $data)
   {
 
-    $groupScene = vtNoString;
+    $scene = vtNoString;
 
     for ($i = 1; $i <= $ncount; $i++) {
       $localID = ord($data{5});
 
       if ($localID == $groupID) {
-          $groupScene = substr($data, classConstant::DATA_SCENE_LENGTH);
+        $scene = substr($data, 0, classConstant::DATA_SCENE_LENGTH);
         break;
       }
 
+      $data = substr($data, 4); //Scene suffix
       $data = substr($data, classConstant::DATA_SCENE_LENGTH);
     }
 
-    return $groupScene;
+    return $scene;
 
   }
 
