@@ -1850,7 +1850,7 @@ class lightifyGateway extends IPSModule
         $categoryID = ($this->syncScene) ? $this->sceneCategory->categoryID : false;
 
         if ($categoryID && IPS_CategoryExists($categoryID)) {
-          for ($i = 1; $i <= $ncount; $i++) {
+          for ($i = 1, $j = 0; $i <= $ncount; $i++, $j++) {
             $sceneID = ord($data{5});
 
             $uintUUID   = $data{5}.chr(0x00).chr(classConstant::TYPE_GROUP_SCENE).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
@@ -1881,7 +1881,7 @@ class lightifyGateway extends IPSModule
               }
             }
 
-            $data = substr($data, classConstant::DATA_NAME_LENGTH, classConstant::DATA_SCENE_LENGTH);
+            $data = substr($data, classConstant::DATA_NAME_LENGTH, ($ncount-$j)*classConstant::DATA_SCENE_LENGTH);
           }
         }
         break;
