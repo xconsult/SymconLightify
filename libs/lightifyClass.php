@@ -192,6 +192,7 @@ class classConstant
   const TYPE_SENSOR_MOTION      = 32; //Motion sensor
   const TYPE_DIMMER_2WAY        = 64; //2 Way dimmer
   const TYPE_SWITCH_4WAY        = 65; //4 Way switch
+  const TYPE_OSRAM_NEW_A        = 66;
 
   const TYPE_DEVICE_GROUP       = 240; // 0xF0
   const TYPE_GROUP_SCENE        = 241; // 0xF1

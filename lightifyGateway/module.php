@@ -503,7 +503,7 @@ class lightifyGateway extends IPSModule
         case classConstant::METHOD_STATE_GROUP:
         case classConstant::METHOD_ALL_DEVICES:
           if (!empty($data->buffer)) {
-            $this->getMethodState($data->method, $data->buffer);
+            $this->setMethodState($data->method, $data->buffer);
           }
           break;
 
@@ -528,7 +528,7 @@ class lightifyGateway extends IPSModule
                 $ncount = ord($localGroup{0});
 
                 if ($ncount > 0) {
-                  $bufferUID = $this->getModeDeviceGroup($ncount, substr($groupBuffer, 1), $data->buffer);
+                  $bufferUID = $this->setModeDeviceGroup($ncount, substr($groupBuffer, 1), $data->buffer);
 
                   $jsonReturn = json_encode(array(
                     'id'     => $this->InstanceID,
@@ -597,140 +597,6 @@ class lightifyGateway extends IPSModule
 
   }
 
-
-  private function getMethodState($method, $data)
-  {
-
-    //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:data>   ".json_encode($data));
-
-    $value  = (int)substr($data, 0, 1); 
-    $state = ($value == 1) ? classConstant::SET_STATE_ON : classConstant::SET_STATE_OFF;
-    $data  = substr($data, 2);
-
-    if ($method == classConstant::METHOD_STATE_DEVICE || $method == classConstant::METHOD_ALL_DEVICES) {
-      if (count(IPS_GetInstanceListByModuleID(classConstant::MODULE_DEVICE)) > 0) {
-        $this->SendDataToChildren(json_encode(array(
-          'DataID' => classConstant::TX_DEVICE,
-          'id'     => $this->InstanceID,
-          'mode'   => classConstant::MODE_STATE_DEVICE,
-          'method' => $state,
-          'buffer' => $data))
-        );
-      }
-    }
-
-    //Update device buffer state
-    $deviceBuffer = $this->GetBuffer("deviceBuffer");
-    $suffix = substr($deviceBuffer, 0, 2);
-    $buffer = vtNoString;
-
-    if (!empty($deviceBuffer)) {
-      $newBuffer = vtNoString;
-      $Devices   = utf8_decode($data);
-
-      while (strlen($Devices) >= classConstant::ITEM_FILTER_LENGTH) {
-        $localID = ord(substr($Devices, 2, 1));
-        $ncount  = ord($deviceBuffer{0});
-        $decode  = substr($deviceBuffer, 2);
-
-        for ($i = 1; $i <= $ncount; $i++) {
-          $deviceID  = ord($decode{2});
-          $decode    = substr($decode, 3);
-          $newDevice = substr($decode, 0, classConstant::DATA_DEVICE_LENGTH);
-
-          if ($localID == $deviceID) {
-            $name = substr($decode, 26, classConstant::DATA_NAME_LENGTH);
-            $newDevice  = substr_replace($newDevice, chr($value), 18, 1);
-            //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|new:device>   ".$i."/".$localID."/".$deviceID."/".trim($name)."/".ord($newDevice{18}));
-          }
-
-          $newBuffer .= $newDevice;
-          $decode     = substr($decode, classConstant::DATA_DEVICE_LENGTH);
-        }
-        $Devices = substr($Devices, classConstant::ITEM_FILTER_LENGTH);
-      }
-    }
-
-    if (!empty($newBuffer)) {
-      //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|new:buffer>   ".json_encode(utf8_encode($newBuffer)));
-      $this->SetBuffer("deviceBuffer", $suffix.$newBuffer);
-    }
-
-    if ($method == classConstant::METHOD_STATE_DEVICE) {
-      $allLights = $this->GetBuffer("allLights");
-
-      $ncount = 1;
-      $buffer = utf8_encode(chr($ncount).$allLights);
-      $mode   = classConstant::MODE_STATE_GROUP;
-    }
-
-    if ($method == classConstant::METHOD_ALL_DEVICES) {
-      $localGroup  = $this->GetBuffer("localGroup");
-      $groupBuffer = $this->GetBuffer("groupBuffer");
-
-      if (!empty($localGroup) && !empty($groupBuffer)) {
-        $ncount = ord($localGroup{0});
-
-        if ($ncount > 0) {
-          $buffer = utf8_encode(chr($ncount).$groupBuffer);
-          $mode   = classConstant::MODE_ALL_SWITCH;
-        }
-      }
-    }
-
-    if ($method == classConstant::METHOD_STATE_GROUP) {
-      $buffer = $data;
-      $mode   = classConstant::MODE_STATE_GROUP;
-    }
-
-    if (!empty($buffer)) {
-      if (count(IPS_GetInstanceListByModuleID(classConstant::MODULE_GROUP)) > 0) {
-        //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|buffer>   ".json_encode(utf8_encode($buffer)));
-
-        $this->SendDataToChildren(json_encode(array(
-          'DataID'  => classConstant::TX_GROUP,
-          'id'      => $this->InstanceID,
-          'mode'    => $mode,
-          'method'  => $state,
-          'buffer'  => $buffer))
-        );
-      }
-    }
-
-  }
-
-
-  private function getModeDeviceGroup($ncount, $data, $buffer)
-  {
-
-    $bufferUID   = "-g".chr(classConstant::GROUPID_ALL_DEVICES);
-
-    for ($i = 1; $i <= $ncount; $i++) {
-      $groupID = $data{2};
-      $dcount  = ord($data{3});
-
-      if ($dcount > 0) {
-        $data   = substr($data, 4);
-        $length = classConstant::ITEM_FILTER_LENGTH+classConstant::UUID_DEVICE_LENGTH;
-        $uuidBuffer = substr($data, 0, $dcount*$length);
-
-        for ($j = 1; $j <= $dcount; $j++) {
-          $UUID = $this->lightifyBase->ChrToUUID(substr($uuidBuffer, classConstant::ITEM_FILTER_LENGTH, classConstant::UUID_DEVICE_LENGTH));
-
-          if ($UUID == $buffer) {
-            //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|devices:group>s   ".$i."/".ord($groupID)."/".$dcount."/".$data->buffer."  ".$j."/".$UUID);
-            $bufferUID .= "-g".$groupID;
-            break;
-          }
-          $uuidBuffer = substr($data, $length);
-        }
-      }
-      $data = substr($data, $dcount*$length);
-    }
-
-    return $bufferUID;
-
-  }
 
   private function validateConfig($open, $connect)
   {
@@ -1342,60 +1208,23 @@ class lightifyGateway extends IPSModule
             }
           }
 
-          if ($syncDevice) {
+          if ($syncDevice && $syncGroup) {
             $deviceUID = $this->GetBuffer("deviceUID");
 
             if (!empty($deviceUID)) {
               $localGroup  = $this->GetBuffer("localGroup");
               $groupBuffer = $this->GetBuffer("groupBuffer");
-              $ncount      = ord($localGroup{0});
 
-              if ($ncount > 0 && !empty($groupBuffer)) {
-                $bufferUID = vtNoString;
-                $mcount    = ord($deviceUID{0});
-                $deviceUID = substr($deviceUID, 1);
+              if (!empty($groupBuffer)) {
+                $ncount = ord($localGroup{0});
 
-                for ($i = 1, $n = 0; $i <= $mcount; $i++) {
-                  $groupDevice = substr($groupBuffer, 1);
+                if ($ncount > 0) {
+                  $bufferUID = $this->setDeviceUID($ncount, $deviceUID, $groupBuffer);
 
-                  $localID  = $deviceUID{2};
-                  $groupUID = "-g".chr(classConstant::GROUPID_ALL_DEVICES);
-                  $m = 1;
-
-                  for ($j = 1; $j <= $ncount; $j++) {
-                    $groupID = $groupDevice{2};
-                    $dcount  = ord($groupDevice{3});
-
-                    if ($dcount > 0) {
-                      $length = classConstant::ITEM_FILTER_LENGTH+classConstant::UUID_DEVICE_LENGTH;
-
-                      $groupDevice = substr($groupDevice, 4);
-                      $uuidBuffer  = substr($groupDevice, 0, $dcount*$length);
-
-                      for ($k = 1; $k <= $dcount; $k++) {
-                        $deviceID = $uuidBuffer{2};
-
-                        if (ord($localID) == ord($deviceID)) {
-                          $groupUID .= "-g".$groupID;
-                          $m += 1;
-                          break;
-                        }
-                        $uuidBuffer = substr($uuidBuffer, $length);
-                      }
-
-                      $groupDevice = substr($groupDevice, $dcount*$length);
-                    }
+                  if (!empty($bufferUID)) {
+                    IPS_LogMessage("SymconOSR", "<Gateway|GetLightifyData|buffer:uid>   ".json_encode(utf8_encode($bufferUID{0}.$bufferUID)));
+                    $this->SetBuffer("deviceUID", $bufferUID);
                   }
-
-                  $bufferUID .= "-d".$localID.chr($m).$groupUID;
-                  $n += 1;
-
-                  $deviceUID = substr($deviceUID, classConstant::ITEM_FILTER_LENGTH);
-                }
-
-                if (!empty($bufferUID)) {
-                  //IPS_LogMessage("SymconOSR", "<Gateway|GetLightifyData|buffer:uid>   ".json_encode(utf8_encode(chr($n).$bufferUID)));
-                  $this->SetBuffer("deviceUID", $bufferUID);
                 }
               }
             }
@@ -1436,6 +1265,7 @@ class lightifyGateway extends IPSModule
         case classConstant::TYPE_SENSOR_MOTION:
         case classConstant::TYPE_DIMMER_2WAY:
         case classConstant::TYPE_SWITCH_4WAY:
+        case classConstant::TYPE_OSRAM_NEW_A:
           break;
 
         default:
@@ -1456,6 +1286,7 @@ class lightifyGateway extends IPSModule
       $data = substr($data, $length);
     }
 
+    //Store at runtime
     $groupID   = classConstant::GROUPID_ALL_DEVICES;
     $allLights = chr(classConstant::TYPE_ALL_DEVICES)."-g".chr($groupID).chr($n).$uuidBuffer;
 
@@ -1528,6 +1359,12 @@ class lightifyGateway extends IPSModule
             case classConstant::TYPE_SWITCH_4WAY:
               $label = classConstant::LABEL_SWITCH_4WAY;
               $info  = $this->Translate("Switch");
+              $withGroup = false;
+              break;
+
+            case classConstant::TYPE_OSRAM_NEW_A:
+              $label = classConstant::LABEL_UNKNOWN;
+              $info  = $this->Translate("-undefined-");
               $withGroup = false;
               break;
           }
@@ -2081,5 +1918,188 @@ class lightifyGateway extends IPSModule
 
   }
 
+
+  private function setMethodState($method, $data)
+  {
+
+    //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:data>   ".json_encode($data));
+
+    $value  = (int)substr($data, 0, 1); 
+    $state = ($value == 1) ? classConstant::SET_STATE_ON : classConstant::SET_STATE_OFF;
+    $data  = substr($data, 2);
+
+    if ($method == classConstant::METHOD_STATE_DEVICE || $method == classConstant::METHOD_ALL_DEVICES) {
+      if (count(IPS_GetInstanceListByModuleID(classConstant::MODULE_DEVICE)) > 0) {
+        $this->SendDataToChildren(json_encode(array(
+          'DataID' => classConstant::TX_DEVICE,
+          'id'     => $this->InstanceID,
+          'mode'   => classConstant::MODE_STATE_DEVICE,
+          'method' => $state,
+          'buffer' => $data))
+        );
+      }
+    }
+
+    //Update device buffer state
+    $deviceBuffer = $this->GetBuffer("deviceBuffer");
+    $suffix = substr($deviceBuffer, 0, 2);
+    $buffer = vtNoString;
+
+    if (!empty($deviceBuffer)) {
+      $newBuffer = vtNoString;
+      $Devices   = utf8_decode($data);
+
+      while (strlen($Devices) >= classConstant::ITEM_FILTER_LENGTH) {
+        $localID = ord(substr($Devices, 2, 1));
+        $ncount  = ord($deviceBuffer{0});
+        $decode  = substr($deviceBuffer, 2);
+
+        for ($i = 1; $i <= $ncount; $i++) {
+          $deviceID  = ord($decode{2});
+          $decode    = substr($decode, 3);
+          $newDevice = substr($decode, 0, classConstant::DATA_DEVICE_LENGTH);
+
+          if ($localID == $deviceID) {
+            $name = substr($decode, 26, classConstant::DATA_NAME_LENGTH);
+            $newDevice  = substr_replace($newDevice, chr($value), 18, 1);
+            //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|new:device>   ".$i."/".$localID."/".$deviceID."/".trim($name)."/".ord($newDevice{18}));
+          }
+
+          $newBuffer .= $newDevice;
+          $decode     = substr($decode, classConstant::DATA_DEVICE_LENGTH);
+        }
+        $Devices = substr($Devices, classConstant::ITEM_FILTER_LENGTH);
+      }
+    }
+
+    if (!empty($newBuffer)) {
+      //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|new:buffer>   ".json_encode(utf8_encode($newBuffer)));
+      $this->SetBuffer("deviceBuffer", $suffix.$newBuffer);
+    }
+
+    if ($method == classConstant::METHOD_STATE_DEVICE) {
+      $allLights = $this->GetBuffer("allLights");
+
+      $ncount = 1;
+      $buffer = utf8_encode(chr($ncount).$allLights);
+      $mode   = classConstant::MODE_STATE_GROUP;
+    }
+
+    if ($method == classConstant::METHOD_ALL_DEVICES) {
+      $localGroup  = $this->GetBuffer("localGroup");
+      $groupBuffer = $this->GetBuffer("groupBuffer");
+
+      if (!empty($localGroup) && !empty($groupBuffer)) {
+        $ncount = ord($localGroup{0});
+
+        if ($ncount > 0) {
+          $buffer = utf8_encode(chr($ncount).$groupBuffer);
+          $mode   = classConstant::MODE_ALL_SWITCH;
+        }
+      }
+    }
+
+    if ($method == classConstant::METHOD_STATE_GROUP) {
+      $buffer = $data;
+      $mode   = classConstant::MODE_STATE_GROUP;
+    }
+
+    if (!empty($buffer)) {
+      if (count(IPS_GetInstanceListByModuleID(classConstant::MODULE_GROUP)) > 0) {
+        //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|buffer>   ".json_encode(utf8_encode($buffer)));
+
+        $this->SendDataToChildren(json_encode(array(
+          'DataID'  => classConstant::TX_GROUP,
+          'id'      => $this->InstanceID,
+          'mode'    => $mode,
+          'method'  => $state,
+          'buffer'  => $buffer))
+        );
+      }
+    }
+
+  }
+
+
+  private function setModeDeviceGroup($ncount, $data, $buffer)
+  {
+
+    $bufferUID   = "-g".chr(classConstant::GROUPID_ALL_DEVICES);
+
+    for ($i = 1; $i <= $ncount; $i++) {
+      $groupID = $data{2};
+      $dcount  = ord($data{3});
+
+      if ($dcount > 0) {
+        $data   = substr($data, 4);
+        $length = classConstant::ITEM_FILTER_LENGTH+classConstant::UUID_DEVICE_LENGTH;
+        $uuidBuffer = substr($data, 0, $dcount*$length);
+
+        for ($j = 1; $j <= $dcount; $j++) {
+          $UUID = $this->lightifyBase->ChrToUUID(substr($uuidBuffer, classConstant::ITEM_FILTER_LENGTH, classConstant::UUID_DEVICE_LENGTH));
+
+          if ($UUID == $buffer) {
+            //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData|devices:group>s   ".$i."/".ord($groupID)."/".$dcount."/".$data->buffer."  ".$j."/".$UUID);
+            $bufferUID .= "-g".$groupID;
+            break;
+          }
+          $uuidBuffer = substr($data, $length);
+        }
+      }
+      $data = substr($data, $dcount*$length);
+    }
+
+    return $bufferUID;
+
+  }
+
+
+  private function setDeviceUID($ncount, $deviceUID, $groupBuffer)
+  {
+
+    $bufferUID = vtNoString;
+    $mcount    = ord($deviceUID{0});
+    $deviceUID = substr($deviceUID, 1);
+
+    for ($i = 1, $n = 0; $i <= $mcount; $i++) {
+      $groupDevice = substr($groupBuffer, 1);
+
+      $localID  = $deviceUID{2};
+      $groupUID = "-g".chr(classConstant::GROUPID_ALL_DEVICES);
+      $m = 1;
+
+      for ($j = 1; $j <= $ncount; $j++) {
+        $groupID = $groupDevice{2};
+        $dcount  = ord($groupDevice{3});
+
+        if ($dcount > 0) {
+          $length = classConstant::ITEM_FILTER_LENGTH+classConstant::UUID_DEVICE_LENGTH;
+
+          $groupDevice = substr($groupDevice, 4);
+          $uuidBuffer  = substr($groupDevice, 0, $dcount*$length);
+
+          for ($k = 1; $k <= $dcount; $k++) {
+            $deviceID = $uuidBuffer{2};
+
+            if (ord($localID) == ord($deviceID)) {
+              $groupUID .= "-g".$groupID;
+              $m += 1;
+              break;
+            }
+            $uuidBuffer = substr($uuidBuffer, $length);
+          }
+
+          $groupDevice = substr($groupDevice, $dcount*$length);
+        }
+      }
+
+      $bufferUID .= "-d".$localID.chr($m).$groupUID;
+      $n += 1;
+
+      $deviceUID = substr($deviceUID, classConstant::ITEM_FILTER_LENGTH);
+    }
+
+    return $bufferUID;
+  }
 
 }
