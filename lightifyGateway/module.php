@@ -1265,7 +1265,7 @@ class lightifyGateway extends IPSModule
         case classConstant::TYPE_SENSOR_MOTION:
         case classConstant::TYPE_DIMMER_2WAY:
         case classConstant::TYPE_SWITCH_4WAY:
-        case classConstant::TYPE_UNKNOWN:
+        case classConstant::TYPE_SWITCH_MINI:
           break;
 
         default:
@@ -1365,9 +1365,9 @@ class lightifyGateway extends IPSModule
               $withGroup = false;
               break;
 
-            case classConstant::TYPE_UNKNOWN:
-              $label = classConstant::LABEL_UNKNOWN;
-              $info  = "-Unknown-";
+            case classConstant::TYPE_SWITCH_MINI:
+              $label = classConstant::LABEL_SWITCH_MINI;
+              $info  = $this->Translate("Switch");
               $withGroup = false;
               break;
           }
@@ -1776,9 +1776,8 @@ class lightifyGateway extends IPSModule
               $coded = false;
               break;
 
-            case classConstant::TYPE_UNKNOWN:
-              $class = classConstant::CLASS_UNKNOWN;
-              $categoryID = ($this->syncDevice) ? $this->deviceCategory->categoryID : false;
+            case classConstant::TYPE_SWITCH_MINI:
+              $coded = false;
               break;
 
             default:
@@ -1935,7 +1934,7 @@ class lightifyGateway extends IPSModule
   private function setMethodState($method, $data)
   {
 
-    IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:data>   ".json_encode($data));
+    //IPS_LogMessage("SymconOSR", "<Gateway|setMethodState:data>   ".json_encode($data));
 
     $value  = (int)substr($data, 0, 1); 
     $state = ($value == 1) ? classConstant::SET_STATE_ON : classConstant::SET_STATE_OFF;

@@ -192,7 +192,7 @@ class classConstant
   const TYPE_SENSOR_MOTION      = 32; //Motion sensor
   const TYPE_DIMMER_2WAY        = 64; //2 Way dimmer
   const TYPE_SWITCH_4WAY        = 65; //4 Way switch
-  const TYPE_UNKNOWN            = 66; //Unknown device
+  const TYPE_SWITCH_MINI        = 66; //Switch Mini
 
   const TYPE_DEVICE_GROUP       = 240; // 0xF0
   const TYPE_GROUP_SCENE        = 241; // 0xF1
@@ -209,6 +209,7 @@ class classConstant
   const MODEL_SENSOR_MOTION     = "Motion-LIGHTIFY";
   const MODEL_DIMMER_2WAY       = "Dimmer-LIGHTIFY";
   const MODEL_SWITCH_4WAY       = "Switch-LIGHTIFY";
+  const MODEL_SWITCH_MINI       = "Switch-LIGHTIFY";
   const MODEL_DEVICE            = "Device-LIGHTIFY";
   const MODEL_GROUP             = "Group-LIGHTIFY";
   const MODEL_UNKNOWN           = "Unknown-LIGHTIFY";
@@ -222,6 +223,7 @@ class classConstant
   const LABEL_SENSOR_MOTION     = "Active|Inactive";
   const LABEL_DIMMER_2WAY       = "-";
   const LABEL_SWITCH_4WAY       = "-";
+  const LABEL_SWITCH_MINI       = "-";
   const LABEL_UNKNOWN           = "-Unknown-";
 
   const CTEMP_DEFAULT           = 2700;
