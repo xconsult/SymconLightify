@@ -1,613 +1,718 @@
-<?
+<?php
 
-//require_once(__DIR__.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."lightifyClass.php");
-require_once(__DIR__.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."lightifyControl.php");
+declare(strict_types=1);
 
+require_once __DIR__.'/../libs/lightifyControl.php';
 
-//class lightifyGroup extends IPSModule {
-class lightifyGroup extends lightifyControl {
 
-	//Instance specific
-	const LIST_ELEMENTS_INDEX      = 3;
+define('ROW_COLOR_LIGHT_ON',  "#fffde7");
+define('ROW_COLOR_CCT_ON',    "#ffecB3");
+define('ROW_COLOR_PLUG_ON',   "#c5e1a5");
+define('ROW_COLOR_STATE_OFF', "#ffffff");
+define('ROW_COLOR_LIGHT_OFF', "#e0e0e0");
+define('ROW_COLOR_PLUG_OFF',  "#ef9a9a");
 
-	const STATUS_ITEM_ACTIVE       = 102;
-	const STATUS_ITEM_INACTIVE     = 104;
-	const ERROR_GATEWAY_CONNECTION = 201;
-	const ERROR_INVALID_ITEM_ID    = 202;
 
+class lightifyGroup extends IPSModule
+{
 
-	const ITEM_CREATE_ID           = 0;
-	const ITEM_MIN_ID              = 1;
 
-	const ROW_COLOR_LIGHT_ON       = "#fffde7";
-	const ROW_COLOR_CCT_ON         = "#ffecB3";
-	const ROW_COLOR_PLUG_ON        = "#c5e1a5";
-	const ROW_COLOR_ONLINE_OFF     = "#ffffff";
-	const ROW_COLOR_LIGHT_OFF      = "#e0e0e0";
-	const ROW_COLOR_PLUG_OFF       = "#ef9a9a";
-
-
-	private $lightifyBase;
-	private $parentID;
-
-	private $debug;
-	private $message;
-
-
-	public function __construct(string $InstanceID) {
-		parent::__construct($InstanceID);
-		$this->lightifyBase = new lightifyBase;
-
-		$this->parentID = @IPS_GetInstance($InstanceID)['ConnectionID'];
-	}
-
-
-	public function Create() {
-		parent::Create();
-
-		$this->SetBuffer("groupDevice", osrConstant::NO_STRING);
-		$this->SetBuffer("groupScene", osrConstant::NO_STRING);
-		$this->SetBuffer("saveID", serialize(osrConstant::NO_VALUE));
-
-		$this->RegisterPropertyInteger("itemID", self::ITEM_CREATE_ID);
-		$this->RegisterPropertyString("UUID", osrConstant::NO_STRING);
-		$this->RegisterPropertyInteger("itemClass", osrConstant::CLASS_LIGHTIFY_GROUP);
-		$this->RegisterPropertyString("deviceList", osrConstant::NO_STRING);
-
-		$this->RegisterPropertyString("uintUUID", osrConstant::NO_STRING);
-		$this->RegisterPropertyInteger("itemType", osrConstant::NO_VALUE);
-		$this->RegisterPropertyString("allLights", osrConstant::NO_STRING);
-
-		$this->ConnectParent(osrConstant::MODULE_GATEWAY);
-	}
-
-
-	public function ApplyChanges() {
-		parent::ApplyChanges();
-
-		//Check config
-		if (($itemID = $this->ReadPropertyInteger("itemID")) < self::ITEM_MIN_ID) {
-			$this->SetStatus(self::ERROR_INVALID_ITEM_ID);
-			return false;
-		}
-
-		//Set properties
-		$itemClass = $this->ReadPropertyInteger("itemClass");
-		$status    = ($itemClass == osrConstant::CLASS_LIGHTIFY_GROUP) ? $this->setGroupProperty($itemID) : $this->setSceneProperty($itemID);
-
-		if ($status == self::STATUS_ITEM_ACTIVE)
-			if (IPS_HasChanges($this->InstanceID)) IPS_ApplyChanges($this->InstanceID);
-
-		$this->SetStatus($status);
-	}
-
-
-	public function GetConfigurationForm() {
-		$groupDevice = $this->GetBuffer("groupDevice");
-		$itemType    = $this->ReadPropertyInteger("itemType");
-
-		switch ($itemType) {
-			case osrConstant::TYPE_DEVICE_GROUP:
-				$deviceList  = (empty($groupDevice) === false && ord($groupDevice{0}) > 0) ? '
-					{ "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" },
-					{ "type": "List",  "name":  "deviceList", "caption": "Devices",
-						"columns": [
-							{ "label": "Instance ID", "name": "InstanceID",  "width": "60px", "visible": false },
-							{ "label": "ID",          "name": "deviceID",    "width": "35px"  },
-							{ "label": "Name",        "name": "name",        "width": "120px" },
-							{ "label": "Hue",         "name": "hue",         "width": "35px"  },
-							{ "label": "Color",       "name": "color",       "width": "60px"  },
-							{ "label": "Temperature", "name": "temperature", "width": "80px"  },
-							{ "label": "Level",       "name": "level",       "width": "50px"  },
-							{ "label": "Saturation",  "name": "saturation",  "width": "70px"  }
-						]
-				},' : "";
-
-				$formJSON = '{
-					"elements": [
-						{ "type": "NumberSpinner",    "name": "itemID",    "caption": "Group [id]" },
-						{ "type": "Select",           "name": "itemClass", "caption": "Class",
-							"options": [
-								{ "label": "Group", "value": 2006 }
-							]
-						},
-						'.$deviceList.'
-						{ "type": "Label", "label": "----------------------------------------------------------------------------------------------------------------------------------" }
-					],
-					"actions": [
-						{ "type": "Button", "label": "On",  "onClick": "OSR_SetValue($id, \"STATE\", true)"  },
-						{ "type": "Button", "label": "Off", "onClick": "OSR_SetValue($id, \"STATE\", false)" }
-					],
-					"status": [
-						{ "code": 102, "icon": "active",   "caption": "Group is active"                   },
-						{ "code": 104, "icon": "inactive", "caption": "Group is inactive"                 },
-						{ "code": 201, "icon": "error",    "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",    "caption": "Invalid Group [id]"                }
-					]
-				}';
-				break;
-
-			case osrConstant::TYPE_GROUP_SCENE:
-				$formJSON = '{
-					"elements": [
-						{ "type": "NumberSpinner", "name": "itemID",             "caption": "Scene [id]" },
-						{ "type": "Select",        "name": "itemClass",          "caption": "Class",
-							"options": [
-								{ "label": "Scene", "value": 2007 }
-							]
-						}
-					],
-					"actions": [
-						{ "type": "Button", "label": "Activate",  "onClick": "OSR_SetValue($id, \"SCENE\", 2)" }
-					],
-					"status": [
-						{ "code": 102, "icon": "active",   "caption": "Scene is active"                   },
-						{ "code": 104, "icon": "inactive", "caption": "Scene is inactive"                 },
-						{ "code": 201, "icon": "error",    "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",    "caption": "Invalid Scene [id]"                }
-					]
-				}';
-				return $formJSON;
-
-			case osrConstant::TYPE_ALL_LIGHTS:
-				$formJSON = '{
-				}';
-				return $formJSON;
-
-			default:
-				$formJSON = '{
-					"elements": [
-						{ "type": "NumberSpinner", "name": "itemID",    "caption": "Group/Scene [id]" },
-						{ "type": "Select",        "name": "itemClass", "caption": "Class",
-							"options": [
-								{ "label": "Group", "value": 2006 },
-								{ "label": "Scene", "value": 2007 }
-							]
-						}
-					],
-					"status": [
-						{ "code": 102, "icon": "active",   "caption": "Group/Scene is active"             },
-						{ "code": 104, "icon": "inactive", "caption": "Group/Scene is inactive".          },
-						{ "code": 201, "icon": "error",    "caption": "Lightify gateway is not connected" },
-						{ "code": 202, "icon": "error",    "caption": "Invalid Group/Scene [id]"          }
-					]
-				}';
-				return $formJSON;
-		}
-
-		if (empty($groupDevice) === false && ($dcount = ord($groupDevice{0})) > 0) {
-			$groupDevice = substr($groupDevice, 1);
-			$data        = json_decode($formJSON);
-
-			for ($i = 1; $i <= $dcount; $i++) {
-				$uintUUID = substr($groupDevice, 0, osrConstant::UUID_DEVICE_LENGTH);
-
-				if ($instanceID = $this->lightifyBase->getObjectByProperty(osrConstant::MODULE_DEVICE, "uintUUID", $uintUUID)) {
-					if (IPS_GetInstance($instanceID)['ConnectionID'] != $this->parentID)
-						continue;
-
-					$onlineID      = @IPS_GetObjectIDByIdent('ONLINE', $instanceID);
-					$stateID       = @IPS_GetObjectIDByIdent('STATE', $instanceID);
-					$online        = ($onlineID) ? GetValueBoolean($onlineID) : osrConstant::NO_STRING;
-					$state         = ($stateID) ? GetValueBoolean($stateID) : osrConstant::NO_STRING;
-
-					$deviceID      = @IPS_GetProperty($instanceID, "deviceID");
-					$itemClass     = @IPS_GetProperty($instanceID, "itemClass");
-
-					switch ($itemClass) {
-						case osrConstant::CLASS_LIGHTIFY_LIGHT:
-							$classInfo = "Lampe";
-							break;
-
-						case osrConstant::CLASS_LIGHTIFY_PLUG:
-							$classInfo = "Steckdose";
-							break;
-					} 
-
-					$hueID         = @IPS_GetObjectIDByIdent("HUE", $instanceID);
-					$colorID       = @IPS_GetObjectIDByIdent("COLOR", $instanceID);
-					$temperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $instanceID);
-					$levelID       = @IPS_GetObjectIDByIdent("LEVEL", $instanceID);
-					$saturationID  = @IPS_GetObjectIDByIdent("SATURATION", $instanceID);
-
-					$hue           = ($hueID) ?  GetValueformatted($hueID) : osrConstant::NO_STRING;
-					$color         = ($colorID) ? strtolower(GetValueformatted($colorID)) : osrConstant::NO_STRING;
-					$temperature   = ($temperatureID) ? GetValueformatted($temperatureID) : osrConstant::NO_STRING;
-					$level         = ($levelID) ? preg_replace('/\s+/', '', GetValueformatted($levelID)) : osrConstant::NO_STRING;
-					$saturation    = ($saturationID) ? preg_replace('/\s+/', '', GetValueformatted($saturationID)) : osrConstant::NO_STRING;
-
-					if ($state) {
-						if (@IPS_GetProperty($instanceID, "itemType") == osrConstant::TYPE_PLUG_ONOFF)
-							$rowColor = self::ROW_COLOR_PLUG_ON;
-						else
-							$rowColor = ($temperature) ? self::ROW_COLOR_CCT_ON : self::ROW_COLOR_LIGHT_ON;
-					} else {
-						if (@IPS_GetProperty($instanceID, "itemType") == osrConstant::TYPE_PLUG_ONOFF)
-							$rowColor = ($online) ? self::ROW_COLOR_ONLINE_OFF : self::ROW_COLOR_PLUG_OFF;
-						else
-							$rowColor = ($online) ? self::ROW_COLOR_ONLINE_OFF : self::ROW_COLOR_LIGHT_OFF;
-					}
-
-					$data->elements[self::LIST_ELEMENTS_INDEX]->values[] = array(
-						"InstanceID"  => $instanceID,
-						"deviceID"    => $deviceID,
-						"name"        => IPS_GetName($instanceID),
-						"hue"         => $hue,
-						"color"       => ($color != osrConstant::NO_STRING) ? "#".strtoupper($color) : osrConstant::NO_STRING,
-						"temperature" => $temperature,
-						"level"       => $level,
-						"saturation"  => $saturation,
-						"rowColor"    => $rowColor
-					);
-				}
-
-				$groupDevice = substr($groupDevice, osrConstant::UUID_DEVICE_LENGTH);
-			}
-
-			return json_encode($data);
-		}
-
-		return $formJSON;
-	}
-
-
-	public function ReceiveData($jsonString) {
-		$itemID = $this->ReadPropertyInteger("itemID");
-		$data   = json_decode($jsonString);
-
-		$localBuffer = utf8_decode($data->Buffer);
-		$localCount  = ord($localBuffer{0});
-		$itemType    = $this->ReadPropertyInteger("itemType");
-
-		switch ($data->Mode) {
-			case osrConstant::MODE_GROUP_LOCAL:
-				//Store device group buffer
-				if ($itemType == osrConstant::TYPE_DEVICE_GROUP) {
-					$groupDevice = $this->getGroupDevice($itemID, substr($localBuffer, 2), $localCount);
-					$this->SetBuffer("groupDevice", $groupDevice);
-	
-					if (empty($groupDevice) === false) {
-						if ($data->Debug % 2 || $data->Message) {
-							$info = $localCount."/".$this->lightifyBase->decodeData($groupDevice);
-
-							if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<GROUP|RECEIVEDATA|GROUPS:LOCAL>", $info, 0);
-							if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|GROUPS:LOCAL>   ".$info);
-						}
-
-						$this->setGroupInfo($data->Mode, $data->Method, $groupDevice);
-					}
-				}
-				break;
-
-			case osrConstant::MODE_GROUP_CLOUD:
-				break;
-
-			case osrConstant::MODE_GROUP_SCENE:
-				//Store group scene buffer
-				if ($itemType == osrConstant::TYPE_GROUP_SCENE) {
-					$groupScene = $this->getGroupScene($itemID, substr($localBuffer, 2), $localCount);
-					$this->SetBuffer("groupScene", $groupScene);
-
-					if (empty($groupScene) === false) {
-						if ($data->Debug % 2 || $data->Message) {
-							$info = ord($groupScene{0})."/".ord($groupScene{1})."/".$this->lightifyBase->decodeData($groupScene);
-
-							if ($data->Debug % 2) IPS_SendDebug($this->parentID, "<GROUP|RECEIVEDATA|SCENES:CLOUD>", $info, 0);
-							if ($data->Message) IPS_LogMessage("SymconOSR", "<DEVICE|RECEIVEDATA|SCENES:CLOUD>   ".$info);
-						}
-
-						$this->setSceneInfo($data->Mode, $data->Method);
-					}
-				}
-				break;
-		}
-	}
-
-
-	private function setGroupProperty($itemID) {
-		$jsonString = $this->SendDataToParent(json_encode(array(
-			'DataID' => osrConstant::TX_GATEWAY,
-			'Method' => osrConstant::METHOD_APPLY_CHILD,
-			'Mode'   => osrConstant::MODE_GROUP_LOCAL))
-		);
-
-		if ($jsonString != osrConstant::NO_STRING) {
-			$localData   = json_decode($jsonString);
-			$localBuffer = utf8_decode($localData->Buffer);
-			$localCount  = ord($localBuffer{0});
-
-			//Store group device buffer
-			$groupDevice = $this->getGroupDevice($itemID, substr($localBuffer, 2), $localCount);
-			$this->SetBuffer("groupDevice", $groupDevice);
-
-			if (empty($groupDevice) === false) {
-				$itemType = ord($localBuffer{1});
-				$uintUUID = chr($itemID).chr(0x00).chr($itemType).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
-				$saveID   = unserialize($this->GetBuffer("saveID"));
-
-				if ($saveID != $itemID) {
-					if ($saveID != osrConstant::NO_VALUE)
-						$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
-
-					$this->SetBuffer("saveID", serialize($itemID));
-				}
-
-				if ($this->ReadPropertyString("uintUUID") != $uintUUID)
-					IPS_SetProperty($this->InstanceID, "uintUUID", (string)$uintUUID);
-
-				if ($this->ReadPropertyInteger("itemType") != $itemType)
-					IPS_SetProperty($this->InstanceID, "itemType", (integer)$itemType);
-
-				$this->setGroupInfo(osrConstant::MODE_GROUP_LOCAL, osrConstant::METHOD_CREATE_CHILD, $groupDevice);
-				return self::STATUS_ITEM_ACTIVE;
-			}
-
-			$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
-			return self::STATUS_ITEM_INACTIVE;
-		}
-
-		return self::STATUS_ITEM_ACTIVE;
-	}
-
-
-	private function setSceneProperty($itemID) {
-		$jsonString = $this->SendDataToParent(json_encode(array(
-			'DataID' => osrConstant::TX_GATEWAY,
-			'Method' => osrConstant::METHOD_APPLY_CHILD,
-			'Mode'   => osrConstant::MODE_GROUP_SCENE))
-		);
-
-		if ($jsonString != osrConstant::NO_STRING) {
-			$localData   = json_decode($jsonString);
-			$localBuffer = utf8_decode($localData->Buffer);
-			$localCount  = ord($localBuffer{0});
-
-			//Store group scene buffer
-			$groupScene = $this->getGroupScene($itemID, substr($localBuffer, 2), $localCount);
-			$this->SetBuffer("groupScene", $groupScene);
-
-			if (empty($groupScene) === false) {
-				$itemType = ord($localBuffer{1});
-				$uintUUID = chr($itemID).chr(0x00).chr($itemType).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
-				$saveID   = unserialize($this->GetBuffer("saveID"));
-
-				if ($saveID != $itemID) {
-					if ($saveID != osrConstant::NO_VALUE)
-						$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
-
-					$this->SetBuffer("saveID", serialize($itemID));
-				}
-
-				if ($this->ReadPropertyString("uintUUID") != $uintUUID)
-					IPS_SetProperty($this->InstanceID, "uintUUID", (string)$uintUUID);
-
-				if ($this->ReadPropertyInteger("itemType") != $itemType)
-					IPS_SetProperty($this->InstanceID, "itemType", (integer)$itemType);
-
-				$this->setSceneInfo(osrConstant::MODE_GROUP_LOCAL, osrConstant::METHOD_CREATE_CHILD);
-				return self::STATUS_ITEM_ACTIVE;
-			}
-
-			$this->maintainVariables(osrConstant::MODE_DELETE_VARIABLE);
-			return self::STATUS_ITEM_INACTIVE;
-		}
-
-		return self::STATUS_ITEM_ACTIVE;
-	}
-
-
-	private function getGroupDevice($itemID, $buffer, $ncount) {
-		$groupDevice = "";
-
-		for ($i = 1; $i <= $ncount; $i++) {
-			$localID = ord($buffer{0});
-
-			if (($dcount = ord($buffer{1})) > 0) {
-				$buffer = substr($buffer, 2);
-	
-				if ($itemID == $localID) {
-					$groupDevice = chr($dcount).substr($buffer, 0, $dcount*osrConstant::UUID_DEVICE_LENGTH);
-					break;
-				}
-			}
-
-			$buffer = substr($buffer, $dcount*osrConstant::UUID_DEVICE_LENGTH);
-		}
-
-		return $groupDevice;
-	}
-
-
-	private function getGroupScene($itemID, $buffer, $ncount) {
-		$groupScene = "";
-
-		for ($i = 1; $i <= $ncount; $i++) {
-			$localID = ord($buffer{1});
-
-			if ($itemID == $localID) {
-				$groupScene = substr($buffer, 0, osrConstant::DATA_SCENE_LENGTH);
-				break;
-			}
-
-			$buffer = substr($buffer, osrConstant::DATA_SCENE_LENGTH);
-		}
-
-		return $groupScene;
-	}
-
-
-	private function setGroupInfo($mode, $method, $data) {
-		switch ($mode) {
-			case osrConstant::MODE_GROUP_LOCAL:
-				if (($dcount = ord($data{0})) > 0) {
-					$data    = substr($data, 1);
-					$Devices = array();
-
-					for ($i = 1; $i <= $dcount; $i++) {
-						$uintUUID = substr($data, 0, osrConstant::UUID_DEVICE_LENGTH);
-	
-						if (false !== ($instanceID = $this->lightifyBase->getObjectByProperty(osrConstant::MODULE_DEVICE, "uintUUID", $uintUUID)))
-							$Devices[] = $instanceID;
-	
-						$data = substr($data, osrConstant::UUID_DEVICE_LENGTH);
-					}
-	
-					//Set group/zone state
-					$online       = $state      = false;
-					$newOnline    = $online;
-					$newState     = $state;
-	
-					$hue = $color = $level      = osrConstant::NO_STRING;
-					$temperature  = $saturation = osrConstant::NO_STRING;
-	
-					$deviceHue         = $deviceColor = $deviceLevel = osrConstant::NO_STRING;
-					$deviceTemperature = $deviceSaturation           = osrConstant::NO_STRING;
-	
-					foreach ($Devices as $device) {
-						$deviceOnlineID      = @IPS_GetObjectIDByIdent('ONLINE', $device);
-						$deviceStateID       = @IPS_GetObjectIDByIdent('STATE', $device);
-						$deviceOnline        = ($deviceOnlineID) ? GetValueBoolean($deviceOnlineID) : osrConstant::NO_STRING;
-						$deviceState         = ($deviceStateID) ? GetValueBoolean($deviceStateID) : osrConstant::NO_STRING;
-	
-						$deviceHueID         = @IPS_GetObjectIDByIdent("HUE", $device);
-						$deviceColorID       = @IPS_GetObjectIDByIdent("COLOR", $device);
-						$deviceTemperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $device);
-						$deviceLevelID       = @IPS_GetObjectIDByIdent("LEVEL", $device);
-						$deviceSaturationID  = @IPS_GetObjectIDByIdent("SATURATION", $device);
-	
-						$deviceHue           = ($deviceHueID) ?  GetValueInteger($deviceHueID) : osrConstant::NO_STRING;
-						$deviceColor         = ($deviceColorID) ? GetValueInteger($deviceColorID) : osrConstant::NO_STRING;
-						$deviceTemperature   = ($deviceTemperatureID) ? GetValueInteger($deviceTemperatureID) : osrConstant::NO_STRING;
-						$deviceLevel         = ($deviceLevelID) ? GetValueInteger($deviceLevelID) : osrConstant::NO_STRING;
-						$deviceSaturation    = ($deviceSaturationID) ? GetValueInteger($deviceSaturationID) : osrConstant::NO_STRING;
-	
-						if ($online === false && $deviceOnline === true) $newOnline = true;
-						if ($state === false && $deviceState === true) $newState = true;
-	
-						if ($newOnline && $hue == osrConstant::NO_STRING && $deviceHue != osrConstant::NO_STRING) $hue = $deviceHue;
-						if ($newOnline && $color == osrConstant::NO_STRING && $deviceColor != osrConstant::NO_STRING) $color = $deviceColor;
-						if ($newOnline && $level == osrConstant::NO_STRING && $deviceLevel != osrConstant::NO_STRING) $level = $deviceLevel;
-						if ($newOnline && $temperature == osrConstant::NO_STRING && $deviceTemperature != osrConstant::NO_STRING) $temperature = $deviceTemperature;
-						if ($newOnline && $saturation == osrConstant::NO_STRING && $deviceSaturation != osrConstant::NO_STRING) $saturation = $deviceSaturation;
-					}
-	
-					if ($stateID = @$this->GetIDForIdent("STATE"))
-						$this->MaintainAction("STATE", $newOnline);
-	
-					if ($stateID === false) {
-						if ($method == osrConstant::METHOD_CREATE_CHILD)
-							$stateID = $this->RegisterVariableBoolean("STATE", "State", "OSR.Switch", 0);
-					}
-	
-					if ($stateID)
-						if ($newState != ($state = GetValueBoolean($stateID))) SetValueBoolean($stateID, $newState);
-	
-					//Hue
-					if ($hueID = @$this->GetIDForIdent("HUE"))
-						$this->MaintainVariable("HUE", "Hue", osrConstant::IPS_INTEGER, "OSR.Hue", 1, $hue != osrConstant::NO_STRING);
-	
-					if ($hue != osrConstant::NO_STRING) {
-						if ($hueID === false && $method == osrConstant::METHOD_CREATE_CHILD)
-							$hueID = $this->RegisterVariableInteger("HUE", "Hue", "OSR.Hue", 1);
-	
-						if ($hueID)
-							if ($hue != GetValueInteger($hueID)) SetValueInteger($hueID, $hue);
-					}
-	
-					//Color
-					if ($colorID = @$this->GetIDForIdent("COLOR"))
-						$this->MaintainVariable("COLOR", "Color", osrConstant::IPS_INTEGER, "~HexColor", 2, $color != osrConstant::NO_STRING);
-	
-					if ($color != osrConstant::NO_STRING) {
-						if ($colorID === false && $method == osrConstant::METHOD_CREATE_CHILD) {
-							$colorID = $this->RegisterVariableInteger("COLOR", "Color", "~HexColor", 2);
-							IPS_SetIcon($colorID, "Paintbrush");
-						}
-	
-						if ($colorID)
-							if ($color != GetValueInteger($colorID)) SetValueInteger($colorID, $color);
-					}
-	
-					//Color temperature
-					if ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE"))
-						$this->MaintainVariable("COLOR_TEMPERATURE", "Color Temperature", osrConstant::IPS_INTEGER, "OSR.ColorTempExt", 3, $temperature != osrConstant::NO_STRING);
-	
-					if ($temperature != osrConstant::NO_STRING) {
-						if ($temperatureID === false && $method == osrConstant::METHOD_CREATE_CHILD)
-							$temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTempExt", 3);
-	
-						if ($temperatureID)
-							if ($temperature != GetValueInteger($temperatureID)) SetValueInteger($temperatureID, $temperature);
-					}
-	
-					//Level
-					if ($levelID = @$this->GetIDForIdent("LEVEL"))
-						$this->MaintainVariable("LEVEL", "Level", osrConstant::IPS_INTEGER, "OSR.Intensity", 4, $level != osrConstant::NO_STRING);
-	
-					if ($level != osrConstant::NO_STRING) {
-						if ($levelID === false && $method == osrConstant::METHOD_CREATE_CHILD) {
-							$levelID = $this->RegisterVariableInteger("LEVEL", "Level", "OSR.Intensity", 4);
-							IPS_SetIcon($levelID, "Sun");
-						}
-	
-						if ($levelID)
-							if ($level != GetValueInteger($levelID)) SetValueInteger($levelID, $level);
-					}
-	
-					//Saturation control
-					if ($saturationID = @$this->GetIDForIdent("SATURATION"))
-						$this->MaintainVariable("SATURATION", "Saturation", osrConstant::IPS_INTEGER, "OSR.Intensity", 5, $saturation != osrConstant::NO_STRING);
-	
-					if ($saturation != osrConstant::NO_STRING) {
-						if ($saturationID === false && $method == osrConstant::METHOD_CREATE_CHILD) {
-							$saturationID = $this->RegisterVariableInteger("SATURATION", "Saturation", "OSR.Intensity", 5);
-							IPS_SetIcon($saturationID, "Intensity");
-						}
-	
-						if ($saturationID)
-							if ($saturation != GetValueInteger($saturationID)) SetValueInteger($saturationID, $saturation);
-					}
-	
-					if (isset($state) && $state != $newState) $this->maintainVariables(osrConstant::MODE_MAINTAIN_ACTION, $newState);
-				}
-				break;
-
-			case osrConstant::MODE_GROUP_CLOUD:
-				$cloudGroup = json_decode($data);
-				return true;
-		}
-	}
-
-
-	private function setSceneInfo($mode, $method) {
-		//Create and update switch
-		if (false === ($sceneID = @$this->GetIDForIdent("SCENE"))) {
-			if ($method == osrConstant::METHOD_CREATE_CHILD) {
-				$sceneID = $this->RegisterVariableInteger("SCENE", "Szene", "OSR.Scene", 311);
-				$this->EnableAction("SCENE");
-			}
-		}
-
-		if ($sceneID !== false && GetValueInteger($sceneID) != 1) SetValueInteger($sceneID, 1);
-	}
-
-
-	protected function maintainVariables($mode, $newState = false) {
-		$variableList = IPS_GetChildrenIDs($this->InstanceID);
-		$identList    = explode(",", osrConstant::LIST_KEY_IDENTS);
-
-		foreach($variableList as $item) {
-			$ident = IPS_GetObject($item)['ObjectIdent'];
-
-			if (in_array($ident, $identList)) {
-				if ($mode == osrConstant::MODE_DELETE_VARIABLE)
-					IPS_DeleteVariable($item);
-				else
-					$this->MaintainAction($ident, $newState);
-			}
-		}
-
-		return true;
-	}
+  const LIST_ELEMENTS_INDEX = 0;
+  use LightifyControl;
+
+
+  public function Create()
+  {
+
+    parent::Create();
+
+    //Store at runtime
+    $this->SetBuffer("applyMode", 1);
+
+    $this->SetBuffer("groupDevice", vtNoString);
+    $this->SetBuffer("groupScene", vtNoString);
+
+    $this->RegisterPropertyInteger("groupID", vtNoValue);
+    $this->RegisterPropertyInteger("groupClass", vtNoValue);
+    $this->RegisterPropertyString("deviceList", vtNoString);
+
+    $this->RegisterPropertyString("uintUUID", vtNoString);
+    $this->RegisterPropertyInteger("classType", vtNoValue);
+
+    $this->ConnectParent(classConstant::MODULE_GATEWAY);
+  }
+
+
+  public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
+  {
+
+    switch ($Message) {
+      case IPS_KERNELSTARTED:
+        $this->SetBuffer("applyMode", 1);
+        $this->ApplyChanges();
+        break;
+    }
+
+  }
+
+
+  public function ApplyChanges()
+  {
+
+    $this->RegisterMessage(0, IPS_KERNELSTARTED);
+    parent::ApplyChanges();
+
+    if (IPS_GetKernelRunlevel() != KR_READY) return;
+    $applyMode = $this->GetBuffer("applyMode");
+
+    if ($applyMode) {
+      $groupID = $this->ReadPropertyInteger("groupID");
+      if ($groupID == vtNoValue) return $this->SetStatus(202);
+
+      //Apply filter
+      $class = $this->ReadPropertyInteger("groupClass");
+
+      switch ($class) {
+        case classConstant::CLASS_LIGHTIFY_GROUP:
+          $mode = classConstant::MODE_GROUP_LOCAL;
+
+        case classConstant::CLASS_ALL_DEVICES:
+          $mode = (isset($mode)) ? $mode : classConstant::MODE_ALL_SWITCH;
+
+          $filter = ".*-g".preg_quote(trim(json_encode(utf8_encode(chr($groupID))), '"')).".*";
+          $this->SetReceiveDataFilter($filter);
+
+          $status = $this->setGroupProperty($mode, $class, $groupID);
+          break;
+
+        case classConstant::CLASS_LIGHTIFY_SCENE:
+          $filter = ".*-s".preg_quote(trim(json_encode(utf8_encode(chr($groupID))), '"')).".*";
+
+          $this->SetReceiveDataFilter($filter);
+          $status = $this->setSceneProperty($groupID);
+          break;
+      }
+
+      if ($status == 102) {
+        //Apply changes
+        if (IPS_HasChanges($this->InstanceID)) {
+          $this->SetBuffer("applyMode", 0);
+          IPS_ApplyChanges($this->InstanceID);
+        }
+      }
+      $this->SetStatus($status);
+    }
+
+    if (!$applyMode) {
+      $this->SetBuffer("applyMode", 1);
+    }
+
+  }
+
+
+  public function GetConfigurationForm()
+  {
+
+    if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
+      $device = $this->GetBuffer("groupDevice");
+
+      $groupID = $this->ReadPropertyInteger("groupID");
+      $class   = $this->ReadPropertyInteger("groupClass");
+
+      switch ($class) {
+        case classConstant::CLASS_LIGHTIFY_GROUP:
+          $elements = [];
+
+          if (!empty($device) && ord($device{0}) > 0) {
+            $columns = [];
+            $columns [] = ['label' => "Instance ID", 'name' => "InstanceID",  'width' =>  "60px", 'visible' => false];
+            $columns [] = ['label' => "Name",        'name' => "name",        'width' => "120px"];
+            $columns [] = ['label' => "Hue",         'name' => "hue",         'width' =>  "35px"];
+            $columns [] = ['label' => "Color",       'name' => "color",       'width' =>  "60px"];
+            $columns [] = ['label' => "Temperature", 'name' => "temperature", 'width' =>  "80px"];
+            $columns [] = ['label' => "Brightness",  'name' => "brightness",  'width' =>  "70px"];
+            $columns [] = ['label' => "Saturation",  'name' => "saturation",  'width' =>  "70px"];
+
+            $elements [] = ['type' => "List", 'name' => "deviceList", 'caption' => "Devices", 'columns' => $columns];
+          }
+
+          $actions = [];
+          $actions [] = ['type' => "Button", 'caption' => "On",  'onClick' => "OSR_WriteValue(\$id, \"STATE\", 1)"];
+          $actions [] = ['type' => "Button", 'caption' => "Off", 'onClick' => "OSR_WriteValue(\$id, \"STATE\", 0)"];
+
+          $status = [];
+          $status [] = ['code' => 102, 'icon' => "active",   'caption' => "Group is active"];
+          $status [] = ['code' => 104, 'icon' => "inactive", 'caption' => "Group is inactive"];
+          $status [] = ['code' => 201, 'icon' => "error",    'caption' => "Lightify gateway is not connected"];
+          $status [] = ['code' => 299, 'icon' => "error",    'caption' => "Unknown error"];
+
+          $formJSON = json_encode(['elements' => $elements, 'actions' => $actions, 'status' => $status]);
+          break;
+
+        case classConstant::CLASS_LIGHTIFY_SCENE:
+          $actions = [];
+          $actions [] = ['type' => "Button", 'caption' => "Apply", 'onClick' => "OSR_WriteValue(\$id, \"SCENE\", $groupID)"];
+
+          $status = [];
+          $status [] = ['code' => 102, 'icon' => "active",   'caption' => "Scene is active"];
+          $status [] = ['code' => 104, 'icon' => "inactive", 'caption' => "Scene is inactive"];
+          $status [] = ['code' => 201, 'icon' => "error",    'caption' => "Lightify gateway is not connected"];
+          $status [] = ['code' => 299, 'icon' => "error",    'caption' => "Unknown error"];
+
+          $formJSON = json_encode(['elements' => [], 'actions' => $actions, 'status' => $status]);
+          return $formJSON;
+
+        case classConstant::CLASS_ALL_DEVICES:
+          $actions = [];
+          $actions [] = ['type' => "Button", 'caption' => "On",  'onClick' => "OSR_WriteValue(\$id, \"ALL_DEVICES\", 1)"];
+          $actions [] = ['type' => "Button", 'caption' => "Off", 'onClick' => "OSR_WriteValue(\$id, \"ALL_DEVICES\", 0)"];
+
+          $formJSON = json_encode(['elements' => [], 'actions' => $actions]);
+          return $formJSON;
+
+        default:
+          $status = [];
+          $status [] = ['code' => 202, 'icon' => "error", 'caption' => "Group/Scene can only be configured over the Lightify Gateway Instance"];
+
+          $formJSON = json_encode(['elements' => [], 'status' => $status]);
+          return $formJSON;
+      }
+
+      if (!empty($device)) {
+        $ncount = ord($device{0});
+        $device = substr($device, 1);
+
+        $length = classConstant::ITEM_FILTER_LENGTH+classConstant::UUID_DEVICE_LENGTH;
+        $data   = json_decode($formJSON);
+
+        for ($i = 1; $i <= $ncount; $i++) {
+          $uintUUID = substr($device, classConstant::ITEM_FILTER_LENGTH, classConstant::UUID_DEVICE_LENGTH);
+          //IPS_LogMessage("SymconOSR", "<Group|GetConfigurationForm|info>   ".IPS_GetName($this->InstanceID)." - ".$this->lightifyBase->chrToUUID($uintUUID));
+
+          if ($instanceID = $this->getObjectByProperty(classConstant::MODULE_DEVICE, "uintUUID", $uintUUID)) {
+            if (IPS_GetInstance($instanceID)['ConnectionID'] != $parentID) {
+              continue;
+            }
+
+            $stateID = @IPS_GetObjectIDByIdent('STATE', $instanceID);
+            $state   = ($stateID) ? GetValueBoolean($stateID) : false;
+            $class    = IPS_GetProperty($instanceID, "deviceClass");
+
+            switch ($class) {
+              case classConstant::CLASS_LIGHTIFY_LIGHT:
+                $classInfo = $this->Translate("Light");
+                break;
+
+              case classConstant::CLASS_LIGHTIFY_PLUG:
+                $classInfo = $this->Translate("Plug");
+                break;
+            } 
+
+            $hueID         = @IPS_GetObjectIDByIdent("HUE", $instanceID);
+            $colorID       = @IPS_GetObjectIDByIdent("COLOR", $instanceID);
+            $temperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $instanceID);
+            $brightnessID  = @IPS_GetObjectIDByIdent("BRIGHTNESS", $instanceID);
+            $saturationID  = @IPS_GetObjectIDByIdent("SATURATION", $instanceID);
+
+            $hue           = ($hueID) ?  GetValueformatted($hueID) : vtNoString;
+            $color         = ($colorID) ? strtolower(GetValueformatted($colorID)) : vtNoString;
+            $temperature   = ($temperatureID) ? GetValueformatted($temperatureID) : vtNoString;
+            $brightness    = ($brightnessID) ? preg_replace('/\s+/', '', GetValueformatted($brightnessID)) : vtNoString;
+            $saturation    = ($saturationID) ? preg_replace('/\s+/', '', GetValueformatted($saturationID)) : vtNoString;
+
+            if ($state) {
+              if (@IPS_GetProperty($instanceID, "itemType") == classConstant::TYPE_PLUG_ONOFF) {
+                $rowColor = ROW_COLOR_PLUG_ON;
+              } else {
+                $rowColor = ($temperature) ? ROW_COLOR_CCT_ON : ROW_COLOR_LIGHT_ON;
+              }
+            } else {
+              if (@IPS_GetProperty($instanceID, "itemType") == classConstant::TYPE_PLUG_ONOFF) {
+                $rowColor = ($state) ? ROW_COLOR_STATE_OFF : ROW_COLOR_PLUG_OFF;
+              } else {
+                $rowColor = ($state) ? ROW_COLOR_STATE_OFF : ROW_COLOR_LIGHT_OFF;
+              }
+            }
+
+            $data->elements[self::LIST_ELEMENTS_INDEX]->values[] = array(
+              'InstanceID'  => $instanceID,
+              'name'        => IPS_GetName($instanceID),
+              'hue'         => $hue,
+              'color'       => ($color != vtNoString) ? "#".strtoupper($color) : vtNoString,
+              'temperature' => $temperature,
+              'brightness'  => $brightness,
+              'saturation'  => $saturation,
+              'rowColor'    => $rowColor
+            );
+          }
+
+          $device = substr($device, $length);
+        }
+
+        return json_encode($data);
+      }
+
+      return $formJSON;
+    }
+
+    return vtNoForm;
+
+  }
+
+
+  public function ReceiveData($jsonString)
+  {
+
+    $groupID = $this->ReadPropertyInteger("groupID");
+    $class   = $this->ReadPropertyInteger("groupClass");
+    $data    = json_decode($jsonString);
+
+    $debug   = IPS_GetProperty($data->id, "debug");
+    $message = IPS_GetProperty($data->id, "message");
+
+    switch ($data->mode) {
+      case classConstant::MODE_GROUP_LOCAL:
+      case classConstant::MODE_ALL_SWITCH:
+        //IPS_LogMessage("SymconOSR", "<Group|ReceiveData|all:switch>   ".IPS_GetName($this->InstanceID)." - ".$groupID."/".$class."/".json_encode($data->buffer));
+        $buffer = utf8_decode($data->buffer);
+        $ncount = ord($buffer{0});
+
+        //Store device group buffer
+        $device = $this->getGroupDevice($groupID, $ncount, substr($buffer, 2));
+        $this->SetBuffer("groupDevice", $device);
+
+        if (!empty($device)) {
+          if ($debug % 2 || $message) {
+            $info = ord($device{0}).":".IPS_GetName($this->InstanceID)."/".$this->lightifyBase->decodeData($device);
+
+            if ($debug % 2) {
+              $this->SendDebug("<Group|ReceiveData|groups:local>", $info, 0);
+            }
+
+            if ($message) {
+              IPS_LogMessage("SymconOSR", "<Group|ReceiveData|groups:local>   ".$info);
+            }
+          }
+
+          $this->setGroupInfo($data->mode, $data->method, $class, $device);
+        }
+        break;
+
+      case classConstant::MODE_STATE_GROUP:
+        $device = $this->GetBuffer("groupDevice");
+        //IPS_LogMessage("SymconOSR", "<Group|ReceiveData|group:devices>   ".IPS_GetName($this->InstanceID)." - ".json_encode(utf8_encode($device)));
+
+        if (!empty($device)) {
+          if ($debug % 2 || $message) {
+            $info = ord($device{0}).":".IPS_GetName($this->InstanceID)."/".$this->lightifyBase->decodeData($device);
+
+            if ($debug % 2) {
+              $this->SendDebug("<Group|ReceiveData|groups:local>", $info, 0);
+            }
+
+            if ($message) {
+              IPS_LogMessage("SymconOSR", "<Group|ReceiveData|groups:local>   ".$info);
+            }
+          }
+
+          $this->setGroupInfo($data->mode, $data->method, $class, $device);
+        }
+        break;
+
+      case classConstant::MODE_GROUP_CLOUD:
+        break;
+
+      case classConstant::MODE_GROUP_SCENE:
+        $buffer = utf8_decode($data->buffer);
+        $ncount = ord($buffer{0});
+
+        //Store group scene buffer
+        if ($class == classConstant::CLASS_LIGHTIFY_SCENE) {
+          $scene = $this->getGroupScene($groupID, $ncount, substr($buffer, 2));
+          $this->SetBuffer("groupScene", $scene);
+
+          if (!empty($scene)) {
+            if ($debug % 2 || $message) {
+              $info = ord($scene{0})."/".ord($scene{1})."/".$this->lightifyBase->decodeData($scene);
+
+              if ($debug % 2) {
+                $this->SendDebug("<Group|ReceiveData|scenes:cloud>", $info, 0);
+              }
+
+              if ($message) {
+                IPS_LogMessage("SymconOSR", "<Group|ReceiveData|scenes:cloud>   ".$info);
+              }
+            }
+
+            $this->setSceneInfo($data->mode, $data->method);
+          }
+        }
+        break;
+    }
+
+  }
+
+
+  private function setGroupProperty($mode, $class, $groupID)
+  {
+
+    if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
+      $jsonString = $this->SendDataToParent(json_encode(array(
+        'DataID' => classConstant::TX_GATEWAY,
+        'method' => classConstant::METHOD_APPLY_CHILD,
+        'mode'   => $mode))
+      );
+      //IPS_LogMessage("SymconOSR", "<Group|setGroupProperty|groups:local>   ".IPS_GetName($this->InstanceID)." - ".$groupID."/".$jsonString);
+
+      if ($jsonString != vtNoString) {
+        $data   = json_decode($jsonString);
+        $buffer = utf8_decode($data->buffer);
+        $ncount = ord($buffer{0});
+
+        //Store group device buffer
+        $device = $this->getGroupDevice($groupID, $ncount, substr($buffer, 2));
+        $this->SetBuffer("groupDevice", $device);
+
+        if (!empty($device)) {
+          $this->setGroupInfo($mode, classConstant::METHOD_CREATE_CHILD, $class, $device);
+          return 102;
+        }
+        return 104;
+      }
+      return 102;
+    }
+    return 201;
+
+  }
+
+
+  private function getGroupDevice($groupID, $ncount, $data)
+  {
+
+    $device = vtNoString;
+
+    for ($i = 1; $i <= $ncount; $i++) {
+      $data   = substr($data, 2);
+      $length = classConstant::ITEM_FILTER_LENGTH+classConstant::UUID_DEVICE_LENGTH;
+
+      $localID = ord($data{0});
+      $dcount  = ord($data{1});
+
+      if ($dcount > 0) {
+        $data   = substr($data, 2);
+
+        if ($localID == $groupID) {
+          $deviceUUID = vtNoString;
+          $group = substr($data, 0, $dcount*$length);
+
+          for ($j = 1; $j <= $dcount; $j++) {
+            $deviceUUID .= substr($group, 0, $length);
+            $group = substr($group, $length);
+          }
+
+          $device = chr($dcount).$deviceUUID;
+          break;
+        }
+      }
+
+      $data = substr($data, $dcount*$length);
+    }
+
+    if (!empty($device)) {
+      $buffer = $device;
+      $ncount = ord($buffer{0});
+      $buffer = substr($buffer, 1);
+
+      for ($i = 1; $i <= $ncount; $i++) {
+        $uintUUID = substr($buffer, classConstant::ITEM_FILTER_LENGTH, classConstant::UUID_DEVICE_LENGTH);
+        $buffer   = substr($buffer, $length);
+      }
+    }
+
+    return $device;
+
+  }
+
+
+  private function setSceneProperty($groupID)
+  {
+
+    if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
+      $jsonString = $this->SendDataToParent(json_encode(array(
+        'DataID' => classConstant::TX_GATEWAY,
+        'method' => classConstant::METHOD_APPLY_CHILD,
+        'mode'   => classConstant::MODE_GROUP_SCENE))
+      );
+      //IPS_LogMessage("SymconOSR", "<Group|setSceneProperty|scenes:cloud>   ".IPS_GetName($this->InstanceID)." - ".$groupID."/".$jsonString);
+
+      if ($jsonString != vtNoString) {
+        $data   = json_decode($jsonString);
+        $buffer = utf8_decode($data->buffer);
+        $ncount = ord($buffer{0});
+
+        //Store group scene buffer
+        $scene = $this->getGroupScene($groupID, $ncount, substr($buffer, 2));
+        $this->SetBuffer("groupScene", $scene);
+
+        if (!empty($scene)) {
+          $type = ord($buffer{1});
+          $uintUUID = chr($groupID).chr(0x00).chr($type).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
+
+          if ($this->ReadPropertyString("uintUUID") != $uintUUID) {
+            IPS_SetProperty($this->InstanceID, "uintUUID", $uintUUID);
+          }
+
+          if ($this->ReadPropertyInteger("classType") != $type) {
+            IPS_SetProperty($this->InstanceID, "classType", (int)$type);
+          }
+
+          $this->setSceneInfo(classConstant::MODE_GROUP_SCENE, classConstant::METHOD_CREATE_CHILD);
+          return 102;
+        }
+        return 104;
+      }
+      return 102;
+    }
+    return 201;
+
+  }
+
+
+  private function getGroupScene($groupID, $ncount, $data)
+  {
+
+    $scene = vtNoString;
+
+    for ($i = 1; $i <= $ncount; $i++) {
+      $localID = ord($data{5});
+
+      if ($localID == $groupID) {
+        $scene = substr($data, 0, classConstant::DATA_SCENE_LENGTH);
+        break;
+      }
+
+      $data = substr($data, 4); //Scene suffix
+      $data = substr($data, classConstant::DATA_SCENE_LENGTH);
+    }
+
+    return $scene;
+
+  }
+
+
+  private function setGroupInfo($mode, $method, $class, $data)
+  {
+
+    switch ($mode) {
+      case classConstant::MODE_GROUP_LOCAL:
+      case classConstant::MODE_STATE_GROUP:
+      case classConstant::MODE_ALL_SWITCH:
+        $dcount = ord($data{0});
+
+        if ($dcount > 0) {
+          $data    = substr($data, 1);
+          $length  = classConstant::ITEM_FILTER_LENGTH+classConstant::UUID_DEVICE_LENGTH;
+          $Devices = [];
+
+          for ($i = 1; $i <= $dcount; $i++) {
+            $uintUUID = substr($data, classConstant::ITEM_FILTER_LENGTH, classConstant::UUID_DEVICE_LENGTH);
+
+            if (false !== ($instanceID = $this->getObjectByProperty(classConstant::MODULE_DEVICE, "uintUUID", $uintUUID))) {
+              $Devices[] = $instanceID;
+            }
+
+            $data = substr($data, $length);
+          }
+
+          //Set group/zone state
+          $online    = $state = false;
+          $newOnline = $online;
+          $newState  = $state;
+
+          if ($mode == classConstant::MODE_GROUP_LOCAL) {
+            $hue = $color = $brightness = vtNoValue;
+            $temperature  = $saturation = vtNoValue;
+
+            $deviceHue         = $deviceColor = $deviceBrightness = vtNoValue;
+            $deviceTemperature = $deviceSaturation                = vtNoValue;
+          }
+
+          foreach ($Devices as $device) {
+            $deviceStateID = @IPS_GetObjectIDByIdent("STATE", $device);
+            $deviceState   = ($deviceStateID) ? GetValueBoolean($deviceStateID) : false;
+
+            if ($mode == classConstant::MODE_GROUP_LOCAL) {
+              $deviceHueID         = @IPS_GetObjectIDByIdent("HUE", $device);
+              $deviceColorID       = @IPS_GetObjectIDByIdent("COLOR", $device);
+              $deviceTemperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $device);
+              $deviceBrightnessID  = @IPS_GetObjectIDByIdent("BRIGHTNESS", $device);
+              $deviceSaturationID  = @IPS_GetObjectIDByIdent("SATURATION", $device);
+
+              $deviceHue           = ($deviceHueID) ?  GetValueInteger($deviceHueID) : vtNoValue;
+              $deviceColor         = ($deviceColorID) ? GetValueInteger($deviceColorID) : vtNoValue;
+              $deviceTemperature   = ($deviceTemperatureID) ? GetValueInteger($deviceTemperatureID) : vtNoValue;
+              $deviceBrightness    = ($deviceBrightnessID) ? GetValueInteger($deviceBrightnessID) : vtNoValue;
+              $deviceSaturation    = ($deviceSaturationID) ? GetValueInteger($deviceSaturationID) : vtNoValue;
+            }
+
+            if (!$state && $deviceState) {
+              $newState = true;
+            }
+
+            if ($mode == classConstant::MODE_GROUP_LOCAL) {
+              if ($newState && $hue == vtNoValue && $deviceHue != vtNoValue) {
+                $hue = $deviceHue;
+              }
+
+              if ($newState && $color == vtNoValue && $deviceColor != vtNoValue) {
+                $color = $deviceColor;
+              }
+
+              if ($newState && $brightness == vtNoValue && $deviceBrightness != vtNoValue) {
+                $brightness = $deviceBrightness;
+              }
+
+              if ($newState && $temperature == vtNoValue && $deviceTemperature != vtNoValue) {
+                $temperature = $deviceTemperature;
+              }
+
+              if ($newState && $saturation == vtNoValue && $deviceSaturation != vtNoValue) {
+                $saturation = $deviceSaturation;
+              }
+            }
+          }
+
+          /*
+          if ($mode == classConstant::MODE_STATE_GROUP) {
+            if (!empty($Devices)) {
+              $newState = (bool)$method;
+            }
+          } */
+
+          //State
+          $ident = ($class == classConstant::CLASS_ALL_DEVICES) ? "ALL_DEVICES" : "STATE";
+
+          if (false == ($stateID = @$this->GetIDForIdent($ident))) {
+            if ($method == classConstant::METHOD_CREATE_CHILD) {
+              $stateID = $this->RegisterVariableBoolean($ident, $this->Translate("State"), "OSR.Switch", 313);
+              $this->EnableAction($ident);
+            }
+          }
+
+          if ($stateID) {
+            $state = GetValueBoolean($stateID);
+
+            if ($state != $newState) {
+              SetValueBoolean($stateID, $newState);
+            }
+          }
+
+          if ($mode == classConstant::MODE_GROUP_LOCAL) {
+            //Hue
+            if (false == ($hueID = @$this->GetIDForIdent("HUE"))) {
+              if ($method == classConstant::METHOD_CREATE_CHILD) {
+                $hueID = $this->RegisterVariableInteger("HUE", $this->Translate("Hue"), "OSR.Hue", 314);
+
+                IPS_SetDisabled($hueID, true);
+                IPS_SetHidden($hueID, true);
+              }
+            }
+
+            if ($hueID && $hue != vtNoValue) {
+              if ($hue != GetValueInteger($hueID)) {
+                SetValueInteger($hueID, $hue);
+              }
+            }
+
+            //Color
+            if (false == ($colorID = @$this->GetIDForIdent("COLOR"))) {
+              if ($method == classConstant::METHOD_CREATE_CHILD) {
+                $colorID = $this->RegisterVariableInteger("COLOR", $this->Translate("Color"), "~HexColor", 315);
+                IPS_SetIcon($colorID, "Paintbrush");
+
+                $this->EnableAction("COLOR");
+              }
+            }
+
+            if ($colorID && $color != vtNoValue) {
+              if ($color != GetValueInteger($colorID)) {
+                SetValueInteger($colorID, $color);
+              }
+            }
+
+            //Color temperature
+            if (false == ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE"))) {
+              if ($method == classConstant::METHOD_CREATE_CHILD) {
+                $temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), "OSR.ColorTempExt", 316);
+                $this->EnableAction("COLOR_TEMPERATURE");
+              }
+            }
+
+            if ($temperatureID && $temperature != vtNoValue) {
+              if ($temperature != GetValueInteger($temperatureID)) {
+                SetValueInteger($temperatureID, $temperature);
+              }
+            }
+
+            //Brightness
+            if (false == ($brightnessID = @$this->GetIDForIdent("BRIGHTNESS"))) {
+              if ($method == classConstant::METHOD_CREATE_CHILD) {
+                $brightnessID = $this->RegisterVariableInteger("BRIGHTNESS", $this->Translate("Brightness"), "OSR.Intensity", 317);
+                IPS_SetIcon($brightnessID, "Sun");
+
+                $this->EnableAction("BRIGHTNESS");
+              }
+            }
+
+            if ($brightnessID && $brightness != vtNoValue) {
+              if ($brightness != GetValueInteger($brightnessID)) {
+                SetValueInteger($brightnessID, $brightness);
+              }
+            }
+
+            //Saturation control
+            if (false == ($saturationID = @$this->GetIDForIdent("SATURATION"))) {
+              if ($method == classConstant::METHOD_CREATE_CHILD) {
+                $saturationID = $this->RegisterVariableInteger("SATURATION", $this->Translate("Saturation"), "OSR.Intensity", 318);
+                IPS_SetIcon($saturationID, "Intensity");
+
+                $this->EnableAction("SATURATION");
+              }
+            }
+
+            if ($saturationID && $saturation != vtNoValue) {
+              if ($saturation != GetValueInteger($saturationID)) {
+                SetValueInteger($saturationID, $saturation);
+              }
+            }
+          }
+        }
+        break;
+
+      case classConstant::MODE_GROUP_CLOUD:
+        $cloudGroup = json_decode($data);
+        return true;
+    }
+
+  }
+
+
+  private function setSceneInfo($mode, $method)
+  {
+
+    //Create and update switch
+    if (false == ($sceneID = @$this->GetIDForIdent("SCENE"))) {
+      if ($method == classConstant::METHOD_CREATE_CHILD) {
+        $sceneID = $this->RegisterVariableInteger("SCENE", $this->Translate("Scene"), "OSR.Scene", 311);
+        $this->EnableAction("SCENE");
+      }
+    }
+
+    if ($sceneID && GetValueInteger($sceneID) != 1) {
+      SetValueInteger($sceneID, 1);
+    }
+
+  }
+
 
 }
