@@ -242,11 +242,11 @@ class lightifyGateway extends IPSModule
     $options [] = ['label' => "Local only",      'value' => 1001];
     $options [] = ['label' => "Local and Cloud", 'value' => 1002];
 
-    $elements [] = ['type' => "Select",       'name'    => "connectMode",       'caption' => " Connection", 'options' => $options];
-    $elements [] = ['name' => "gatewayIP",    'type'    => "ValidationTextBox", 'caption' => "Gateway IP"];
-    $elements [] = ['name' => "serialNumber", 'type'    => "ValidationTextBox", 'caption' => "Serial number"];
-    $elements [] = ['name' => "localUpdate",  'type'    => "NumberSpinner",     'caption' => "Update interval [s]"];
-    $elements [] = ['type' => "Label",        'caption' => ""];
+    $elements [] = ['type' => "Select",            'name'    => "connectMode",  'caption' => " Connection", 'options' => $options];
+    $elements [] = ['type' => "ValidationTextBox", 'name'    => "gatewayIP",    'caption' => "Gateway IP"];
+    $elements [] = ['type' => "ValidationTextBox", 'name'    => "serialNumber", 'caption' => "Serial number"];
+    $elements [] = ['type' => "NumberSpinner",     'name'    => "localUpdate",  'caption' => "Update interval [s]"];
+    $elements [] = ['type' => "Label",             'caption' => ""];
 
     $columns = [];
     $columns [] = ['label' => "Type",        'name' => "Device",     'width' =>  "55px"];
@@ -2054,32 +2054,37 @@ class lightifyGateway extends IPSModule
     if (!empty($deviceBuffer)) {
       $newBuffer = vtNoString;
       $Devices   = utf8_decode($data);
+      $length    = classConstant::ITEM_FILTER_LENGTH+classConstant::UUID_DEVICE_LENGTH;
+      //IPS_LogMessage("SymconOSR", "<Gateway|setMethodState|Devices>   ".$this->lightifyBase->decodeData($Devices));
 
-      while (strlen($Devices) >= classConstant::ITEM_FILTER_LENGTH) {
-        $localID = ord(substr($Devices, 2, 1));
-        $ncount  = ord($deviceBuffer{0});
-        $decode  = substr($deviceBuffer, 2);
+      while (strlen($Devices) >= $length) {
+        $uintBuffer = substr($Devices, 2, classConstant::UUID_DEVICE_LENGTH);
+        $decode = substr($deviceBuffer, 2);
+        $ncount = ord($deviceBuffer{0});
 
         for ($i = 1; $i <= $ncount; $i++) {
-          $deviceID  = ord($decode{2});
-          $decode    = substr($decode, 3);
+          $zigBee = substr($decode, 0, 2);
+          $decode = substr($decode, 2);
+
+          $uintUUID  = substr($decode, 2, classConstant::UUID_DEVICE_LENGTH);
           $newDevice = substr($decode, 0, classConstant::DATA_DEVICE_LENGTH);
 
-          if ($localID == $deviceID) {
+          if ($uintBuffer == $uintUUID) {
             $name = substr($decode, 26, classConstant::DATA_NAME_LENGTH);
             $newDevice  = substr_replace($newDevice, chr($value), 18, 1);
-            //IPS_LogMessage("SymconOSR", "<Gateway|setMethodState|new:device>   ".$i."/".$localID."/".$deviceID."/".trim($name)."/".ord($newDevice{18}));
+            //IPS_LogMessage("SymconOSR", "<Gateway|setMethodState|new:device>   ".$i."/".$this->lightifyBase->ChrToUUID($uintBuffer)."/".$this->lightifyBase->ChrToUUID($uintUUID)."/".trim($name)."/".ord($newDevice{18}));
           }
 
-          $newBuffer .= $newDevice;
+          $newBuffer .= $zigBee.$newDevice;
           $decode     = substr($decode, classConstant::DATA_DEVICE_LENGTH);
         }
-        $Devices = substr($Devices, classConstant::ITEM_FILTER_LENGTH);
+
+        $Devices = substr($Devices, $length);
       }
     }
 
     if (!empty($newBuffer)) {
-      //IPS_LogMessage("SymconOSR", "<Gateway|setMethodState|new:buffer>   ".json_encode(utf8_encode($newBuffer)));
+      //IPS_LogMessage("SymconOSR", "<Gateway|setMethodState|new:buffer>   ".json_encode(utf8_encode($suffix.$newBuffer)));
       $this->SetBuffer("deviceBuffer", $suffix.$newBuffer);
     }
 
