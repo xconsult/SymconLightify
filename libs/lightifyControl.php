@@ -272,13 +272,13 @@ trait LightifyControl
                   if ($stateID) {
                     SetValue($stateID, $value);
                   }
-
+/*
                   if ($reload) {
                     $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                   } else {
                     $this->sendData(classConstant::METHOD_ALL_DEVICES, $value);
                   }
-
+*/
                   return true;
                 }
               } else {
@@ -425,10 +425,11 @@ trait LightifyControl
                 if ($value == 1) {
                   if ($this->setStateOn($state)) {
                     if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $temperature))) {
+/*
                       if ($reload) {
                         $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                       }
-
+*/
                       return true;
                     }
                   }
@@ -453,10 +454,11 @@ trait LightifyControl
                 if ($value == 1) {
                   if ($this->setStateOn($state)) {
                     if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::SCENE_PLANT_LIGHT)))) {
+/*
                       if ($reload) {
                         $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                       }
-
+*/
                       return true;
                     }
                   }
@@ -507,7 +509,7 @@ trait LightifyControl
                     if ($stateID) {
                       SetValue($stateID, $value);
                     }
-
+/*
                     if ($reload) {
                       $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                     } else {
@@ -517,7 +519,7 @@ trait LightifyControl
                         $this->sendData(classConstant::METHOD_STATE_DEVICE, $value);
                       }
                     }
-
+*/
                     return true;
                   }
                 } else {
@@ -566,11 +568,11 @@ trait LightifyControl
                     if ($colorID) {
                       SetValue($colorID, $value);
                     }
-
+/*
                     if ($reload) {
                       $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                     }
-
+*/
                     return true;
                   }
                 }
@@ -592,11 +594,11 @@ trait LightifyControl
                     if ($temperatureID) {
                       SetValue($temperatureID, $value);
                     }
-
+/*
                     if ($reload) {
                       $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                     }
-
+*/
                     return true;
                   }
                 }
@@ -623,11 +625,11 @@ trait LightifyControl
                       if ($brightnessID) {
                         SetValue($brightnessID, $value);
                       }
-
+/*
                       if ($reload) {
                         $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                       }
-
+*/
                       return true;
                     }
                   }
@@ -662,11 +664,11 @@ trait LightifyControl
                     if ($this->classLight && $saturationID) {
                       SetValue($saturationID, $value);
                     }
-
+/*
                     if ($reload) {
                       $this->sendData(classConstant::METHOD_RELOAD_LOCAL);
                     }
-
+*/
                     return true;
                   }
                 }

@@ -1349,6 +1349,7 @@ class lightifyGateway extends IPSModule
     $this->SetBuffer("deviceLabel", json_encode($Labels));
     $this->SetBuffer("deviceGroup", chr($m).$group);
 
+    //IPS_LogMessage("SymconOSR", "<Gateway|structDeviceData|devices:length>   ".$i."/".($i*strlen(chr($j).chr($i).$device))/2014);
     return chr($j).chr($i).$device;
 
   }
