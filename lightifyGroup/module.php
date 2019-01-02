@@ -33,7 +33,7 @@ class lightifyGroup extends IPSModule
     $this->SetBuffer("groupScene", vtNoString);
 
     $this->RegisterPropertyInteger("groupID", vtNoValue);
-    $this->RegisterPropertyInteger("groupClass", vtNoValue);
+    $this->RegisterPropertyInteger("itemClass", vtNoValue);
     $this->RegisterPropertyString("deviceList", vtNoString);
 
     $this->RegisterPropertyString("uintUUID", vtNoString);
@@ -70,7 +70,7 @@ class lightifyGroup extends IPSModule
       if ($groupID == vtNoValue) return $this->SetStatus(202);
 
       //Apply filter
-      $class = $this->ReadPropertyInteger("groupClass");
+      $class = $this->ReadPropertyInteger("itemClass");
 
       switch ($class) {
         case classConstant::CLASS_LIGHTIFY_GROUP:
@@ -117,7 +117,7 @@ class lightifyGroup extends IPSModule
       $device = $this->GetBuffer("groupDevice");
 
       $groupID = $this->ReadPropertyInteger("groupID");
-      $class   = $this->ReadPropertyInteger("groupClass");
+      $class   = $this->ReadPropertyInteger("itemClass");
 
       switch ($class) {
         case classConstant::CLASS_LIGHTIFY_GROUP:
@@ -264,7 +264,7 @@ class lightifyGroup extends IPSModule
   {
 
     $groupID = $this->ReadPropertyInteger("groupID");
-    $class   = $this->ReadPropertyInteger("groupClass");
+    $class   = $this->ReadPropertyInteger("itemClass");
     $data    = json_decode($jsonString);
 
     $debug   = IPS_GetProperty($data->id, "debug");

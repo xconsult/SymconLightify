@@ -24,7 +24,7 @@ class lightifyDevice extends IPSModule
     $this->SetBuffer("cloudDevice", vtNoString);
     $this->SetBuffer("deviceLabel", vtNoString);
 
-    $this->RegisterPropertyInteger("deviceClass", vtNoValue);
+    $this->RegisterPropertyInteger("itemClass", vtNoValue);
     $this->RegisterPropertyInteger("classType", vtNoValue);
 
     $this->RegisterPropertyString("uintUUID", vtNoString);
@@ -68,7 +68,7 @@ class lightifyDevice extends IPSModule
       if ($uintUUID == vtNoString) return $this->SetStatus(202);
 
       //Apply filter
-      $class = $this->ReadPropertyInteger("deviceClass");
+      $class = $this->ReadPropertyInteger("itemClass");
       //$filter = ".*-d".preg_quote(trim(json_encode(utf8_encode(chr($deviceID))), '"')).".*";
       $filter = ".*-d".preg_quote(trim(json_encode(utf8_encode($uintUUID)), '"')).".*";
 
@@ -96,7 +96,7 @@ class lightifyDevice extends IPSModule
   {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
-      $class  = $this->ReadPropertyInteger("deviceClass");
+      $class  = $this->ReadPropertyInteger("itemClass");
 
       if ($class != vtNoValue) {
         $connect = IPS_GetProperty($parentID, "connectMode");
@@ -121,7 +121,7 @@ class lightifyDevice extends IPSModule
             $options [] = ['caption' => "Sensor", 'value' => 2003];
 
             $elements = [];
-            $elements [] = ['type' => "Select", 'name' => "deviceClass", 'caption' => "Class", 'options' => $options];
+            $elements [] = ['type' => "Select", 'name' => "itemClass", 'caption' => "Class", 'options' => $options];
 
             if (!empty($device) && $info) {
               $elements [] = ['type' => "ValidationTextBox", 'name' => "UUID", 'caption' => "UUID"];
@@ -137,7 +137,7 @@ class lightifyDevice extends IPSModule
             $options [] = ($class == classConstant::CLASS_LIGHTIFY_PLUG) ? ['caption' => "Plug", 'value' => 2002] : ['caption' => "Light", 'value' => 2001];
 
             $elements = [];
-            $elements [] = ['type' => "Select", 'name' => "deviceClass", 'caption' => "Class", 'options' => $options];
+            $elements [] = ['type' => "Select", 'name' => "itemClass", 'caption' => "Class", 'options' => $options];
 
             if (!empty($device) && $info) {
               $elements [] = ['type' => "ValidationTextBox", 'name' => "UUID", 'caption' => "UUID"];
@@ -354,7 +354,7 @@ class lightifyDevice extends IPSModule
       case classConstant::MODE_DEVICE_LOCAL:
         $classLight = $classPlug = $classMotion = false;
 
-        //Decode Device label
+        //Decode device class
         switch ($classType) {
           case classConstant::TYPE_PLUG_ONOFF:
             $classPlug = true;
