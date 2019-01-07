@@ -28,7 +28,7 @@ class lightifyGateway extends IPSModule
 
   const GATEWAY_SERIAL_LENGTH   = 11;
 
-  const LIST_CATEGORY_INDEX     =  6;
+  const LIST_CATEGORY_INDEX     =  5;
   const LIST_DEVICE_INDEX       =  8;
   const LIST_GROUP_INDEX        =  9;
   const LIST_SCENE_INDEX        = 10;
@@ -104,6 +104,7 @@ class lightifyGateway extends IPSModule
     $this->RegisterPropertyString("listGroup", vtNoString);
     $this->RegisterPropertyString("listScene", vtNoString);
     $this->RegisterPropertyBoolean("deviceInfo", false);
+    $this->RegisterPropertyBoolean("waitResult", false);
 
     $this->RegisterPropertyInteger("debug", classConstant::DEBUG_DISABLED);
     $this->RegisterPropertyBoolean("message", false);
@@ -262,7 +263,6 @@ class lightifyGateway extends IPSModule
     $elements [] = ['type' => "ValidationTextBox", 'name'    => "gatewayIP",    'caption' => "Gateway IP"];
     $elements [] = ['type' => "ValidationTextBox", 'name'    => "serialNumber", 'caption' => "Serial number"];
     $elements [] = ['type' => "NumberSpinner",     'name'    => "localUpdate",  'caption' => "Update interval [s]"];
-    $elements [] = ['type' => "Label",             'caption' => ""];
 
     $columns = [];
     $columns [] = ['label' => "Type",        'name' => "Device",     'width' =>  "55px"];
@@ -273,6 +273,7 @@ class lightifyGateway extends IPSModule
 
     $elements [] = ['type' => "List",     'name' => "listCategory", 'caption' => "Categories", 'columns' => $columns];
     $elements [] = ['type' => "CheckBox", 'name' => "deviceInfo",   'caption' => " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)"];
+    $elements [] = ['type' => "CheckBox", 'name' => "waitResult",   'caption' => " Decode gateway result of executed command (longer runtime)"];
 
     //Device list configuration
     $Devices = $this->GetBuffer("deviceList");
@@ -531,9 +532,9 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw(classCommand::SET_DEVICE_STATE, chr(0x00), $args))]
           );
-
-          //$this->SetBuffer("infoDevice", $data->buffer);
           $this->SendDataToParent($jsonString);
+
+          $this->SetBuffer("infoDevice", $data->buffer);
           break;
 
         case classConstant::SAVE_LIGHT_STATE:
@@ -545,7 +546,7 @@ class lightifyGateway extends IPSModule
             'Buffer' => utf8_encode($this->sendRaw(classCommand::SAVE_LIGHT_STATE, chr(0x00), $args))]
           );
 
-          //$this->SetBuffer("infoDevice", $data->buffer);
+          $this->SetBuffer("infoDevice", $data->buffer);
           $this->SendDataToParent($jsonString);
           break;
 
@@ -570,7 +571,7 @@ class lightifyGateway extends IPSModule
           );
           $this->SendDataToParent($jsonString);
 
-          //$this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_DEVICE_STATE, 'buffer' => $data->buffer]));
+          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_DEVICE_STATE, 'buffer' => $data->buffer]));
           break;
 
         case classConstant::SET_COLOR:
@@ -584,7 +585,7 @@ class lightifyGateway extends IPSModule
           );
           $this->SendDataToParent($jsonString);
 
-          //$this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_LIGHT_COLOR, 'buffer' => $data->buffer]));
+          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_LIGHT_COLOR, 'buffer' => $data->buffer]));
           break;
 
         case classConstant::SET_COLOR_TEMPERATURE:
@@ -602,10 +603,10 @@ class lightifyGateway extends IPSModule
           );
           $this->SendDataToParent($jsonString);
 
-          //$this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_COLOR_TEMPERATURE, 'buffer' => $data->buffer]));
+          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_COLOR_TEMPERATURE, 'buffer' => $data->buffer]));
           break;
 
-        case classConstant::SET_BRIGHTNESS:
+        case classConstant::SET_LEVEL:
           $buffer = json_decode($data->buffer);
           $args   = utf8_decode($buffer->UUID).chr((int)$buffer->brightness).chr(dechex($buffer->fade)).chr(0x00).chr(0x00);
 
@@ -615,7 +616,7 @@ class lightifyGateway extends IPSModule
           );
           $this->SendDataToParent($jsonString);
 
-          //$this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_LIGHT_LEVEL, 'buffer' => $data->buffer]));
+          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_LIGHT_LEVEL, 'buffer' => $data->buffer]));
           break;
 
         case classConstant::SET_SATURATION:
@@ -629,7 +630,7 @@ class lightifyGateway extends IPSModule
           );
           $this->SendDataToParent($jsonString);
 
-          //$this->SetBuffer("infoDevice", json_encode(['command' => classConstant::SET_SATURATION, 'buffer' => $data->buffer]));
+          $this->SetBuffer("infoDevice", json_encode(['command' => classConstant::SET_SATURATION, 'buffer' => $data->buffer]));
           break;
 
         case classConstant::METHOD_APPLY_CHILD:
@@ -1026,77 +1027,65 @@ class lightifyGateway extends IPSModule
         break;
 
       default:
-        $infoDevice = $this->GetBuffer("infoDevice");
+        if ($this->ReadPropertyBoolean("waitResult")) {
+          $infoDevice = $this->GetBuffer("infoDevice");
 
-        if (!empty($infoDevice)) {
-          $this->SetBuffer("infoDevice", vtNoString);
+          if (!empty($infoDevice)) {
+            $this->SetBuffer("infoDevice", vtNoString);
 
-          $data   = json_decode($jsonString);
-          $buffer = utf8_decode($data->Buffer);
+            $data   = json_decode($jsonString);
+            $buffer = utf8_decode($data->Buffer);
 
-          if (ord($buffer{0}) > classConstant::BUFFER_HEADER_LENGTH) {
-            $code = ord($buffer{classConstant::BUFFER_HEADER_LENGTH});
+            if (ord($buffer{0}) > classConstant::BUFFER_HEADER_LENGTH) {
+              $code = ord($buffer{classConstant::BUFFER_HEADER_LENGTH});
 
-            if ($code == 0) {
-              //IPS_LogMessage("SymconOSR", "<Gateway|ReceiveData|default>   ".$data->buffer);
+              if ($code == 0) {
+                //IPS_LogMessage("SymconOSR", "<Gateway|ReceiveData|default>   ".$data->buffer);
 
-              $data = json_decode($infoDevice);
-              $args = json_decode($data->buffer);
+                $data = json_decode($infoDevice);
+                $args = json_decode($data->buffer);
 
-              switch ($data->command) {
-                case classCommand::SET_DEVICE_STATE:
-                  if ($args->stateID) {
+                switch ($data->command) {
+                  case classCommand::SET_DEVICE_STATE:
                     SetValue($args->stateID, $args->state);
-                  }
-                  break;
+                    break;
 
-                case classCommand::SET_LIGHT_COLOR:
-                  $hsv = $this->lightifyBase->HEX2HSV($args->hex);
-
-                  if ($args->hueID && GetValue($args->hueID) != $hsv['h']) {
-                    SetValue($args->hueID, $hsv['h']);
-                  }
-
-                  if ($args->colorID) {
+                  case classCommand::SET_LIGHT_COLOR:
                     SetValue($args->colorID, $args->color);
-                  }
 
-                  if ($args->saturationID && GetValue($args->saturationID) != $hsv['s']) {
-                    SetValue($args->saturationID, $hsv['s']);
-                  }
-                  break;
-
-                case classCommand::SET_COLOR_TEMPERATURE:
-                  if ($args->temperatureID) {
-                    SetValue($args->temperatureID, $args->temperature);
-                  }
-                  break;
-
-                case classCommand::SET_LIGHT_LEVEL:
-                  if ($args->stateID && $args->light) {
-                    if ($args->brightness == 0) {
-                      SetValue($args->stateID, false);
-                    } else {
-                      SetValue($args->stateID, true);
+                    if (GetValue($args->hueID) != $args->hsv['h']) {
+                      SetValue($args->hueID, $args->hsv['h']);
                     }
-                  }
 
-                  if ($args->brightnessID) {
-                    SetValue($args->brightnessID, $args->brightness);
-                  }
-                  break;
+                    if (GetValue($args->saturationID) != $args->hsv['s']) {
+                      SetValue($args->saturationID, $args->hsv['s']);
+                    }
+                    break;
 
-                case classConstant::SET_SATURATION:
-                  $color = hexdec($args->hex);
+                  case classCommand::SET_COLOR_TEMPERATURE:
+                    SetValue($args->temperatureID, $args->temperature);
+                    break;
 
-                  if ($args->colorID && GetValue($args->colorID) != $color) {
-                    SetValue($args->colorID, $color);
-                  }
+                  case classCommand::SET_LIGHT_LEVEL:
+                    if ($args->light && $args->stateID) {
+                      if ($args->level == 0) {
+                        SetValue($args->stateID, false);
+                      } else {
+                        SetValue($args->stateID, true);
+                      }
+                    }
 
-                  if ($args->saturationID) {
+                    SetValue($args->levelID, $args->level);
+                    break;
+
+                  case classConstant::SET_SATURATION:
                     SetValue($args->saturationID, $args->saturation);
-                  }
-                  break;
+
+                    if (GetValue($args->colorID) != $args->color) {
+                      SetValue($args->colorID, $args->color);
+                    }
+                    break;
+                }
               }
             }
           }

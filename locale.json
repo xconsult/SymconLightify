@@ -1,0 +1,29 @@
+{
+  "translations": {
+    "de": {
+      "Device [id]"                       : "Geräte [id]",
+      "Class"                             : "Klasse",
+      "Light"                             : "Lampe",
+      "Plug"                              : "Steckddose",
+      "Sensor"                            : "Sensor",
+      "Manufacturer"                      : "Hersteller",
+      "Model"                             : "Modell",
+      "Capabilities"                      : "Eigenschaften",
+      "On"                                : "An",
+      "Off"                               : "Aus",
+      "Device is active"                  : "Gerät ist aktiv",
+      "Lightify gateway is not connected" : "Lightify gateway ist nicht verbunden",
+      "Invalid Device [id]"               : "Ungültige Geräte [id]",
+      "Invalid Class"                     : "Ungültige Klasse",
+      "Online"                            : "Verbunden",
+      "State"                             : "Status",
+      "Hue"                               : "Hue",
+      "Color"                             : "Farbe",
+      "Saturation"                        : "Sättigung",
+      "Color Temperature"                 : "Farbtemperatur",
+      "Brightness"                        : "Helligkeit",
+      "Motion"                            : "Bewegung",
+      "Firmware"                          : "Firmware"
+    }
+  }
+}
