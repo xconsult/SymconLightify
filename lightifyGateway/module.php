@@ -633,6 +633,38 @@ class lightifyGateway extends IPSModule
           $this->SetBuffer("infoDevice", json_encode(['command' => classConstant::SET_SATURATION, 'buffer' => $data->buffer]));
           break;
 
+        case classConstant::SET_DEVICE_NAME:
+          $command = classCommand::SET_DEVICE_NAME;
+
+        case classConstant::SET_GROUP_NAME:
+          if (!isset($command)) $command = classCommand::SET_GROUP_NAME;
+
+          $buffer = json_decode($data->buffer);
+          $args   = utf8_decode($buffer->UUID).str_pad($buffer->name, classConstant::DATA_NAME_LENGTH).chr(0x00);
+
+          $jsonString = json_encode([
+            'DataID' => classConstant::TX_VIRTUAL,
+            'Buffer' => utf8_encode($this->sendRaw($command, $buffer->flag, $args))]
+          );
+          $this->SendDataToParent($jsonString);
+
+          $this->SetBuffer("infoDevice", json_encode(['command' => $command, 'buffer' => $data->buffer]));
+          break;
+
+        case classConstant::SET_SOFT_TIME:
+          $buffer = json_decode($data->buffer);
+
+          $command = ($buffer->mode == classConstant::SET_SOFT_ON) ? classCommand::SET_LIGHT_SOFT_ON : classCommand::SET_LIGHT_SOFT_OFF;
+          $args    = utf8_decode($buffer->UUID).chr($buffer->time).chr(0x00);
+
+          $jsonString = json_encode([
+            'DataID' => classConstant::TX_VIRTUAL,
+            'Buffer' => utf8_encode($this->sendRaw($command, $buffer->flag, $args))]
+          );
+
+          $this->SendDataToParent($jsonString);
+          break;
+
         case classConstant::METHOD_APPLY_CHILD:
           switch ($data->mode) {
             case classConstant::MODE_DEVICE_LOCAL:
@@ -741,6 +773,66 @@ class lightifyGateway extends IPSModule
     $data    = substr($data, classConstant::BUFFER_HEADER_LENGTH + 1);
 
     switch ($command) {
+      //Get Gateway WiFi configuration
+      case classCommand::GET_GATEWAY_WIFI:
+        if (strlen($data) >= (2+classConstant::DATA_WIFI_LENGTH)) {
+          $ncount = ord($data{0});
+          $data   = substr($data, 1);
+          $result = false;
+
+          for ($i = 1; $i <= $ncount; $i++) {
+            $profile = trim(substr($data, 0, classConstant::WIFI_PROFILE_LENGTH-1));
+            $SSID    = trim(substr($data, 32, classConstant::WIFI_SSID_LENGTH));
+            $BSSID   = trim(substr($data, 65, classConstant::WIFI_BSSID_LENGTH));
+            $channel = trim(substr($data, 71, classConstant::WIFI_CHANNEL_LENGTH));
+
+            $ip      = ord($data{77}).".".ord($data{78}).".".ord($data{79}).".".ord($data{80});
+            $gateway = ord($data{81}).".".ord($data{82}).".".ord($data{83}).".".ord($data{84});
+            $netmask = ord($data{85}).".".ord($data{86}).".".ord($data{87}).".".ord($data{88});
+            //$dns_1   = ord($data{89}).".".ord($data{90}).".".ord($data{91}).".".ord($data{92});
+            //$dns_2   = ord($data{93}).".".ord($data{94}).".".ord($data{95}).".".ord($data{96});
+
+            if ($this->ReadPropertyString("gatewayIP") == $ip) {
+              $result = $SSID;
+              break;
+            }
+
+            if (($length = strlen($data)) > classConstant::DATA_WIFI_LENGTH) {
+              $length = classConstant::DATA_WIFI_LENGTH;
+            }
+
+            $data = substr($data, $length);
+          }
+
+          if ($result) {
+            //IPS_LogMessage("SymconOSR", "<Gateway|ReceiveData:data>   ".$result);
+
+            if ($this->GetValue("SSID") != $SSID) {
+              $this->SetValue("SSID", (string)$SSID);
+            }
+          }
+        }
+
+        //Get gateway firmware version
+        if (@$this->GetIDForIdent("FIRMWARE")) {
+          $jsonString = json_encode([
+            'DataID' => classConstant::TX_VIRTUAL,
+            'Buffer' => utf8_encode($this->sendRaw(classCommand::GET_GATEWAY_FIRMWARE, chr(0x00)))]
+          );
+          $this->SendDataToParent($jsonString);
+        }
+        break;
+
+      //Get gateway firmware version
+      case classCommand::GET_GATEWAY_FIRMWARE:
+        $firmware = ord($data{0}).".".ord($data{1}).".".ord($data{2}).".".ord($data{3});
+        //IPS_LogMessage("SymconOSR", "<Gateway|ReceiveData:data>   ".$firmware);
+
+        if ($this->GetValue("FIRMWARE") != $firmware) {
+          $this->SetValue("FIRMWARE", (string)$firmware);
+        }
+        break;
+
       //Get paired devices
       case classCommand::GET_DEVICE_LIST:
         $syncDevice = false;
@@ -1450,6 +1542,42 @@ class lightifyGateway extends IPSModule
     if ($socket && $this->ReadPropertyBoolean("active")) {
       $this->SetBuffer("localMethod", $localMethod);
 
+      $firmwareID = @$this->GetIDForIdent("FIRMWARE");
+      $ssidID     = @$this->GetIDForIdent("SSID");
+
+      if ($localMethod == classConstant::METHOD_APPLY_LOCAL) {
+        if (!$ssidID) {
+          if (false !== ($ssidID = $this->RegisterVariableString("SSID", "SSID", vtNoString, 301))) {
+            SetValueString($ssidID, vtNoString);
+            IPS_SetDisabled($ssidID, true);
+          }
+        }
+
+        if (false === ($portID = @$this->GetIDForIdent("PORT"))) {
+          if (false !== ($portID = $this->RegisterVariableInteger("PORT", "Port", vtNoString, 303))) {
+            SetValueInteger($portID, classConstant::GATEWAY_PORT);
+            IPS_SetDisabled($portID, true);
+          }
+        }
+
+        if (!$firmwareID) {
+          if (false !== ($firmwareID = $this->RegisterVariableString("FIRMWARE", $this->Translate("Firmware"), vtNoString, 304))) {
+            SetValueString($firmwareID, "-.-.-.--");
+            IPS_SetDisabled($firmwareID, true);
+          }
+        }
+      }
+
+      //Get Gateway WiFi configuration
+      if ($ssidID) {
+        $jsonString = json_encode([
+          'DataID' => classConstant::TX_VIRTUAL,
+          'Buffer' => utf8_encode($this->sendRaw(classCommand::GET_GATEWAY_WIFI, classConstant::SCAN_WIFI_CONFIG))]
+        );
+        $this->SendDataToParent($jsonString);
+      }
+
+      //Read settings
       $syncDevice = false;
       $syncSensor = false;
 
@@ -1469,7 +1597,6 @@ class lightifyGateway extends IPSModule
           'DataID' => classConstant::TX_VIRTUAL,
           'Buffer' => utf8_encode($this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01)))]
         );
-
         $this->SendDataToParent($jsonString);
       } else {
         $this->SetBuffer("deviceList", vtNoString);
@@ -1844,105 +1971,6 @@ class lightifyGateway extends IPSModule
     }
 
     return vtNoString;
-
-  }
-
-
-  private function setGatewayInfo($method)
-  {
-
-    $firmwareID = @$this->GetIDForIdent("FIRMWARE");
-    $ssidID     = @$this->GetIDForIdent("SSID");
-
-    if ($method == classConstant::METHOD_APPLY_LOCAL) {
-      if (!$ssidID) {
-        if (false !== ($ssidID = $this->RegisterVariableString("SSID", "SSID", vtNoString, 301))) {
-          SetValueString($ssidID, vtNoString);
-          IPS_SetDisabled($ssidID, true);
-        }
-      }
-
-      if (false === ($portID = @$this->GetIDForIdent("PORT"))) {
-        if (false !== ($portID = $this->RegisterVariableInteger("PORT", "Port", vtNoString, 303))) {
-          SetValueInteger($portID, classConstant::GATEWAY_PORT);
-          IPS_SetDisabled($portID, true);
-        }
-      }
-
-      if (!$firmwareID) {
-        if (false !== ($firmwareID = $this->RegisterVariableString("FIRMWARE", $this->Translate("Firmware"), vtNoString, 304))) {
-          SetValueString($firmwareID, "-.-.-.--");
-          IPS_SetDisabled($firmwareID, true);
-        }
-      }
-    }
-
-    //Get Gateway WiFi configuration
-    if ($ssidID) {
-      $jsonString = json_encode([
-        'DataID' => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}",
-        'Buffer' => utf8_encode($this->sendRaw(classCommand::GET_GATEWAY_WIFI, classConstant::SCAN_WIFI_CONFIG))]
-      );
-
-      $result = $this->SendDataToParent($jsonString);
-      IPS_LogMessage("SymconOSR", "<Gateway|sendRaw:write>   ".$result);
-      return;
-
-      if (strlen($data) >= (2+classConstant::DATA_WIFI_LENGTH)) {
-        if (false !== ($SSID = $this->getWiFi($data))) {
-          if (GetValueString($ssidID) != $SSID) {
-            SetValueString($ssidID, (string)$SSID);
-          }
-        }
-      }
-    }
-
-    //Get gateway firmware version
-    if ($firmwareID) {
-      if (false !== ($data = $lightifySocket->sendRaw(classCommand::GET_GATEWAY_FIRMWARE, chr(0x00)))) {
-        $firmware = ord($data{0}).".".ord($data{1}).".".ord($data{2}).".".ord($data{3});
-
-        if (GetValueString($firmwareID) != $firmware) {
-          SetValueString($firmwareID, (string)$firmware);
-        }
-      }
-    }
-
-  }
-
-
-  private function getWiFi($data)
-  {
-
-    $ncount = ord($data{0});
-    $data   = substr($data, 1);
-    $result = false;
-
-    for ($i = 1; $i <= $ncount; $i++) {
-      $profile = trim(substr($data, 0, classConstant::WIFI_PROFILE_LENGTH-1));
-      $SSID    = trim(substr($data, 32, classConstant::WIFI_SSID_LENGTH));
-      $BSSID   = trim(substr($data, 65, classConstant::WIFI_BSSID_LENGTH));
-      $channel = trim(substr($data, 71, classConstant::WIFI_CHANNEL_LENGTH));
-
-      $ip      = ord($data{77}).".".ord($data{78}).".".ord($data{79}).".".ord($data{80});
-      $gateway = ord($data{81}).".".ord($data{82}).".".ord($data{83}).".".ord($data{84});
-      $netmask = ord($data{85}).".".ord($data{86}).".".ord($data{87}).".".ord($data{88});
-      //$dns_1   = ord($data{89}).".".ord($data{90}).".".ord($data{91}).".".ord($data{92});
-      //$dns_2   = ord($data{93}).".".ord($data{94}).".".ord($data{95}).".".ord($data{96});
-
-      if ($this->ReadPropertyString("gatewayIP") == $ip) {
-        $result = $SSID;
-        break;
-      }
-
-      if (($length = strlen($data)) > classConstant::DATA_WIFI_LENGTH) {
-        $length = classConstant::DATA_WIFI_LENGTH;
-      }
-
-      $data = substr($data, $length);
-    }
-
-    return $result;
 
   }
 

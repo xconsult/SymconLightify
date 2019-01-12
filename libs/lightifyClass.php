@@ -158,6 +158,8 @@ class classConstant
 
   const SET_STATE_ON            = 1;
   const SET_STATE_OFF           = 0;
+  const SET_SOFT_ON             = 1;
+  const SET_SOFT_OFF            = 0;
 
   const MODE_DEVICE_STATE       = 2003;
   const MODE_GROUP_STATE        = 2007;
@@ -251,7 +253,6 @@ class classConstant
   const LABEL_SWITCH_MINI       = "-";
   const LABEL_UNKNOWN           = "-Unknown-";
 
-  const CTEMP_DEFAULT           = 2700;
   const CTEMP_DIMABLE_MIN       = 2700;
   const CTEMP_DIMABLE_MAX       = 6500;
   const CTEMP_CCT_MIN           = 2700;
@@ -261,16 +262,13 @@ class classConstant
 
   const HUE_MIN                 = 0;
   const HUE_MAX                 = 360;
-  const COLOR_DEFAULT           = "ffffff";
   const COLOR_MIN               = "0000ff";
   const COLOR_MAX               = "ffffff";
-  const LEVEL_DEFAULT           = 100;
   const LEVEL_MIN               = 0;
   const LEVEL_MAX               = 100;
 
-  const TRANSITION_DEFAULT      = 0;  //0.0 sec
-  const TRANSITION_MIN          = 0;  //0.0 sec
-  const TRANSITION_MAX          = 80; //8.0 sec
+  const TIME_MIN                = 0;  //0.0 sec
+  const TIME_MAX                = 80; //8.0 sec
 
   const COLOR_SPEED_MIN         = 5;
   const COLOR_SPEED_MAX         = 65535;

@@ -83,20 +83,13 @@ trait LightifyControl
   }
 
 
-  public function SetValue($key, $value)
-  {
-
-    $this->WriteValue($key, $value);
-
-  }
-
   public function WriteValue(string $key, int $value)
   {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       if (IPS_GetProperty($parentID, "active")) {
-        $key = strtoupper($key);
         $uintUUID = $this->ReadPropertyString("uintUUID");
+        $key      = strtoupper($key);
 
         if (!in_array($key, explode(",", classConstant::WRITE_KEY_VALUES))) {
           return false;
@@ -127,7 +120,7 @@ trait LightifyControl
           $online   = false;
 
           if ($classGroup) {
-            $this->fade = classConstant::TRANSITION_DEFAULT;
+            $this->fade = classConstant::TIME_MIN;
           }
         }
 
@@ -196,7 +189,7 @@ trait LightifyControl
                   $saturationID = @$this->GetIDForIdent("SATURATION");
 
                   if ($saturationID) {
-                    $hsv = $this->lightifyBase->HEX2HSV(classConstant::COLOR_DEFAULT);
+                    $hsv = $this->lightifyBase->HEX2HSV(classConstant::COLOR_MIN);
 
                     $args = [
                       'hueID'        => $hueID,
@@ -205,7 +198,7 @@ trait LightifyControl
                       'UUID'         => utf8_encode($uintUUID),
                       'flag'         => $flag,
                       'color'        => $value,
-                      'hex'          => classConstant::COLOR_DEFAULT,
+                      'hex'          => classConstant::COLOR_MIN,
                       'hsv'          => $hsv,
                       'fade'         => $this->fade
                     ];
@@ -222,7 +215,7 @@ trait LightifyControl
                     'temperatureID' => $temperatureID,
                     'UUID'          => utf8_encode($uintUUID),
                     'flag'          => $flag,
-                    'temperature'   => classConstant::CTEMP_DEFAULT,
+                    'temperature'   => classConstant::CTEMP_CCT_MIN,
                     'fade'          => $this->fade
                   ];
                   $this->sendData(classConstant::SET_COLOR_TEMPERATURE, $args);
@@ -249,62 +242,69 @@ trait LightifyControl
                 }
               }
 
-/*
               if ($classLight) {
-                $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_ON, classConstant::TRANSITION_DEFAULT);
-                $lightifyConnect->setSoftTime($uintUUID, classCommand::SET_LIGHT_SOFT_OFF, classConstant::TRANSITION_DEFAULT);
+                //Set Soft Mode on
+                $args = [
+                  'UUID' => utf8_encode($uintUUID),
+                  'flag' => chr(0x00),
+                  'mode' => classConstant::SET_SOFT_ON,
+                  'time' => classConstant::TIME_MIN
+                ];
+                $this->sendData(classConstant::SET_SOFT_TIME, $args);
 
-                IPS_SetProperty($this->InstanceID, "transition", classConstant::TRANSITION_DEFAULT/10);
-
-                if (IPS_HasChanges($this->InstanceID)) {
-                  IPS_ApplyChanges($this->InstanceID);
-                }
-              } */
-
+                //Set Soft Mode off
+                $args = [
+                  'UUID' => utf8_encode($uintUUID),
+                  'flag' => chr(0x00),
+                  'mode' => classConstant::SET_SOFT_OFF,
+                  'time' => classConstant::TIME_MIN
+                ];
+                $this->sendData(classConstant::SET_SOFT_TIME, $args);
+              }
               return true;
             }
             return false;
 
           case "SOFT_ON":
-            $command = classCommand::SET_LIGHT_SOFT_ON;
+            $mode = classConstant::SET_SOFT_ON;
 
           case "SOFT_OFF":
-            $command = (!isset($command)) ? classCommand::SET_LIGHT_SOFT_OFF : $command;
+            if (!isset($mode)) $mode = classConstant::SET_SOFT_OFF;
 
           case "TRANSITION":
             if ($classLight) {
-              if (!isset($command)) {
-                /*
+              if (!isset($mode)) {
+/*
                 if ($this->ReadPropertyFloat("transition") != $value) {
                   IPS_SetProperty($this->InstanceID, "transition", $value);
                   IPS_ApplyChanges($this->InstanceID);
-                } 
-
+                }
                 return true;
+*/
               } else {
-                $result = $lightifyConnect->setSoftTime($uintUUID, $command, $value*10);
-
-                if ($result !== false) {
-                  return true;
-                } */
+                $args = [
+                  'UUID' => utf8_encode($uintUUID),
+                  'flag' => chr(0x00),
+                  'mode' => $mode,
+                  'time' => $value
+                ];
+                $this->sendData(classConstant::SET_SOFT_TIME, $args);
               }
+              return true;
             }
             return false;
 
           case "RELAX":
             $temperature = classConstant::SCENE_RELAX;
-            //fall-trough
 
           case "ACTIVE":
             if (($classLight && $online) || $classGroup) {
               $temperature = (isset($temperature)) ? $temperature : classConstant::SCENE_ACTIVE;
 
               if ($value == 1) {
-                if ($this->setStateOn($state)) {
                   //if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $temperature))) {
                     return true;
                   //}
-                }
               }
             }
             return false;
@@ -312,11 +312,9 @@ trait LightifyControl
           case "PLANT_LIGHT":
             if (($classLight && $online) || $classGroup) {
               if ($value == 1) {
-                if ($this->setStateOn($state)) {
                   //if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::SCENE_PLANT_LIGHT)))) {
                     return true;
                   //}
-                }
               }
             }
             return false;
@@ -324,11 +322,9 @@ trait LightifyControl
           case "LIGHTIFY_LOOP":
             if (($deviceRGB && $online) || $classGroup) {
               if ($value == 0 || $value == 1) {
-                if ($this->setStateOn($state)) {
                   //if (false !== ($result = $lightifyConnect->sceneLightifyLoop($uintUUID, $flag, $value, 3268))){
                     return true;
                   //}
-                }
               }
             }
             return false;
@@ -518,14 +514,6 @@ trait LightifyControl
   }
 
 
-  public function SetValueEx($key, $value, $transition)
-  {
-
-    $this->WriteValueEx($key, $value, $transition);
-
-  }
-
-
   public function WriteValueEx(string $key, int $value, float $transition)
   {
 
@@ -535,44 +523,10 @@ trait LightifyControl
   }
 
 
-  public function WriteName(string $name)
+  public function ReadValue(string $key)
   {
 
-    if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
-      if (IPS_GetProperty($parentID, "active")) {
-        $name = substr(trim($value), 0, classConstant::DATA_NAME_LENGTH);
-
-        $itemClass  = $this->ReadPropertyInteger("itemClass");
-
-        if ($itemClass == classConstant::CLASS_LIGHTIFY_LIGHT || $itemClass == classConstant::CLASS_LIGHTIFY_PLUG || $itemClass == classConstant::CLASS_LIGHTIFY_SENSOR) {
-          $flag     = chr(0x00);
-          $command  = classConstant::SET_DEVICE_NAME;
-          $uintUUID = @IPS_GetProperty($this->InstanceID, "uintUUID");
-        }
-
-        if ($itemClass == classConstant::CLASS_LIGHTIFY_GROUP) {
-          $flag = chr(0x02);
-          $command  = classConstant::SET_GROUP_NAME;
-          $uintUUID = chr(hexdec(@$this->GetIDForIdent("groupID"))).chr(0x00);
-        }
-
-        //Forward data to splitter
-        $args = [
-          'UUID' => utf8_encode($uintUUID),
-          'flag' => $flag,
-          'name' => $namee
-        ];
-        $this->sendData($command, $args);
-
-        if (@IPS_GetName($this->InstanceID) != $name) {
-          IPS_SetName($this->InstanceID, (string)$name);
-        }
-
-        return true;
-      }
-    }
-
-    return false;
+    return $this->GetValue(strtoupper($key));
 
   }
 
@@ -585,53 +539,42 @@ trait LightifyControl
   }
 
 
-  public function GetValue($key)
-  {
-
-    $this->ReadValue($key);
-
-  }
-
-
-  public function ReadValue(string $key)
-  {
-
-    if ($objectID = @IPS_GetObjectIDByIdent($key, $this->InstanceID)) {
-      return GetValue($objectID);
-    }
-
-    return false;
-
-  }
-
-
-  public function GetValueEx($key)
-  {
-
-    $this->ReadValueEx($key);
-
-  }
-
-
-  public function ReadValueEx(string $key)
+  public function WriteName(string $name)
   {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       if (IPS_GetProperty($parentID, "active")) {
         $itemClass = $this->ReadPropertyInteger("itemClass");
+        $name      = substr(trim($name), 0, classConstant::DATA_NAME_LENGTH);
 
         if ($itemClass == classConstant::CLASS_LIGHTIFY_LIGHT || $itemClass == classConstant::CLASS_LIGHTIFY_PLUG || $itemClass == classConstant::CLASS_LIGHTIFY_SENSOR) {
-          $onlineID = IPS_GetObjectIDByIdent('ONLINE', $this->InstanceID);
-          $online   = GetValueBoolean($onlineID);
+          $flag     = chr(0x00);
+          $command  = classConstant::SET_DEVICE_NAME;
+          $uintUUID = $this->ReadPropertyString("uintUUID");
+        }
 
-          if ($online) {
-            $buffer = $lightifyConnect->setDeviceInfo(@IPS_GetProperty($this->InstanceID, "uintUUID"));
+        if ($itemClass == classConstant::CLASS_LIGHTIFY_GROUP) {
+          $flag = chr(0x02);
+          $command  = classConstant::SET_GROUP_NAME;
+          $uintUUID = chr(hexdec($this->ReadPropertyInteger("groupID"))).chr(0x00);
+        }
 
-            if (is_array($list = $buffer) && in_array($key, $list)) {
-              return $list[$key];
-            }
+        //Forward data to splitter
+        $args = [
+          'UUID' => utf8_encode($uintUUID),
+          'flag' => $flag,
+          'name' => $name
+        ];
+
+        $this->sendData($command, $args);
+        $waitResult = @IPS_GetProperty($parentID, "waitResult");
+
+        if (!$waitResult) {
+          if (IPS_GetName($this->InstanceID) != $name) {
+            IPS_SetName($this->InstanceID, (string)$name);
           }
         }
+        return true;
       }
     }
 
