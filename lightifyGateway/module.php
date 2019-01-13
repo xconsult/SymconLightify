@@ -648,7 +648,7 @@ class lightifyGateway extends IPSModule
           );
           $this->SendDataToParent($jsonString);
 
-          $this->SetBuffer("infoDevice", json_encode(['command' => $command, 'buffer' => $data->buffer]));
+          $this->SetBuffer("infoDevice", json_encode(['command' => $data->method, 'buffer' => $data->buffer]));
           break;
 
         case classConstant::SET_SOFT_TIME:
@@ -1175,6 +1175,13 @@ class lightifyGateway extends IPSModule
 
                     if (GetValue($args->colorID) != $args->color) {
                       SetValue($args->colorID, $args->color);
+                    }
+                    break;
+
+                  case classConstant::SET_DEVICE_NAME:
+                  case classConstant::SET_GROUP_NAME:
+                    if (IPS_GetName($args->id) != $args->name) {
+                      IPS_SetName($args->id, (string)$args->name);
                     }
                     break;
                 }

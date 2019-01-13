@@ -132,6 +132,7 @@ class lightifyGroup extends IPSModule
             $columns [] = ['label' => "Temperature", 'name' => "temperature", 'width' =>  "80px"];
             $columns [] = ['label' => "Level",       'name' => "level",       'width' =>  "70px"];
             $columns [] = ['label' => "Saturation",  'name' => "saturation",  'width' =>  "70px"];
+            $columns [] = ['label' => "T (ms)",      'name' => "transition",  'width' =>  "45px"];
 
             $elements [] = ['type' => "List", 'name' => "deviceList", 'caption' => "Devices", 'columns' => $columns];
           }
@@ -186,17 +187,16 @@ class lightifyGroup extends IPSModule
         $data   = json_decode($formJSON);
 
         for ($i = 1; $i <= $ncount; $i++) {
-          $uintUUID = substr($device, classConstant::ITEM_FILTER_LENGTH, classConstant::UUID_DEVICE_LENGTH);
+          $uintUUID   = substr($device, classConstant::ITEM_FILTER_LENGTH, classConstant::UUID_DEVICE_LENGTH);
+          $instanceID = $this->getObjectByProperty(classConstant::MODULE_DEVICE, "uintUUID", $uintUUID);
           //IPS_LogMessage("SymconOSR", "<Group|GetConfigurationForm|info>   ".IPS_GetName($this->InstanceID)." - ".$this->lightifyBase->chrToUUID($uintUUID));
 
-          if ($instanceID = $this->getObjectByProperty(classConstant::MODULE_DEVICE, "uintUUID", $uintUUID)) {
-            if (IPS_GetInstance($instanceID)['ConnectionID'] != $parentID) {
-              continue;
-            }
+          if ($instanceID) {
+            if (IPS_GetInstance($instanceID)['ConnectionID'] != $parentID) continue;
 
-            $stateID = @IPS_GetObjectIDByIdent('STATE', $instanceID);
+            $stateID = @IPS_GetObjectIDByIdent("STATE", $instanceID);
             $state   = ($stateID) ? GetValueBoolean($stateID) : false;
-            $class    = IPS_GetProperty($instanceID, "itemClass");
+            $class   = @IPS_GetProperty($instanceID, "itemClass");
 
             switch ($class) {
               case classConstant::CLASS_LIGHTIFY_LIGHT:
@@ -242,6 +242,7 @@ class lightifyGroup extends IPSModule
               'temperature' => $temperature,
               'level'       => $level,
               'saturation'  => $saturation,
+              'transition'  => @IPS_GetProperty($instanceID, "transition"),
               'rowColor'    => $rowColor
             );
           }

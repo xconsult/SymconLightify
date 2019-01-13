@@ -267,8 +267,8 @@ class classConstant
   const LEVEL_MIN               = 0;
   const LEVEL_MAX               = 100;
 
-  const TIME_MIN                = 0;  //0.0 sec
-  const TIME_MAX                = 80; //8.0 sec
+  const TIME_MIN                = 0;    //0.0 sec
+  const TIME_MAX                = 8000; //8.0 sec
 
   const COLOR_SPEED_MIN         = 5;
   const COLOR_SPEED_MAX         = 65535;

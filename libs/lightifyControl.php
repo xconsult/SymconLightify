@@ -27,7 +27,7 @@ trait LightifyControl
 
 
   protected $lightifyBase;
-  protected $fade = false;
+  protected $fade = 0;
 
   use ParentInstance,
       InstanceHelper;
@@ -260,6 +260,11 @@ trait LightifyControl
                   'time' => classConstant::TIME_MIN
                 ];
                 $this->sendData(classConstant::SET_SOFT_TIME, $args);
+
+                //Reset transition time
+                $this->SetBuffer("applyMode", 0);
+                IPS_SetProperty($this->InstanceID, "transition", classConstant::TIME_MIN);
+                IPS_ApplyChanges($this->InstanceID);
               }
               return true;
             }
@@ -274,13 +279,12 @@ trait LightifyControl
           case "TRANSITION":
             if ($classLight) {
               if (!isset($mode)) {
-/*
-                if ($this->ReadPropertyFloat("transition") != $value) {
+                if ($this->ReadPropertyInteger("transition") != $value) {
+                  $this->SetBuffer("applyMode", 0);
                   IPS_SetProperty($this->InstanceID, "transition", $value);
                   IPS_ApplyChanges($this->InstanceID);
                 }
                 return true;
-*/
               } else {
                 $args = [
                   'UUID' => utf8_encode($uintUUID),
@@ -514,11 +518,11 @@ trait LightifyControl
   }
 
 
-  public function WriteValueEx(string $key, int $value, float $transition)
+  public function WriteValueEx(string $key, int $value, int $transition)
   {
 
     $this->fade = $transition;
-    return $this->SetValue($key, $value);
+    return $this->WriteValue($key, $value);
 
   }
 
@@ -561,6 +565,7 @@ trait LightifyControl
 
         //Forward data to splitter
         $args = [
+          'id'   => $this->InstanceID,
           'UUID' => utf8_encode($uintUUID),
           'flag' => $flag,
           'name' => $name

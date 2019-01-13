@@ -34,7 +34,7 @@ class lightifyDevice extends IPSModule
     $this->RegisterPropertyString("deviceModel", vtNoString);
     $this->RegisterPropertyString("deviceLabel", vtNoString);
 
-    $this->RegisterPropertyFloat("transition", classConstant::TRANSITION_DEFAULT);
+    $this->RegisterPropertyInteger("transition", classConstant::TIME_MIN);
 
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
 
