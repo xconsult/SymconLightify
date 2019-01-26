@@ -66,6 +66,10 @@ class classConstant
   const DEBUG_SEND_RECV     = 13;
   const DEBUG_DETAIL_ERRORS = 17;
 
+  const CLIENT_SOCKET  = "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}";
+  const RX_VIRTUAL     = "{018EF6B5-AB94-40C6-AA53-46943E824ACF}";
+  const TX_VIRTUAL     = "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}";
+
   const MODULE_GATEWAY = "{C3859938-D71C-4714-8B02-F2889A62F481}";
   const MODULE_DEVICE  = "{0028DE9E-6155-451A-97E1-7D2D1563F5BA}";
   const MODULE_GROUP   = "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}";
@@ -85,20 +89,18 @@ class classConstant
 
   const METHOD_PARENT_CONFIG    = 1201;
   const METHOD_LOAD_LOCAL       = 1202;
-  const METHOD_RELOAD_LOCAL     = 1203;
-  const METHOD_APPLY_LOCAL      = 1204;
-  const METHOD_UPDATE_PARENT    = 1205;
-  const METHOD_LOAD_CHILD       = 1206;
-  const METHOD_APPLY_CHILD      = 1207;
-  const METHOD_CREATE_CHILD     = 1208;
-  const METHOD_UPDATE_CHILD     = 1209;
-  const METHOD_LOAD_CLOUD       = 1210;
-  const METHOD_WRITE_CLOUD      = 1211;
-  const METHOD_LOAD_INSTANCE    = 1212;
-  const METHOD_STATE_DEVICE     = 1213;
-  const METHOD_STATE_GROUP      = 1214;
-  const METHOD_STATE_ALL_SWITCH = 1215;
-  const METHOD_ALL_DEVICES      = 1216;
+  const METHOD_APPLY_LOCAL      = 1203;
+  const METHOD_LOAD_CHILD       = 1204;
+  const METHOD_APPLY_CHILD      = 1205;
+  const METHOD_CREATE_CHILD     = 1206;
+  const METHOD_UPDATE_CHILD     = 1207;
+  const METHOD_LOAD_CLOUD       = 1208;
+  const METHOD_WRITE_CLOUD      = 1209;
+  const METHOD_LOAD_INSTANCE    = 1210;
+  const METHOD_STATE_DEVICE     = 1211;
+  const METHOD_STATE_GROUP      = 1212;
+  const METHOD_STATE_ALL_SWITCH = 1213;
+  const METHOD_ALL_DEVICES      = 1214;
 
   const MODE_GATEWAY_LOCAL      = 1401;
   const MODE_DEVICE_LOCAL       = 1402;
@@ -130,6 +132,25 @@ class classConstant
   const GET_GROUP_SCENE         = 1609;
   const GET_SCENE_CLOUD         = 1610;
 
+  const SET_ALL_DEVICES         = 1701;
+  const SET_STATE               = 1702;
+  const SET_DEVICE_NAME         = 1703;
+  const SET_GROUP_NAME          = 1704;
+  const SET_COLOR               = 1705;
+  const SET_COLOR_TEMPERATURE   = 1706;
+  const SET_LEVEL               = 1707;
+  const SET_SATURATION          = 1708;
+  const SAVE_LIGHT_STATE        = 1709;
+  const SET_SOFT_TIME           = 1710;
+  const GET_PAIRED_DEVICES      = 1711;
+  const GET_GROUP_LIST          = 1712;
+  const ACTIVATE_GROUP_SCENE    = 1713;
+  const GET_DEVICE_INFO         = 1714;
+  const GET_GROUP_INFO          = 1715;
+  const SCENE_LIGHTIFY_LOOP     = 1716;
+  const GET_GATEWAY_FIRMWARE    = 1717;
+  const GET_GATEWAY_WIFI        = 1718;
+
   const SET_BUFFER_SYNC         = 1801;
   const SET_BUFFER_DEVICE       = 1802;
   const SET_BUFFER_GROUP        = 1803;
@@ -137,13 +158,17 @@ class classConstant
 
   const SET_STATE_ON            = 1;
   const SET_STATE_OFF           = 0;
+  const SET_SOFT_ON             = 1;
+  const SET_SOFT_OFF            = 0;
 
   const MODE_DEVICE_STATE       = 2003;
   const MODE_GROUP_STATE        = 2007;
   const MODE_LIGHTIFY_STATE     = 2013;
 
   const OSRAM_ZIGBEE_LENGTH     = 2;
-  const ITEM_FILTER_LENGTH      = 3;
+  const OSRAM_GROUP_LENGTH      = 2;
+
+  const ITEM_FILTER_LENGTH      = 2;
   const UUID_OSRAM_LIGHTIFY     = "84:18:26";
   const UUID_OSRAM_LENGTH       = 8;
   const UUID_DEVICE_LENGTH      = 8;
@@ -155,6 +180,7 @@ class classConstant
   const BUFFER_TOKEN_LENGTH     = 4;
   const BUFFER_REPLY_LENGTH     = 11;
   const BUFFER_ONLINE_LENGTH    = 23;
+
 
   const DATA_DEVICE_LOADED      = 50;
   const DATA_DEVICE_LENGTH      = 41;
@@ -185,7 +211,7 @@ class classConstant
 
   const TYPE_FIXED_WHITE        = 1;  //Fixed White
   const TYPE_LIGHT_CCT          = 2;  //Tuneable White
-  const TYPE_LIGHT_DIMABLE      = 4;  //Can only control brightness
+  const TYPE_LIGHT_DIMABLE      = 4;  //Can only control level
   const TYPE_LIGHT_COLOR        = 8;  //Fixed White and RGB
   const TYPE_LIGHT_EXT_COLOR    = 10; //Tuneable White and RGBW
   const TYPE_PLUG_ONOFF         = 16; //Only On/off capable lamp/device
@@ -194,10 +220,11 @@ class classConstant
   const TYPE_SWITCH_4WAY        = 65; //4 Way switch
   const TYPE_SWITCH_MINI        = 66; //Switch Mini
 
+  const TYPE_DEVICE             = 0;   // 0x00
   const TYPE_DEVICE_GROUP       = 240; // 0xF0
   const TYPE_GROUP_SCENE        = 241; // 0xF1
   const TYPE_ALL_DEVICES        = 255; // 0xFF
-  const GROUPID_ALL_DEVICES     = 255; // 0xFF
+  const GROUP_ALL_DEVICES       = 255; // 0xFF
 
   const MODEL_MANUFACTURER      = "OSRAM";
   const MODEL_FIXED_WHITE       = "Light-LIGHTIFY";
@@ -226,7 +253,6 @@ class classConstant
   const LABEL_SWITCH_MINI       = "-";
   const LABEL_UNKNOWN           = "-Unknown-";
 
-  const CTEMP_DEFAULT           = 2700;
   const CTEMP_DIMABLE_MIN       = 2700;
   const CTEMP_DIMABLE_MAX       = 6500;
   const CTEMP_CCT_MIN           = 2700;
@@ -236,16 +262,13 @@ class classConstant
 
   const HUE_MIN                 = 0;
   const HUE_MAX                 = 360;
-  const COLOR_DEFAULT           = "ffffff";
   const COLOR_MIN               = "0000ff";
   const COLOR_MAX               = "ffffff";
-  const INTENSITY_DEFAULT       = 100;
-  const INTENSITY_MIN           = 0;
-  const INTENSITY_MAX           = 100;
+  const LEVEL_MIN               = 0;
+  const LEVEL_MAX               = 100;
 
-  const TRANSITION_DEFAULT      = 0;  //0.0 sec
-  const TRANSITION_MIN          = 0;  //0.0 sec
-  const TRANSITION_MAX          = 80; //8.0 sec
+  const TIME_MIN                = 0;    //0.0 sec
+  const TIME_MAX                = 8000; //8.0 sec
 
   const COLOR_SPEED_MIN         = 5;
   const COLOR_SPEED_MAX         = 65535;

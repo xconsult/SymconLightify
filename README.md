@@ -40,7 +40,7 @@ Anschließend erscheint ein Eintrag für das Modul in der Liste der Instanz _Mod
 
 ### 3.2. Einrichtung in IP-Symcon
 
-In IP-Symcon unterhalb von _I/O Instanzen_ die Funktion _Instanz hinzufügen_ (_CTRL+1_) auswählen und als Gerät _lightifyGateway_ auswählen.
+In IP-Symcon unterhalb von _Splitter Instanzen_ die Funktion _Instanz hinzufügen_ (_CTRL+1_) auswählen und als Gerät _lightifyGateway_ auswählen.
 
 Im Konfigurationsdialog können folgende Einstellungen vorgenommen werden:
 
@@ -71,6 +71,8 @@ Im Konfigurationsdialog können folgende Einstellungen vorgenommen werden:
 | **SAVE**              | 1            | Speichert die aktuellen Werte permanent in der Lampe |
 | **SCENE**             | 1-16         | Szene schalten                                       |
 | **DEFAULT**           | 1            | Setzt auf Standwerte zurück                          |
+| **SOFT_ON**           | 0-8000       | Fading beim Einschalten (in ms)                      |
+| **SOFT_OFF**          | 0-8000       | Fading beim Ausschalten (in ms)                      |
 | **RELAX**             | 1            | Vordefinierte Szene aus der Mobile App               |
 | **ACTIVE**            | 1            | Vordefinierte Szene aus der Mobile App               |
 | **PLANT_LIGHT**       | 1            | Vordefinierte Szene aus der Mobile App               |

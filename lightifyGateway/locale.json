@@ -1,7 +1,7 @@
 {
   "translations": {
     "de": {
-      " Open"                                                                                          : " Aktiv",
+      " Active"                                                                                        : " Aktiv",
       "Connection"                                                                                     : "Verbindung",
       "Local only"                                                                                     : "Lokal",
       "Local and Cloud"                                                                                : "Lokal und Cloud",
@@ -12,7 +12,7 @@
       "Serial number"                                                                                  : "Seriennummer",
       "Categories"                                                                                     : "Kategorien",
       "Category"                                                                                       : "Kategorien",
-      " Reload data instantly (not recommended: higher gateway load and longer response time)"         : " Daten sofort abfragen (nicht empfohlen: höhere Gateay Last und längere Antwort Zeit)",
+      " Reload data instantly (not recommended: higher gateway load and longer response times)"        : " Daten sofort abfragen (nicht empfohlen: höhere Gateay Last und längere Antwortzeiten)",
       " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" : " Geräte Informationen anzeigen (UUID, Hersteller, Modell, Eigenschaften, ZigBee, Firmware)",
       "State"                                                                                          : "Status",
       " Synchronise values"                                                                            : " Werte aktualisieren",
@@ -53,7 +53,7 @@
       "no"                                                                                             : "nein",
       " Device"                                                                                        : " Gerät",
       " Devices"                                                                                       : " Geräte",      
-      "All Lights"                                                                                     : "Alle Geräte",
+      "All Devices"                                                                                    : "Alle Geräte",
       "Lightify API registration available in cloud connection mode only!"                             : "Lightify API Registrierung ist nur mit einer Cloud Verbindung verfügbar!",
       "Authorization code expected!"                                                                   : "Authorisierungs Code erwartet!",
       " instances successfully created/updated"                                                        : " Instanzen erfolgreich erstellt/aktualisiert",
