@@ -62,7 +62,6 @@ Im Konfigurationsdialog können folgende Einstellungen vorgenommen werden:
 
 ### 4.1. Globale Funktionen
 
-`bool OSR_SetValue(int $InstanceID, string $key, int $value)` --> depreciated
 `bool OSR_WriteValue(int $InstanceID, string $key, int $value)`
 
 | $key                  | $value       | Beschreibung                                         |
