@@ -419,25 +419,30 @@ class lightifyGateway extends IPSModule
           'UUID'       => $UUID,
           'deviceName' => $name
         ];
-
+/*
         if (!empty($cloud)) {
           $Infos = json_decode($cloud);
 
-          foreach ($Infos as $info) {
-            list($cloudID, $type, $manufacturer, $model, $label, $firmware) = $info;
+          IPS_LogMessage("SymconOSR", "<Gateway|GetConfigurationForm:cloud>   ".$cloud);
+          IPS_LogMessage("SymconOSR", "<Gateway|GetConfigurationForm:Infos>   ".$Infos);
 
-            if ($deviceID == $cloudID) {
-              $Lists .= [
-                'manufacturer' => $manufacturer,
-                'deviceModel'  => $model,
-                'deviceLabel'  => $label,
-                'firmware'     => $firmware
-              ];
-              break;
+          if (is_object($Infos)) {
+            foreach ($Infos as $info) {
+              list($cloudID, $type, $manufacturer, $model, $label, $firmware) = $info;
+
+              if ($deviceID == $cloudID) {
+                $Lists .= [
+                  'manufacturer' => $manufacturer,
+                  'deviceModel'  => $model,
+                  'deviceLabel'  => $label,
+                  'firmware'     => $firmware
+                ];
+                break;
+              }
             }
           }
         }
-
+*/
         $data->elements[self::LIST_DEVICE_INDEX]->values[] = $Lists;
         $Devices = substr($Devices, classConstant::DATA_DEVICE_LIST);
       }
@@ -608,7 +613,7 @@ class lightifyGateway extends IPSModule
 
         case classConstant::SET_LEVEL:
           $buffer = json_decode($data->buffer);
-          $args   = utf8_decode($buffer->UUID).chr((int)$buffer->brightness).chr(dechex($buffer->fade)).chr(0x00).chr(0x00);
+          $args   = utf8_decode($buffer->UUID).chr((int)$buffer->level).chr(dechex($buffer->fade)).chr(0x00).chr(0x00);
 
           $jsonString = json_encode([
             'DataID' => classConstant::TX_VIRTUAL,
@@ -1682,9 +1687,12 @@ class lightifyGateway extends IPSModule
             IPS_LogMessage("SymconOSR", "<Gateway|structDeviceData|devices:local>   Device type <".$type."> unknown!");
           }
       }
-
       if (!$known) continue;
-      $Labels[$i] = $label;
+
+      $Labels[] = [
+        'UUID'  => utf8_encode($uintUUID),
+        'label' => $label
+      ];
 
       $info  = str_pad($info, classConstant::DATA_CLASS_INFO, " ", STR_PAD_RIGHT);
       $name  = substr($data, 26, classConstant::DATA_NAME_LENGTH);
@@ -1756,10 +1764,10 @@ class lightifyGateway extends IPSModule
         break;
 
       case classConstant::GET_DEVICE_CLOUD:
-        $Clouds = $this->cloudGET(self::RESSOURCE_DEVICES);
-        if (empty($Clouds)) return vtNoString;
+        $buffer = $this->cloudGET(self::RESSOURCE_DEVICES);
+        if (empty($buffer)) return vtNoString;
 
-        $Clouds  = json_decode($Clouds);
+        $Clouds  = json_decode($buffer);
         $Labels  = json_decode($this->GetBuffer("deviceLabel"));
         $gateway = $Clouds->devices[0];
 
@@ -1789,13 +1797,13 @@ class lightifyGateway extends IPSModule
                 if (substr($model, 0, 4) == "PLUG") {
                   $model = classConstant::MODEL_PLUG_ONOFF;
                 }
-
+/*
                 if (is_object($Labels)) {
-                  $label = $Labels->$deviceID;
+                  $label = "";
                 }
-
+*/
                 $Devices[] = [
-                  "-d".$uintUUID, $zigBee,
+                  "-d".utf8_encode($uintUUID), $zigBee,
                   $device->type,
                   classConstant::MODEL_MANUFACTURER,
                   $model, $label,
@@ -1812,16 +1820,14 @@ class lightifyGateway extends IPSModule
             $Devices = json_encode($Devices);
 
             if ($this->debug % 2 || $this->message) {
-              $Clouds  = json_encode($Clouds);
-
               if ($this->debug % 2) {
+                $this->SendDebug("<Gateway|structLightifyData|devices:buffer>", $buffer, 0);
                 $this->SendDebug("<Gateway|structLightifyData|devices:cloud>", $Devices, 0);
-                $this->SendDebug("<Gateway|structLightifyData|devices:cloud>", $Clouds, 0);
               }
 
               if ($this->message) {
+                IPS_LogMessage("SymconOSR", "<Gateway|structLightifyData|devices:buffer>   ".$buffer);
                 IPS_LogMessage("SymconOSR", "<Gateway|structLightifyData|devices:cloud>   ".$Devices);
-                IPS_LogMessage("SymconOSR", "<Gateway|structLightifyData|devices:cloud>   ".$Clouds);
               }
             }
 

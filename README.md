@@ -13,7 +13,7 @@
 ## 1. Funktionsumfang
 
 Das Modul ermöglicht das Ansteuern von OSRAM Lightly Geräten über das interne Netzwerk.
-Manche Geräte spezifischen Informationen (eg. Geräte Typ, Software version, ...) sowie das Anlegen und steuern von Szenen sind nur über die OSRAM Lightify Publi API möglich.
+Manche Geräte spezifischen Informationen (eg. Geräte Typ, Software version, ...) sowie das Anlegen und Steuern von Szenen sind nur über die OSRAM Lightify Public API möglich.
 
 ## 2. Voraussetzungen
 
