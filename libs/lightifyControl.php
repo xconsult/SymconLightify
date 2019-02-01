@@ -42,7 +42,7 @@ trait LightifyControl
   }
 
 
-  private function sendData($command, $buffer = null)
+  private function sendData($command, $buffer = vtNoString)
   {
 
     //IPS_LogMessage("SymconOSR", "<Lightify|sendData:buffer>   ".json_encode($buffer));
@@ -97,6 +97,7 @@ trait LightifyControl
 
         $waitResult = @IPS_GetProperty($parentID, "waitResult");
         $itemClass  = $this->ReadPropertyInteger("itemClass");
+        $classType  = $this->ReadPropertyInteger("classType");
 
         $classLight  = ($itemClass == classConstant::CLASS_LIGHTIFY_LIGHT) ? true : false;
         $classPlug   = ($itemClass == classConstant::CLASS_LIGHTIFY_PLUG) ? true : false;
@@ -104,9 +105,9 @@ trait LightifyControl
         $classGroup  = ($itemClass == classConstant::CLASS_LIGHTIFY_GROUP) ? true : false;
         $classScene  = ($itemClass == classConstant::CLASS_LIGHTIFY_SCENE) ? true : false;
 
-        $deviceRGB  = ($itemClass & 8) ? true: false;
-        $deviceCCT  = ($itemClass & 2) ? true: false;
-        $deviceCLR  = ($itemClass & 4) ? true: false;
+        $deviceRGB  = ($classType & 8) ? true: false;
+        $deviceCCT  = ($classType & 2) ? true: false;
+        $deviceCLR  = ($classType & 4) ? true: false;
 
         if ($classLight || $classMotion || $classPlug) {
           $flag     = chr(0x00);
