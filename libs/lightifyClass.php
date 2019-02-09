@@ -181,7 +181,6 @@ class classConstant
   const BUFFER_REPLY_LENGTH     = 11;
   const BUFFER_ONLINE_LENGTH    = 23;
 
-
   const DATA_DEVICE_LOADED      = 50;
   const DATA_DEVICE_LENGTH      = 41;
   const DATA_GROUP_LENGTH       = 18;
@@ -198,6 +197,10 @@ class classConstant
   const WIFI_SSID_LENGTH        = 32;
   const WIFI_BSSID_LENGTH       = 5;
   const WIFI_CHANNEL_LENGTH     = 3;
+
+  const CLOUD_ZIGBEE_LENGTH     = 4;
+  const CLOUD_OSRAM_LENGTH      = 5;  
+  const CLOUD_FIRMWARE_LENGTH   = 8;
 
   const CLASS_LIGHTIFY_LIGHT    = 2001;
   const CLASS_LIGHTIFY_PLUG     = 2002;
@@ -227,19 +230,8 @@ class classConstant
   const GROUP_ALL_DEVICES       = 255; // 0xFF
 
   const MODEL_MANUFACTURER      = "OSRAM";
-  const MODEL_FIXED_WHITE       = "Light-LIGHTIFY";
-  const MODEL_LIGHT_CCT         = "Light-LIGHTIFY";
-  const MODEL_LIGHT_DIMABLE     = "Light-LIGHTIFY";
-  const MODEL_LIGHT_COLOR       = "Light-LIGHTIFY";
-  const MODEL_LIGHT_EXT_COLOR   = "Light-LIGHTIFY";
-  const MODEL_PLUG_ONOFF        = "Plug-LIGHTIFY";
-  const MODEL_SENSOR_MOTION     = "Motion-LIGHTIFY";
-  const MODEL_DIMMER_2WAY       = "Dimmer-LIGHTIFY";
-  const MODEL_SWITCH_4WAY       = "Switch-LIGHTIFY";
-  const MODEL_SWITCH_MINI       = "Switch-LIGHTIFY";
-  const MODEL_DEVICE            = "Device-LIGHTIFY";
-  const MODEL_GROUP             = "Group-LIGHTIFY";
-  const MODEL_UNKNOWN           = "Unknown-LIGHTIFY";
+  const MODEL_PLUG_ONOFF        = "PLUG";
+  const MODEL_UNKNOWN           = "UNKNOWN";
 
   const LABEL_FIXED_WHITE       = "On|Off";
   const LABEL_LIGHT_CCT         = "On|Off Level Temperature";

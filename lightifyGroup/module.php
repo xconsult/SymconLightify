@@ -114,7 +114,7 @@ class lightifyGroup extends IPSModule
   {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
-      $device = $this->GetBuffer("groupDevice");
+      $groupDevice = $this->GetBuffer("groupDevice");
 
       $groupID = $this->ReadPropertyInteger("groupID");
       $class   = $this->ReadPropertyInteger("itemClass");
@@ -123,7 +123,7 @@ class lightifyGroup extends IPSModule
         case classConstant::CLASS_LIGHTIFY_GROUP:
           $elements = [];
 
-          if (!empty($device) && ord($device{0}) > 0) {
+          if (!empty($groupDevice) && ord($groupDevice{0}) > 0) {
             $columns = [];
             $columns [] = ['label' => "Instance ID", 'name' => "InstanceID",  'width' =>  "60px", 'visible' => false];
             $columns [] = ['label' => "Name",        'name' => "name",        'width' => "120px"];
@@ -179,15 +179,15 @@ class lightifyGroup extends IPSModule
           return $formJSON;
       }
 
-      if (!empty($device)) {
-        $ncount = ord($device{0});
-        $device = substr($device, 1);
+      if (!empty($groupDevice)) {
+        $ncount = ord($groupDevice{0});
+        $groupDevice = substr($groupDevice, 1);
 
         $length = classConstant::ITEM_FILTER_LENGTH+classConstant::UUID_DEVICE_LENGTH;
         $data   = json_decode($formJSON);
 
         for ($i = 1; $i <= $ncount; $i++) {
-          $uintUUID   = substr($device, classConstant::ITEM_FILTER_LENGTH, classConstant::UUID_DEVICE_LENGTH);
+          $uintUUID   = substr($groupDevice, classConstant::ITEM_FILTER_LENGTH, classConstant::UUID_DEVICE_LENGTH);
           $instanceID = $this->getObjectByProperty(classConstant::MODULE_DEVICE, "uintUUID", $uintUUID);
           //IPS_LogMessage("SymconOSR", "<Group|GetConfigurationForm|info>   ".IPS_GetName($this->InstanceID)." - ".$this->lightifyBase->chrToUUID($uintUUID));
 
@@ -247,7 +247,7 @@ class lightifyGroup extends IPSModule
             );
           }
 
-          $device = substr($device, $length);
+          $groupDevice = substr($groupDevice, $length);
         }
 
         return json_encode($data);
@@ -279,12 +279,12 @@ class lightifyGroup extends IPSModule
         $ncount = ord($buffer{0});
 
         //Store device group buffer
-        $device = $this->getGroupDevice($groupID, $ncount, substr($buffer, 2));
-        $this->SetBuffer("groupDevice", $device);
+        $groupDevice = $this->getgroupDevice($groupID, $ncount, substr($buffer, 2));
+        $this->SetBuffer("groupDevice", $groupDevice);
 
-        if (!empty($device)) {
+        if (!empty($groupDevice)) {
           if ($debug % 2 || $message) {
-            $info = ord($device{0}).":".IPS_GetName($this->InstanceID)."/".$this->lightifyBase->decodeData($device);
+            $info = ord($groupDevice{0}).":".IPS_GetName($this->InstanceID)."/".$this->lightifyBase->decodeData($groupDevice);
 
             if ($debug % 2) {
               $this->SendDebug("<Group|ReceiveData|groups:local>", $info, 0);
@@ -295,17 +295,17 @@ class lightifyGroup extends IPSModule
             }
           }
 
-          $this->setGroupInfo($data->mode, $data->method, $class, $device);
+          $this->setGroupInfo($data->mode, $data->method, $class, $groupDevice);
         }
         break;
 
       case classConstant::MODE_STATE_GROUP:
-        $device = $this->GetBuffer("groupDevice");
-        //IPS_LogMessage("SymconOSR", "<Group|ReceiveData|group:devices>   ".IPS_GetName($this->InstanceID)." - ".json_encode(utf8_encode($device)));
+        $groupDevice = $this->GetBuffer("groupDevice");
+        //IPS_LogMessage("SymconOSR", "<Group|ReceiveData|group:devices>   ".IPS_GetName($this->InstanceID)." - ".json_encode(utf8_encode($groupDevice)));
 
-        if (!empty($device)) {
+        if (!empty($groupDevice)) {
           if ($debug % 2 || $message) {
-            $info = ord($device{0}).":".IPS_GetName($this->InstanceID)."/".$this->lightifyBase->decodeData($device);
+            $info = ord($groupDevice{0}).":".IPS_GetName($this->InstanceID)."/".$this->lightifyBase->decodeData($groupDevice);
 
             if ($debug % 2) {
               $this->SendDebug("<Group|ReceiveData|groups:local>", $info, 0);
@@ -316,7 +316,7 @@ class lightifyGroup extends IPSModule
             }
           }
 
-          $this->setGroupInfo($data->mode, $data->method, $class, $device);
+          $this->setGroupInfo($data->mode, $data->method, $class, $groupDevice);
         }
         break;
 
@@ -329,12 +329,12 @@ class lightifyGroup extends IPSModule
 
         //Store group scene buffer
         if ($class == classConstant::CLASS_LIGHTIFY_SCENE) {
-          $scene = $this->getGroupScene($groupID, $ncount, substr($buffer, 2));
-          $this->SetBuffer("groupScene", $scene);
+          $groupScene = $this->getGroupScene($groupID, $ncount, substr($buffer, 2));
+          $this->SetBuffer("groupScene", $groupScene);
 
-          if (!empty($scene)) {
+          if (!empty($groupScene)) {
             if ($debug % 2 || $message) {
-              $info = ord($scene{0})."/".ord($scene{1})."/".$this->lightifyBase->decodeData($scene);
+              $info = ord($groupScene{0})."/".ord($groupScene{1})."/".$this->lightifyBase->decodeData($groupScene);
 
               if ($debug % 2) {
                 $this->SendDebug("<Group|ReceiveData|scenes:cloud>", $info, 0);
@@ -371,11 +371,11 @@ class lightifyGroup extends IPSModule
         $ncount = ord($buffer{0});
 
         //Store group device buffer
-        $device = $this->getGroupDevice($groupID, $ncount, substr($buffer, 2));
-        $this->SetBuffer("groupDevice", $device);
+        $groupDevice = $this->getgroupDevice($groupID, $ncount, substr($buffer, 2));
+        $this->SetBuffer("groupDevice", $groupDevice);
 
-        if (!empty($device)) {
-          $this->setGroupInfo($mode, classConstant::METHOD_CREATE_CHILD, $class, $device);
+        if (!empty($groupDevice)) {
+          $this->setGroupInfo($mode, classConstant::METHOD_CREATE_CHILD, $class, $groupDevice);
           return 102;
         }
         return 104;
@@ -387,7 +387,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  private function getGroupDevice($groupID, $ncount, $data)
+  private function getgroupDevice($groupID, $ncount, $data)
   {
 
     $device = vtNoString;
@@ -452,10 +452,10 @@ class lightifyGroup extends IPSModule
         $ncount = ord($buffer{0});
 
         //Store group scene buffer
-        $scene = $this->getGroupScene($groupID, $ncount, substr($buffer, 2));
-        $this->SetBuffer("groupScene", $scene);
+        $groupScene = $this->getGroupScene($groupID, $ncount, substr($buffer, 2));
+        $this->SetBuffer("groupScene", $groupScene);
 
-        if (!empty($scene)) {
+        if (!empty($groupScene)) {
           $type = ord($buffer{1});
           $uintUUID = chr($groupID).chr(0x00).chr($type).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84);
 
