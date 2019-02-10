@@ -531,7 +531,10 @@ trait LightifyControl
   public function ReadValue(string $key)
   {
 
-    return $this->GetValue(strtoupper($key));
+    $key = strtoupper($key);
+    $key = ($key == "BRIGHTNESS") ? "LEVEL" : $key;
+
+    return $this->GetValue($key);
 
   }
 
