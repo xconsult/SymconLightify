@@ -274,10 +274,11 @@ class lightifyGateway extends IPSModule
     $columns [] = ['label' => "Category ID", 'name' => "categoryID", 'width' =>  "10px", 'visible' => false, 'edit' => ['type' => "SelectCategory"]];
     $columns [] = ['label' => "Sync",        'name' => "Sync",       'width' =>  "35px"];
     $columns [] = ['label' => "Sync ID",     'name' => "syncID",     'width' =>  "10px", 'visible' => false, 'edit' => ['type' => "CheckBox", 'caption' => " Synchronise values"]];
+    $columns [] = ['label' => "",            'name' => "empty",      'width' => "auto"];
 
-    $elements [] = ['type' => "List",     'name' => "listCategory", 'caption' => "Categories", 'columns' => $columns];
-    $elements [] = ['type' => "CheckBox", 'name' => "deviceInfo",   'caption' => " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)"];
-    $elements [] = ['type' => "CheckBox", 'name' => "waitResult",   'caption' => " Decode gateway result of executed command (longer runtime)"];
+    $elements [] = ['type' => "List", 'name' => "listCategory", 'rowCount' => 5, 'columns' => $columns];
+    $elements [] = ['type' => "CheckBox", 'name' => "deviceInfo", 'caption' => " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)"];
+    $elements [] = ['type' => "CheckBox", 'name' => "waitResult", 'caption' => " Decode gateway result of executed command (longer runtime)"];
 
     //Device list configuration
     $deviceList = $this->GetBuffer("deviceList");
@@ -296,9 +297,10 @@ class lightifyGateway extends IPSModule
         $columns [] = ['label' => "Model",        'name' => "deviceModel",  'width' => "130px"];
         $columns [] = ['label' => "Capabilities", 'name' => "deviceLabel",  'width' => "175px"];
         $columns [] = ['label' => "Firmware",     'name' => "firmware",     'width' =>  "65px"];
+        $columns [] = ['label' => "",             'name' => "empty",        'width' => "auto"];
       }
 
-      $elements [] = ['type' => "List", 'name' => "listDevice", 'caption' => "Devices", 'columns' => $columns];
+      $elements [] = ['type' => "List", 'name' => "listDevice", 'rowCount' => 5, 'columns' => $columns];
     }
 
     //Group list configuration
@@ -311,8 +313,9 @@ class lightifyGateway extends IPSModule
       $columns [] = ['label' => "Name",  'name' => "groupName",   'width' => "110px"];
       $columns [] = ['label' => "UUID",  'name' => "UUID",        'width' => "140px"];
       $columns [] = ['label' => "Info",  'name' => "information", 'width' => "110px"];
+      $columns [] = ['label' => "",      'name' => "empty",       'width' => "auto"];
 
-      $elements [] = ['type' => "List", 'name' => "listGroup", 'caption' => "Groups", 'columns' => $columns];
+      $elements [] = ['type' => "List", 'name' => "listGroup", 'rowCount' => 5, 'columns' => $columns];
     }
 
     //Scene list configuration
@@ -326,8 +329,9 @@ class lightifyGateway extends IPSModule
       $columns [] = ['label' => "UUID",  'name' => "UUID",        'width' => "140px"];
       $columns [] = ['label' => "Group", 'name' => "groupName",   'width' => "110px"];
       $columns [] = ['label' => "Info",  'name' => "information", 'width' =>  "70px"];
+      $columns [] = ['label' => "",      'name' => "empty",       'width' => "auto"];
 
-      $elements [] = ['type' => "List", 'name' => "listScene", 'caption' => "Scenes", 'columns' => $columns];
+      $elements [] = ['type' => "List", 'name' => "listScene", 'rowCount' => 5, 'columns' => $columns];
     }
 
     $options = [];
