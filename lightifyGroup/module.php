@@ -358,6 +358,8 @@ class lightifyGroup extends IPSModule
   {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
+      $connect = IPS_GetProperty($parentID, "connectMode");
+
       $jsonString = $this->SendDataToParent(json_encode(array(
         'DataID' => classConstant::TX_GATEWAY,
         'method' => classConstant::METHOD_APPLY_CHILD,
@@ -375,6 +377,27 @@ class lightifyGroup extends IPSModule
         $this->SetBuffer("groupDevice", $groupDevice);
 
         if (!empty($groupDevice)) {
+          if ($connect == classConstant::CONNECT_LOCAL_CLOUD) {
+            $jsonString = $this->SendDataToParent(json_encode([
+              'DataID' => classConstant::TX_GATEWAY,
+              'method' => classConstant::METHOD_APPLY_CHILD,
+              'mode'   => classConstant::MODE_GROUP_SCENE])
+            );
+
+            if ($jsonString != vtNoString) {
+              $data   = json_decode($jsonString);
+              $buffer = utf8_decode($data->buffer);
+              $ncount = ord($buffer{0});
+
+              $groupScene = $this->getGroupScene($groupID, $ncount, substr($buffer, 2));
+              $this->SetBuffer("groupScene", $groupScene);
+
+              if (!empty($groupScene)) {
+                $this->setSceneInfo(classConstant::MODE_GROUP_SCENE, classConstant::METHOD_UPDATE_CHILD);
+              }
+            }
+          }
+
           $this->setGroupInfo($mode, classConstant::METHOD_CREATE_CHILD, $class, $groupDevice);
           return 102;
         }
