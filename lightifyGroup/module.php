@@ -126,13 +126,14 @@ class lightifyGroup extends IPSModule
           if (!empty($groupDevice) && ord($groupDevice{0}) > 0) {
             $columns = [];
             $columns [] = ['label' => "Instance ID", 'name' => "InstanceID",  'width' =>  "60px", 'visible' => false];
-            $columns [] = ['label' => "Name",        'name' => "name",        'width' => "120px"];
-            $columns [] = ['label' => "Hue",         'name' => "hue",         'width' =>  "35px"];
-            $columns [] = ['label' => "Color",       'name' => "color",       'width' =>  "60px"];
-            $columns [] = ['label' => "Temperature", 'name' => "temperature", 'width' =>  "80px"];
-            $columns [] = ['label' => "Level",       'name' => "level",       'width' =>  "70px"];
-            $columns [] = ['label' => "Saturation",  'name' => "saturation",  'width' =>  "70px"];
-            $columns [] = ['label' => "T (ms)",      'name' => "transition",  'width' =>  "45px"];
+            $columns [] = ['label' => "Name",        'name' => "name",        'width' => "140px"];
+            $columns [] = ['label' => "Hue",         'name' => "hue",         'width' =>  "45px"];
+            $columns [] = ['label' => "Color",       'name' => "color",       'width' =>  "80px"];
+            $columns [] = ['label' => "Temperature", 'name' => "temperature", 'width' =>  "105px"];
+            $columns [] = ['label' => "Level",       'name' => "level",       'width' =>  "90px"];
+            $columns [] = ['label' => "Saturation",  'name' => "saturation",  'width' =>  "90px"];
+            $columns [] = ['label' => "T (ms)",      'name' => "transition",  'width' =>  "60px"];
+            $columns [] = ['label' => "",            'name' => "empty",       'width' =>  "auto"];
 
             $elements [] = ['type' => "List", 'name' => "deviceList", 'caption' => "Devices", 'columns' => $columns];
           }

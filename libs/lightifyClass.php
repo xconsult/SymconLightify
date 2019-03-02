@@ -212,16 +212,20 @@ class classConstant
   const CLASS_ALL_DEVICES       = 2008;
   const CLASS_UNKNOWN           = 2050;
 
-  const TYPE_FIXED_WHITE        = 1;  //Fixed White
-  const TYPE_LIGHT_CCT          = 2;  //Tuneable White
-  const TYPE_LIGHT_DIMABLE      = 4;  //Can only control level
-  const TYPE_LIGHT_COLOR        = 8;  //Fixed White and RGB
-  const TYPE_LIGHT_EXT_COLOR    = 10; //Tuneable White and RGBW
-  const TYPE_PLUG_ONOFF         = 16; //Only On/off capable lamp/device
-  const TYPE_SENSOR_MOTION      = 32; //Motion sensor
-  const TYPE_DIMMER_2WAY        = 64; //2 Way dimmer
-  const TYPE_SWITCH_4WAY        = 65; //4 Way switch
-  const TYPE_SWITCH_MINI        = 66; //Switch Mini
+  const TYPE_FIXED_WHITE        = 1;   //Fixed White
+  const TYPE_LIGHT_CCT          = 2;   //Tuneable White
+  const TYPE_LIGHT_DIMABLE      = 4;   //Can only control level
+  const TYPE_LIGHT_COLOR        = 8;   //Fixed White and RGB
+  const TYPE_LIGHT_EXT_COLOR    = 10;  //Tuneable White and RGBW
+  const TYPE_PLUG_ONOFF         = 16;  //Only On/off capable lamp/device
+  const TYPE_SENSOR_CONTACT     = 31;  //Contact sensor
+  const TYPE_SENSOR_MOTION      = 32;  //Motion sensor
+  const TYPE_DIMMER_2WAY        = 64;  //2 button dimmer
+  const TYPE_SWITCH_4WAY        = 65;  //4 butten switch
+  const TYPE_SWITCH_3WAY        = 66;  //3 butten switch
+  const TYPE_SWITCH_UKNOWN      = 67;  //Unknown switch
+  const TYPE_SWITCH_MINI        = 66;  //Switch Mini
+  const TYPE_LIGHT_CCT_TRADFRI  = 128; //Tradfri Tuneable White
 
   const TYPE_DEVICE             = 0;   // 0x00
   const TYPE_DEVICE_GROUP       = 240; // 0xF0
@@ -240,8 +244,11 @@ class classConstant
   const LABEL_LIGHT_EXT_COLOR   = "On|Off Level Colour Temperature";
   const LABEL_PLUG_ONOFF        = "On|Off";
   const LABEL_SENSOR_MOTION     = "Active|Inactive";
+  const LABEL_SENSOR_CONTACT    = "Active|Inactive";
   const LABEL_DIMMER_2WAY       = "-";
   const LABEL_SWITCH_4WAY       = "-";
+  const LABEL_SWITCH_3WAY       = "-";
+  const LABEL_SWITCH_UNKNOWN    = "-";
   const LABEL_SWITCH_MINI       = "-";
   const LABEL_UNKNOWN           = "-Unknown-";
 

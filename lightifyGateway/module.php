@@ -269,12 +269,12 @@ class lightifyGateway extends IPSModule
     $elements [] = ['type' => "NumberSpinner",     'name'    => "localUpdate",  'caption' => "Update interval [s]"];
 
     $columns = [];
-    $columns [] = ['label' => "Type",        'name' => "Device",     'width' =>  "55px"];
-    $columns [] = ['label' => "Category",    'name' => "Category",   'width' => "265px"];
+    $columns [] = ['label' => "Type",        'name' => "Device",     'width' =>  "65px"];
+    $columns [] = ['label' => "Category",    'name' => "Category",   'width' => "285px"];
     $columns [] = ['label' => "Category ID", 'name' => "categoryID", 'width' =>  "10px", 'visible' => false, 'edit' => ['type' => "SelectCategory"]];
-    $columns [] = ['label' => "Sync",        'name' => "Sync",       'width' =>  "35px"];
+    $columns [] = ['label' => "Sync",        'name' => "Sync",       'width' =>  "45px"];
     $columns [] = ['label' => "Sync ID",     'name' => "syncID",     'width' =>  "10px", 'visible' => false, 'edit' => ['type' => "CheckBox", 'caption' => " Synchronise values"]];
-    $columns [] = ['label' => "",            'name' => "empty",      'width' => "auto"];
+    $columns [] = ['label' => "",            'name' => "empty",      'width' =>  "auto"];
 
     $elements [] = ['type' => "List", 'name' => "listCategory", 'rowCount' => 5, 'columns' => $columns];
     $elements [] = ['type' => "CheckBox", 'name' => "deviceInfo", 'caption' => " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)"];
@@ -288,16 +288,16 @@ class lightifyGateway extends IPSModule
 
       $columns = [];
       $columns [] = ['label' => "ID",    'name' => "deviceID",   'width' =>  "30px"];
-      $columns [] = ['label' => "Class", 'name' => "classInfo",  'width' =>  "70px"];
-      $columns [] = ['label' => "Name",  'name' => "deviceName", 'width' => "110px"];
-      $columns [] = ['label' => "UUID",  'name' => "UUID",       'width' => "140px"];
+      $columns [] = ['label' => "Class", 'name' => "classInfo",  'width' => "100px"];
+      $columns [] = ['label' => "Name",  'name' => "deviceName", 'width' => "140px"];
+      $columns [] = ['label' => "UUID",  'name' => "UUID",       'width' => "180px"];
 
       if (!empty($cloudDevices)) {
-        $columns [] = ['label' => "Manufacturer", 'name' => "manufacturer", 'width' =>  "80px"];
-        $columns [] = ['label' => "Model",        'name' => "deviceModel",  'width' => "130px"];
-        $columns [] = ['label' => "Capabilities", 'name' => "deviceLabel",  'width' => "175px"];
-        $columns [] = ['label' => "Firmware",     'name' => "firmware",     'width' =>  "65px"];
-        $columns [] = ['label' => "",             'name' => "empty",        'width' => "auto"];
+        $columns [] = ['label' => "Manufacturer", 'name' => "manufacturer", 'width' => "110px"];
+        $columns [] = ['label' => "Model",        'name' => "deviceModel",  'width' => "190px"];
+        $columns [] = ['label' => "Capabilities", 'name' => "deviceLabel",  'width' => "250px"];
+        $columns [] = ['label' => "Firmware",     'name' => "firmware",     'width' =>  "85px"];
+        $columns [] = ['label' => "",             'name' => "empty",        'width' =>  "auto"];
       }
 
       $elements [] = ['type' => "List", 'name' => "listDevice", 'rowCount' => 5, 'columns' => $columns];
@@ -309,11 +309,11 @@ class lightifyGateway extends IPSModule
     if (!empty($groupList) && ord($groupList{0}) > 0) {
       $columns = [];
       $columns [] = ['label' => "ID",    'name' => "groupID",     'width' =>  "30px"];
-      $columns [] = ['label' => "Class", 'name' => "classInfo",   'width' =>  "65px"];
-      $columns [] = ['label' => "Name",  'name' => "groupName",   'width' => "110px"];
-      $columns [] = ['label' => "UUID",  'name' => "UUID",        'width' => "140px"];
+      $columns [] = ['label' => "Class", 'name' => "classInfo",   'width' => "100px"];
+      $columns [] = ['label' => "Name",  'name' => "groupName",   'width' => "140px"];
+      $columns [] = ['label' => "UUID",  'name' => "UUID",        'width' => "180px"];
       $columns [] = ['label' => "Info",  'name' => "information", 'width' => "110px"];
-      $columns [] = ['label' => "",      'name' => "empty",       'width' => "auto"];
+      $columns [] = ['label' => "",      'name' => "empty",       'width' =>  "auto"];
 
       $elements [] = ['type' => "List", 'name' => "listGroup", 'rowCount' => 5, 'columns' => $columns];
     }
@@ -324,12 +324,12 @@ class lightifyGateway extends IPSModule
     if (!empty($sceneList) && ord($sceneList{0}) > 0) {
       $columns = [];
       $columns [] = ['label' => "ID",    'name' => "sceneID",     'width' =>  "30px"];
-      $columns [] = ['label' => "Class", 'name' => "classInfo",   'width' =>  "65px"];
-      $columns [] = ['label' => "Name",  'name' => "sceneName",   'width' => "110px"];
-      $columns [] = ['label' => "UUID",  'name' => "UUID",        'width' => "140px"];
-      $columns [] = ['label' => "Group", 'name' => "groupName",   'width' => "110px"];
+      $columns [] = ['label' => "Class", 'name' => "classInfo",   'width' => "100px"];
+      $columns [] = ['label' => "Name",  'name' => "sceneName",   'width' => "140px"];
+      $columns [] = ['label' => "UUID",  'name' => "UUID",        'width' => "180px"];
+      $columns [] = ['label' => "Group", 'name' => "groupName",   'width' => "140px"];
       $columns [] = ['label' => "Info",  'name' => "information", 'width' =>  "70px"];
-      $columns [] = ['label' => "",      'name' => "empty",       'width' => "auto"];
+      $columns [] = ['label' => "",      'name' => "empty",       'width' =>  "auto"];
 
       $elements [] = ['type' => "List", 'name' => "listScene", 'rowCount' => 5, 'columns' => $columns];
     }
