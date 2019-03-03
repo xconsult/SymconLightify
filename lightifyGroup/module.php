@@ -127,7 +127,7 @@ class lightifyGroup extends IPSModule
             $columns = [];
             $columns [] = ['label' => "Instance ID", 'name' => "InstanceID",  'width' =>  "60px", 'visible' => false];
             $columns [] = ['label' => "Name",        'name' => "name",        'width' => "140px"];
-            $columns [] = ['label' => "Hue",         'name' => "hue",         'width' =>  "45px"];
+            $columns [] = ['label' => "Hue",         'name' => "hue",         'width' =>  "50px"];
             $columns [] = ['label' => "Color",       'name' => "color",       'width' =>  "80px"];
             $columns [] = ['label' => "Temperature", 'name' => "temperature", 'width' =>  "105px"];
             $columns [] = ['label' => "Level",       'name' => "level",       'width' =>  "90px"];
@@ -139,8 +139,8 @@ class lightifyGroup extends IPSModule
           }
 
           $actions = [];
-          $actions [] = ['type' => "Button", 'caption' => "On",  'onClick' => "OSR_WriteValue(\$id, \"STATE\", 1)"];
-          $actions [] = ['type' => "Button", 'caption' => "Off", 'onClick' => "OSR_WriteValue(\$id, \"STATE\", 0)"];
+          $actions [] = ['type' => "Button", 'caption' => "On",  'onClick' => "OSR_SetState(\$id, true);"];
+          $actions [] = ['type' => "Button", 'caption' => "Off", 'onClick' => "OSR_SetState(\$id, false);"];
 
           $status = [];
           $status [] = ['code' => 102, 'icon' => "active",   'caption' => "Group is active"];
@@ -153,7 +153,7 @@ class lightifyGroup extends IPSModule
 
         case classConstant::CLASS_LIGHTIFY_SCENE:
           $actions = [];
-          $actions [] = ['type' => "Button", 'caption' => "Apply", 'onClick' => "OSR_WriteValue(\$id, \"SCENE\", $groupID)"];
+          $actions [] = ['type' => "Button", 'caption' => "Apply", 'onClick' => "OSR_WriteValue(\$id, \"SCENE\", $groupID);"];
 
           $status = [];
           $status [] = ['code' => 102, 'icon' => "active",   'caption' => "Scene is active"];
@@ -166,8 +166,8 @@ class lightifyGroup extends IPSModule
 
         case classConstant::CLASS_ALL_DEVICES:
           $actions = [];
-          $actions [] = ['type' => "Button", 'caption' => "On",  'onClick' => "OSR_WriteValue(\$id, \"ALL_DEVICES\", 1)"];
-          $actions [] = ['type' => "Button", 'caption' => "Off", 'onClick' => "OSR_WriteValue(\$id, \"ALL_DEVICES\", 0)"];
+          $actions [] = ['type' => "Button", 'caption' => "On",  'onClick' => "OSR_WriteValue(\$id, \"ALL_DEVICES\", 1);"];
+          $actions [] = ['type' => "Button", 'caption' => "Off", 'onClick' => "OSR_WriteValue(\$id, \"ALL_DEVICES\", 0);"];
 
           $formJSON = json_encode(['elements' => [], 'actions' => $actions]);
           return $formJSON;

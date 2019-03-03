@@ -346,9 +346,9 @@ class lightifyGateway extends IPSModule
 
     $actions = [];
     $actions [] = ['type' => "Label",  'caption' => "Press Register to enable the cloud access"];
-    $actions [] = ['type' => "Button", 'caption' => "Register", 'onClick' => "echo OSR_LightifyRegister(\$id)"];
+    $actions [] = ['type' => "Button", 'caption' => "Register", 'onClick' => "echo OSR_LightifyRegister(\$id);"];
     $actions [] = ['type' => "Label",  'caption' => "Press Create | Update to automatically apply the devices and settings"];
-    $actions [] = ['type' => "Button", 'caption' => "Create | Update", 'onClick' => "OSR_GetLightifyData(\$id, 1206)"];
+    $actions [] = ['type' => "Button", 'caption' => "Create | Update", 'onClick' => "OSR_GetLightifyData(\$id, 1206);"];
 
     $status = [];
     $status [] = ['code' => 101, 'icon' => "inactive", 'caption' => "Lightify gateway is closed"];

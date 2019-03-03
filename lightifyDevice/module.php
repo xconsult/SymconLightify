@@ -112,8 +112,8 @@ class lightifyDevice extends IPSModule
         $status [] = ['code' => 299, 'icon' => "error",    'caption' => "Unknown error"];
 
         $actions = [];
-        $actions [] = ['type' => "Button", 'caption' => "On",  'onClick' => "OSR_WriteValue(\$id, \"STATE\", 1)"];
-        $actions [] = ['type' => "Button", 'caption' => "Off", 'onClick' => "OSR_WriteValue(\$id, \"STATE\", 0)"];
+        $actions [] = ['type' => "Button", 'caption' => "On",  'onClick' => "OSR_SetState(\$id, true);"];
+        $actions [] = ['type' => "Button", 'caption' => "Off", 'onClick' => "OSR_SetState(\$id, false);"];
 
         switch ($class) {
           case classConstant::CLASS_LIGHTIFY_SENSOR:
