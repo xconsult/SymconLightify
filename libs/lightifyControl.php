@@ -33,8 +33,7 @@ trait LightifyControl
       InstanceHelper;
 
 
-  public function __construct($InstanceID)
-  {
+  public function __construct($InstanceID) {
 
     parent::__construct($InstanceID);
     $this->lightifyBase = new lightifyBase;
@@ -42,8 +41,7 @@ trait LightifyControl
   }
 
 
-  private function sendData($command, $buffer = vtNoString)
-  {
+  private function sendData(int $command, array $buffer = []) : void {
 
     //IPS_LogMessage("SymconOSR", "<Lightify|sendData:buffer>   ".json_encode($buffer));
 
@@ -56,8 +54,7 @@ trait LightifyControl
   }
 
 
-  public function RequestAction($Ident, $Value)
-  {
+  public function RequestAction($Ident, $Value) {
 
     $key   = (string)$Ident;
     $value = (int)$Value;
@@ -83,8 +80,7 @@ trait LightifyControl
   }
 
 
-  public function WriteValue(string $key, int $value)
-  {
+  public function WriteValue(string $key, int $value) : bool {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       if (IPS_GetProperty($parentID, "active")) {
@@ -519,8 +515,7 @@ trait LightifyControl
   }
 
 
-  public function WriteValueEx(string $key, int $value, int $transition)
-  {
+  public function WriteValueEx(string $key, int $value, int $transition) : bool {
 
     $this->fade = $transition;
     return $this->WriteValue($key, $value);
@@ -539,16 +534,14 @@ trait LightifyControl
   }
 
 
-  public function SetState(bool $state)
-  {
+  public function SetState(bool $state) : bool {
 
     return $this->WriteValue("STATE", (int)$state);
 
   }
 
 
-  public function WriteName(string $name)
-  {
+  public function WriteName(string $name) : bool {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       if (IPS_GetProperty($parentID, "active")) {

@@ -294,8 +294,7 @@ class lightifyBase
 {
 
 
-  public function getRequestID($uniqueID)
-  {
+  public function getRequestID(int $uniqueID) : string {
 
     $arrayID   = str_split(str_pad(dechex($uniqueID), classConstant::UUID_DEVICE_LENGTH, "0", STR_PAD_RIGHT), 2);
     $requestID = vtNoString;
@@ -309,8 +308,7 @@ class lightifyBase
   }
 
 
-  public function decodeData($data, $space = true)
-  {
+  public function decodeData(string $data, bool $space = true) : string {
 
     $decode = vtNoString;
 
@@ -323,8 +321,7 @@ class lightifyBase
   }
 
 
-  public function decodeDataHex($data, $space = true)
-  {
+  public function decodeDataHex(string $data, bool $space = true) : string {
 
     $decode = vtNoString;
 
@@ -337,8 +334,7 @@ class lightifyBase
   }
 
 
-  public function decodeGroup($lowBits, $highBits)
-  {
+  public function decodeGroup(int $lowBits, int $highBits) : array {
 
     $binary = strrev(sprintf("%08s%08s", decbin($highBits), decbin($lowBits)));
     $split  = str_split($binary);
@@ -354,8 +350,7 @@ class lightifyBase
   }
 
 
-  public function UUIDtoChr($UUID)
-  {
+  public function UUIDtoChr(string $UUID) : string {
 
     $UUID   = explode(":", $UUID);
     $result = vtNoString;
@@ -372,8 +367,7 @@ class lightifyBase
   }
 
 
-  public function chrToUUID($UUID)
-  {
+  public function chrToUUID(string $UUID) : string {
 
     $length = strlen($UUID);
     $result = array();
@@ -387,10 +381,9 @@ class lightifyBase
   }
 
 
-  public function nameToChr($name)
-  {
+  public function nameToChr(string $name) : string {
 
-    $result = "";
+    $result = vtNoString;
 
     for ($i = 0; $i < classConstant::DATA_NAME_LENGTH; ++$i) {
       $result .= chr(ord(substr($name, $i, 1)));
@@ -401,8 +394,7 @@ class lightifyBase
   }
 
 
-  public function HEX2HSV($hex)
-  {
+  public function HEX2HSV(string $hex) : array {
 
     $r = substr($hex, 0, 2);
     $g = substr($hex, 2, 2);
@@ -413,8 +405,7 @@ class lightifyBase
   }
 
 
-  private function RGB2HSV($r, $g, $b)
-  {
+  private function RGB2HSV(int $r, int $g, int $b) : array {
 
     $r /= 255; $g /= 255; $b /= 255;
 
@@ -443,13 +434,12 @@ class lightifyBase
     }
 
     $dH = $h * 60;
-    return array('h' => round($dH), 's' => round($dS), 'v' => round($dV));
+    return ['h' => round($dH), 's' => round($dS), 'v' => round($dV)];
 
   }
 
 
-  public function HSV2HEX($h, $s, $v)
-  {
+  public function HSV2HEX(int $h, int $s, int $v) : string {
 
     $rgb = $this->HSV2RGB($h, $s, $v);
 
@@ -462,8 +452,7 @@ class lightifyBase
   }
 
 
-  private function HSV2RGB($h, $s, $v)
-  {
+  private function HSV2RGB(int $h, int $s, int $v) : array {
 
     if ($h < 0) $h = 0;
     if ($h > 360) $h = 360;
@@ -516,13 +505,12 @@ class lightifyBase
     $dM = $dV - $dC; $r += $dM; $g += $dM; $b += $dM;
     $r *= 255; $g *= 255; $b *= 255;
 
-    return array('r' => round($r), 'g' => round($g), 'b' => round($b));
+    return ['r' => round($r), 'g' => round($g), 'b' => round($b)];
 
   }
 
 
-  public function RGB2HEX($rgb)
-  {
+  public function RGB2HEX(array $rgb) : string {
 
     $hex  = str_pad(dechex($rgb['r']), 2, "0", STR_PAD_LEFT);
     $hex .= str_pad(dechex($rgb['g']), 2, "0", STR_PAD_LEFT);
@@ -533,8 +521,7 @@ class lightifyBase
   }
 
 
-  public function HEX2RGB($hex)
-  {
+  public function HEX2RGB(string $hex) : array {
 
     if (strlen($hex) == 3) {
       $r = hexdec($hex[0].$hex[0]);
@@ -546,7 +533,7 @@ class lightifyBase
       $b = hexdec($hex[4].$hex[5]);
     }
 
-    return array('r' => $r, 'g' => $g, 'b' => $b);
+    return ['r' => $r, 'g' => $g, 'b' => $b];
 
   }
 

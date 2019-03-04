@@ -66,8 +66,7 @@ class lightifyGateway extends IPSModule
       InstanceHelper;
 
 
-  public function __construct($InstanceID)
-  {
+  public function __construct($InstanceID) {
 
     parent::__construct($InstanceID);
     $this->lightifyBase = new lightifyBase;
@@ -75,8 +74,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function Create()
-  {
+  public function Create() {
 
     parent::Create();
 
@@ -165,8 +163,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
-  {
+  public function MessageSink($TimeStamp, $SenderID, $Message, $Data) {
 
     switch ($Message) {
       case IPS_KERNELSTARTED:
@@ -178,8 +175,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function ApplyChanges()
-  {
+  public function ApplyChanges() {
 
     $this->RegisterMessage(0, IPS_KERNELSTARTED);
     parent::ApplyChanges();
@@ -218,8 +214,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  protected function RequireParent($moduleID, $name = vtNoString)
-  {
+  protected function RequireParent($moduleID, $name = vtNoString) {
 
     $Instance = IPS_GetInstance($this->InstanceID);
 
@@ -242,8 +237,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function GetConfigurationForParent()
-  {
+  public function GetConfigurationForParent() {
 
     $gatewayIP = $this->ReadPropertyString("gatewayIP");
     $port = classConstant::GATEWAY_PORT;
@@ -253,8 +247,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function GetConfigurationForm()
-  {
+  public function GetConfigurationForm() {
 
     $elements = [];
     $elements [] = ['type' => "CheckBox", 'name' => "active", 'caption' => " Active"];
@@ -570,8 +563,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function ForwardData($jsonString)
-  {
+  public function ForwardData($jsonString) {
 
     $parentID = $this->getParentInfo($this->InstanceID);
     $socket = ($parentID) ? IPS_GetProperty($parentID, "Open") : false;
@@ -820,8 +812,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function ReceiveData($jsonString)
-  {
+  public function ReceiveData($jsonString) {
 
     $localMethod = $this->GetBuffer("localMethod");
     $connect = $this->ReadPropertyInteger("connectMode");
@@ -1260,8 +1251,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function validateConfig($active, $connect)
-  {
+  private function validateConfig(bool $active, int $connect) : bool {
 
     $localUpdate = $this->ReadPropertyInteger("localUpdate");
     $filterIP    = filter_var($this->ReadPropertyString("gatewayIP"), FILTER_VALIDATE_IP);
@@ -1294,8 +1284,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function LightifyRegister()
-  {
+  public function LightifyRegister() {
 
     if ($this->ReadPropertyInteger("connectMode") == classConstant::CONNECT_LOCAL_CLOUD) {
       //Return everything which will open the browser
@@ -1306,8 +1295,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  protected function ProcessOAuthData()
-  {
+  protected function ProcessOAuthData() {
 
     if ($_SERVER['REQUEST_METHOD'] == "GET") {
       if (isset($_GET['code'])) {
@@ -1325,12 +1313,11 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function getAccessToken($code)
-  {
+  private function getAccessToken(string $code) : bool {
 
     $debug   = $this->ReadPropertyInteger("debug");
     $message = $this->ReadPropertyBoolean("message");
-    IPS_LogMessage("SymconOSR", "<Gateway|getAccessToken:code>   ".$code);
+    //IPS_LogMessage("SymconOSR", "<Gateway|getAccessToken:code>   ".$code);
 
     //Exchange our Authentication Code for a permanent Refresh Token and a temporary Access Token
     $cURL    = curl_init();
@@ -1397,8 +1384,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function getRefreshToken()
-  {
+  private function getRefreshToken() : string {
 
     $osramToken = $this->ReadPropertyString("osramToken");
 
@@ -1500,33 +1486,30 @@ class lightifyGateway extends IPSModule
       $this->SendDebug("<Gateway|getRefreshToken:error>", $result, 0);
       IPS_LogMessage("SymconOSR", "<Gateway|getRefreshToken:error>   ".$result);
 
-      return false;
+      return vtNoString;
     }
 
   }
 
 
-  protected function cloudGET($url)
-  {
+  protected function cloudGET(string $url) : string {
 
     return $this->cloudRequest("GET", $url);
 
   }
 
 
-  protected function cloudPATCH($ressource, $args)
-  {
+  protected function cloudPATCH(string $ressource, string $args) : string {
 
     return $this->cloudRequest("PATCH", $ressource, $args);
 
   }
 
 
-  private function cloudRequest($method, $ressource, $args = null)
-  {
+  private function cloudRequest(string $request, string $ressource, string $args = vtNoString) : string {
 
     $accessToken = $this->getRefreshToken();
-    if (!$accessToken) return vtNoString;
+    if (empty($accessToken)) return vtNoString;
 
     $cURL    = curl_init();
     $options = [
@@ -1536,7 +1519,7 @@ class lightifyGateway extends IPSModule
       CURLOPT_MAXREDIRS      => self::LIGHTIFY_MAXREDIRS,
       CURLOPT_TIMEOUT        => self::LIGHTIFY_TIMEOUT,
       CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
-      CURLOPT_CUSTOMREQUEST  => $method,
+      CURLOPT_CUSTOMREQUEST  => $request,
       CURLOPT_HTTPHEADER     => [
         self::HEADER_AUTHORIZATION.$accessToken,
         self::HEADER_JSON_CONTENT
@@ -1568,8 +1551,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  protected function sendRaw($command, $flag, $args = vtNoValue)
-  {
+  protected function sendRaw(int $command, string $flag, string $args = vtNoString) : string {
 
     $debug   = $this->ReadPropertyInteger("debug");
     $message = $this->ReadPropertyBoolean("message");
@@ -1578,7 +1560,7 @@ class lightifyGateway extends IPSModule
     //$data = $flag.chr($command).$this->lightifyBase->getRequestID($this->requestID);
     $data = $flag.chr($command).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
 
-    if ($args != vtNoValue) {
+    if (!empty($args)) {
       $data .= $args;
     }
 
@@ -1602,8 +1584,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function GetLightifyData(int $localMethod)
-  {
+  public function GetLightifyData(int $localMethod) : void {
 
     if (IPS_GetKernelRunlevel() != KR_READY) {
       return;
@@ -1648,7 +1629,9 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw(classCommand::GET_GATEWAY_WIFI, classConstant::SCAN_WIFI_CONFIG))]
           );
-          return $this->SendDataToParent($jsonString);
+
+          $this->SendDataToParent($jsonString);
+          return;
         }
       } else {
         //IPS_LogMessage("SymconOSR", "<Gateway|structLightifyData|Method>   ".$localMethod);
@@ -1666,7 +1649,9 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01)))]
           );
-          return $this->SendDataToParent($jsonString);
+
+          $this->SendDataToParent($jsonString);
+          return;
         } else {
           $this->SetBuffer("deviceList", vtNoString);
           $this->SetBuffer("deviceGroup", vtNoString);
@@ -1680,8 +1665,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function structDeviceData($ncount, $data)
-  {
+  private function structDeviceData(int $ncount, string $data) : string {
 
     $localDevices = vtNoString;
     $localGroups  = vtNoString;
@@ -1779,8 +1763,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function structLightifyData($command, $ncount = vtNoValue, $data = vtNoString, $buffer = vtNoString)
-  {
+  private function structLightifyData(int $command, int $ncount = vtNoValue, string $data = vtNoString, string $buffer = vtNoString) : string {
 
     switch ($command) {
       case classCommand::GET_DEVICE_LIST:
@@ -2048,8 +2031,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function createInstance($mode, $categoryID, $ncount = vtNoValue, $data = vtNoString)
-  {
+  private function createInstance(int $mode, int $categoryID, int $ncount = vtNoValue, string $data = vtNoString) : void {
 
     switch ($mode) {
       case classConstant::MODE_CREATE_DEVICE:
@@ -2244,8 +2226,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function getAllDevices()
-  {
+  private function getAllDevices() : string {
 
     $Instances = IPS_GetInstanceListByModuleID(classConstant::MODULE_DEVICE);
 
@@ -2270,8 +2251,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function getDeviceGroups($uintUUID)
-  {
+  private function getDeviceGroups(string $uintUUID) : string {
 
     $buffer = $this->GetBuffer("deviceGroup");
     $dcount = ord($buffer{0});
@@ -2304,8 +2284,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function setModeDeviceGroup($ncount, $data, $buffer)
-  {
+  private function setModeDeviceGroup(int $ncount, string $data, string $buffer) : string {
 
     $bufferUID   = "-g".chr(classConstant::GROUP_ALL_DEVICES);
 
@@ -2337,8 +2316,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  protected function setAllDevices($value)
-  {
+  protected function setAllDevices(int $value) {
 
     $args   = str_repeat(chr(0xFF), 8).chr($value);
     $buffer = $this->sendRaw(classCommand::SET_DEVICE_STATE, chr(0x00), $args);

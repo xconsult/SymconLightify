@@ -12,8 +12,7 @@ class lightifyDevice extends IPSModule
   use LightifyControl;
 
 
-  public function Create()
-  {
+  public function Create() {
 
     parent::Create();
 
@@ -41,8 +40,7 @@ class lightifyDevice extends IPSModule
   }
 
 
-  public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
-  {
+  public function MessageSink($TimeStamp, $SenderID, $Message, $Data) {
 
     switch ($Message) {
       case IPS_KERNELSTARTED:
@@ -54,8 +52,7 @@ class lightifyDevice extends IPSModule
   }
 
 
-  public function ApplyChanges()
-  {
+  public function ApplyChanges() {
 
     $this->RegisterMessage(0, IPS_KERNELSTARTED);
     parent::ApplyChanges();
@@ -92,8 +89,7 @@ class lightifyDevice extends IPSModule
   }
 
 
-  public function GetConfigurationForm()
-  {
+  public function GetConfigurationForm() {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $class  = $this->ReadPropertyInteger("itemClass");
@@ -174,8 +170,7 @@ class lightifyDevice extends IPSModule
   }
 
 
-  public function ReceiveData($jsonString)
-  {
+  public function ReceiveData($jsonString) {
 
     $uintUUID = $this->ReadPropertyString("uintUUID");
     $data     = json_decode($jsonString);
@@ -253,8 +248,7 @@ class lightifyDevice extends IPSModule
   }
 
 
-  private function setDeviceProperty($uintUUID)
-  {
+  private function setDeviceProperty(string $uintUUID) : int {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $connect = IPS_GetProperty($parentID, "connectMode");
@@ -309,8 +303,7 @@ class lightifyDevice extends IPSModule
   }
 
 
-  private function getDeviceLocal($uintUUID, $ncount, $data)
-  {
+  private function getDeviceLocal(string $uintUUID, int $ncount, string $data) : string {
 
     $device = vtNoString;
 
@@ -330,8 +323,7 @@ class lightifyDevice extends IPSModule
   }
 
 
-  private function getDeviceCloud($uintUUID, $ncount, $data)
-  {
+  private function getDeviceCloud(string $uintUUID, int $ncount, string $data) : string {
 
     $device  = vtNoString;
 
@@ -356,8 +348,7 @@ class lightifyDevice extends IPSModule
   }
 
 
-  private function setDeviceInfo($method, $mode, $data, $apply = false)
-  {
+  private function setDeviceInfo(int $method, int $mode, string $data, bool $apply = false) : void {
 
     $type = ord($data{10});
 

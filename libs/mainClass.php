@@ -199,8 +199,7 @@ trait ParentInstance
 {
 
 
-  private function getParentInfo($id)
-  {
+  private function getParentInfo(int $id) : int {
 
     $parentID = $this->getParentInstance($id);
 
@@ -212,13 +211,12 @@ trait ParentInstance
       }
     }
 
-    return false;
+    return (int)false;
 
   }
 
 
-  private function getParentInstance($id)
-  {
+  private function getParentInstance(int $id) : int {
 
     $parentID = 0;
 
@@ -232,8 +230,7 @@ trait ParentInstance
   }
 
 
-  private function getParentStatus($id)
-  {
+  private function getParentStatus(int $id) : int {
 
     $instanceID = IPS_GetInstance($id);
     return $instanceID['InstanceStatus'];
@@ -288,8 +285,7 @@ trait InstanceHelper
 {
 
 
-  private function getObjectByProperty($moduleID, $property, $value)
-  {
+  private function getObjectByProperty($moduleID, $property, $value) : int {
 
     $Instances = IPS_GetInstanceListBymoduleID($moduleID);
 
@@ -299,7 +295,7 @@ trait InstanceHelper
       }
     }
 
-    return false;
+    return (int)false;
 
   }
 

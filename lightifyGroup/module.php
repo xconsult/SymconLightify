@@ -21,8 +21,7 @@ class lightifyGroup extends IPSModule
   use LightifyControl;
 
 
-  public function Create()
-  {
+  public function Create() {
 
     parent::Create();
 
@@ -43,8 +42,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
-  {
+  public function MessageSink($TimeStamp, $SenderID, $Message, $Data) {
 
     switch ($Message) {
       case IPS_KERNELSTARTED:
@@ -56,8 +54,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  public function ApplyChanges()
-  {
+  public function ApplyChanges() {
 
     $this->RegisterMessage(0, IPS_KERNELSTARTED);
     parent::ApplyChanges();
@@ -110,8 +107,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  public function GetConfigurationForm()
-  {
+  public function GetConfigurationForm() {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $groupDevice = $this->GetBuffer("groupDevice");
@@ -262,8 +258,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  public function ReceiveData($jsonString)
-  {
+  public function ReceiveData($jsonString) {
 
     $groupID = $this->ReadPropertyInteger("groupID");
     $class   = $this->ReadPropertyInteger("itemClass");
@@ -346,7 +341,7 @@ class lightifyGroup extends IPSModule
               }
             }
 
-            $this->setSceneInfo($data->mode, $data->method);
+            $this->setSceneInfo($data->method);
           }
         }
         break;
@@ -355,8 +350,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  private function setGroupProperty($mode, $class, $groupID)
-  {
+  private function setGroupProperty(int $mode, int $class, int $groupID) : int {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $connect = IPS_GetProperty($parentID, "connectMode");
@@ -394,7 +388,7 @@ class lightifyGroup extends IPSModule
               $this->SetBuffer("groupScene", $groupScene);
 
               if (!empty($groupScene)) {
-                $this->setSceneInfo(classConstant::MODE_GROUP_SCENE, classConstant::METHOD_UPDATE_CHILD);
+                $this->setSceneInfo(classConstant::METHOD_UPDATE_CHILD);
               }
             }
           }
@@ -411,8 +405,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  private function getgroupDevice($groupID, $ncount, $data)
-  {
+  private function getgroupDevice(int $groupID, int $ncount, string $data) : string {
 
     $device = vtNoString;
 
@@ -459,8 +452,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  private function setSceneProperty($groupID)
-  {
+  private function setSceneProperty(int $groupID) : int {
 
     if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
       $jsonString = $this->SendDataToParent(json_encode(array(
@@ -491,7 +483,7 @@ class lightifyGroup extends IPSModule
             IPS_SetProperty($this->InstanceID, "classType", (int)$type);
           }
 
-          $this->setSceneInfo(classConstant::MODE_GROUP_SCENE, classConstant::METHOD_CREATE_CHILD);
+          $this->setSceneInfo(classConstant::METHOD_CREATE_CHILD);
           return 102;
         }
         return 104;
@@ -503,8 +495,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  private function getGroupScene($groupID, $ncount, $data)
-  {
+  private function getGroupScene(int $groupID, int $ncount, string $data) : string {
 
     $scene = vtNoString;
 
@@ -525,8 +516,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  private function setGroupInfo($mode, $method, $class, $data)
-  {
+  private function setGroupInfo(int $mode, int $method, int $class, string $data) : void {
 
     switch ($mode) {
       case classConstant::MODE_GROUP_LOCAL:
@@ -722,14 +712,13 @@ class lightifyGroup extends IPSModule
 
       case classConstant::MODE_GROUP_CLOUD:
         $cloudGroup = json_decode($data);
-        return true;
+        break;
     }
 
   }
 
 
-  private function setSceneInfo($mode, $method)
-  {
+  private function setSceneInfo(int $method) : void {
 
     //Create and update switch
     if (false == ($sceneID = @$this->GetIDForIdent("SCENE"))) {
