@@ -14,6 +14,7 @@
       "Category"                                                                                       : "Kategorien",
       " Reload data instantly (not recommended: higher gateway load and longer response times)"        : " Daten sofort abfragen (nicht empfohlen: höhere Gateay Last und längere Antwortzeiten)",
       " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" : " Geräte Informationen anzeigen (UUID, Hersteller, Modell, Eigenschaften, ZigBee, Firmware)",
+      " Decode gateway command result (longer runtime)"                                                : " Auswertung der Gateway Antwort (längere Laufzeit)",
       "State"                                                                                          : "Status",
       " Synchronise values"                                                                            : " Werte aktualisieren",
       "Manufacturer"                                                                                   : "Hersteller",

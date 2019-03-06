@@ -271,7 +271,7 @@ class lightifyGateway extends IPSModule
 
     $elements [] = ['type' => "List", 'name' => "listCategory", 'rowCount' => 5, 'columns' => $columns];
     $elements [] = ['type' => "CheckBox", 'name' => "deviceInfo", 'caption' => " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)"];
-    $elements [] = ['type' => "CheckBox", 'name' => "waitResult", 'caption' => " Decode gateway result of executed command (longer runtime)"];
+    $elements [] = ['type' => "CheckBox", 'name' => "waitResult", 'caption' => " Decode gateway command result (longer runtime)"];
 
     //Device list configuration
     $deviceList = $this->GetBuffer("deviceList");
@@ -580,6 +580,8 @@ class lightifyGateway extends IPSModule
           break;
 
         case classConstant::SET_ALL_DEVICES:
+          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_DEVICE_STATE, 'buffer' => $data->buffer]));
+
           $buffer = json_decode($data->buffer);
           $args   = str_repeat(chr(0xFF), 8).chr($buffer->state);
 
@@ -587,12 +589,13 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw(classCommand::SET_DEVICE_STATE, chr(0x00), $args))]
           );
-          $this->SendDataToParent($jsonString);
 
-          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_DEVICE_STATE, 'buffer' => $data->buffer]));
+          $this->SendDataToParent($jsonString);
           break;
 
         case classConstant::SAVE_LIGHT_STATE:
+          $this->SetBuffer("infoDevice", $data->buffer);
+
           $buffer = json_decode($data->buffer);
           $args   = utf8_decode($buffer->UUID).chr(0x00);
 
@@ -601,7 +604,6 @@ class lightifyGateway extends IPSModule
             'Buffer' => utf8_encode($this->sendRaw(classCommand::SAVE_LIGHT_STATE, chr(0x00), $args))]
           );
 
-          $this->SetBuffer("infoDevice", $data->buffer);
           $this->SendDataToParent($jsonString);
           break;
 
@@ -617,6 +619,8 @@ class lightifyGateway extends IPSModule
           break;
 
         case classConstant::SET_STATE:
+          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_DEVICE_STATE, 'buffer' => $data->buffer]));
+
           $buffer = json_decode($data->buffer);
           $args   = utf8_decode($buffer->UUID).chr((int)$buffer->state);
 
@@ -624,12 +628,13 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw(classCommand::SET_DEVICE_STATE, $buffer->flag, $args))]
           );
-          $this->SendDataToParent($jsonString);
 
-          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_DEVICE_STATE, 'buffer' => $data->buffer]));
+          $this->SendDataToParent($jsonString);
           break;
 
         case classConstant::SET_COLOR:
+          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_LIGHT_COLOR, 'buffer' => $data->buffer]));
+
           $buffer = json_decode($data->buffer);
           $rgb    = $this->lightifyBase->HEX2RGB($buffer->hex);
           $args   = utf8_decode($buffer->UUID).chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0xFF).chr(dechex($buffer->fade)).chr(0x00).chr(0x00);
@@ -638,12 +643,13 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw(classCommand::SET_LIGHT_COLOR, $buffer->flag, $args))]
           );
-          $this->SendDataToParent($jsonString);
 
-          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_LIGHT_COLOR, 'buffer' => $data->buffer]));
+          $this->SendDataToParent($jsonString);
           break;
 
         case classConstant::SET_COLOR_TEMPERATURE:
+          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_COLOR_TEMPERATURE, 'buffer' => $data->buffer]));
+
           $buffer = json_decode($data->buffer);
           $hex    = dechex($buffer->temperature);
 
@@ -656,12 +662,13 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw(classCommand::SET_COLOR_TEMPERATURE, $buffer->flag, $args))]
           );
-          $this->SendDataToParent($jsonString);
 
-          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_COLOR_TEMPERATURE, 'buffer' => $data->buffer]));
+          $this->SendDataToParent($jsonString);
           break;
 
         case classConstant::SET_LEVEL:
+          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_LIGHT_LEVEL, 'buffer' => $data->buffer]));
+
           $buffer = json_decode($data->buffer);
           $args   = utf8_decode($buffer->UUID).chr((int)$buffer->level).chr(dechex($buffer->fade)).chr(0x00).chr(0x00);
 
@@ -669,12 +676,13 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw(classCommand::SET_LIGHT_LEVEL, $buffer->flag, $args))]
           );
-          $this->SendDataToParent($jsonString);
 
-          $this->SetBuffer("infoDevice", json_encode(['command' => classCommand::SET_LIGHT_LEVEL, 'buffer' => $data->buffer]));
+          $this->SendDataToParent($jsonString);
           break;
 
         case classConstant::SET_SATURATION:
+          $this->SetBuffer("infoDevice", json_encode(['command' => classConstant::SET_SATURATION, 'buffer' => $data->buffer]));
+
           $buffer = json_decode($data->buffer);
           $rgb    = $this->lightifyBase->HEX2RGB($buffer->hex);
           $args   = utf8_decode($buffer->UUID).chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0x00).chr(dechex($buffer->fade)).chr(0x00).chr(0x00);
@@ -683,15 +691,15 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw(classCommand::SET_LIGHT_COLOR, $buffer->flag, $args))]
           );
-          $this->SendDataToParent($jsonString);
 
-          $this->SetBuffer("infoDevice", json_encode(['command' => classConstant::SET_SATURATION, 'buffer' => $data->buffer]));
+          $this->SendDataToParent($jsonString);
           break;
 
         case classConstant::SET_DEVICE_NAME:
           $command = classCommand::SET_DEVICE_NAME;
 
         case classConstant::SET_GROUP_NAME:
+          $this->SetBuffer("infoDevice", json_encode(['command' => $data->method, 'buffer' => $data->buffer]));
           if (!isset($command)) $command = classCommand::SET_GROUP_NAME;
 
           $buffer = json_decode($data->buffer);
@@ -701,9 +709,8 @@ class lightifyGateway extends IPSModule
             'DataID' => classConstant::TX_VIRTUAL,
             'Buffer' => utf8_encode($this->sendRaw($command, $buffer->flag, $args))]
           );
-          $this->SendDataToParent($jsonString);
 
-          $this->SetBuffer("infoDevice", json_encode(['command' => $data->method, 'buffer' => $data->buffer]));
+          $this->SendDataToParent($jsonString);
           break;
 
         case classConstant::SET_SOFT_TIME:
@@ -1189,7 +1196,17 @@ class lightifyGateway extends IPSModule
               $code = ord($buffer{classConstant::BUFFER_HEADER_LENGTH});
 
               if ($code == 0) {
-                //IPS_LogMessage("SymconOSR", "<Gateway|ReceiveData|default>   ".$data->buffer);
+                if ($this->debug % 2 || $this->message) {
+                  $info = $this->lightifyBase->decodeData($buffer);
+
+                  if ($this->debug % 2) {
+                    $this->SendDebug("<Gateway|ReceiveData|default>", $info, 0);
+                  }
+
+                  if ($this->message) {
+                    IPS_LogMessage("SymconOSR", "<Gateway|ReceiveData|default>   ".$info);
+                  }
+                }
 
                 $data = json_decode($infoDevice);
                 $args = json_decode($data->buffer);
@@ -1627,7 +1644,7 @@ class lightifyGateway extends IPSModule
         if ($ssidID) {
           $jsonString = json_encode([
             'DataID' => classConstant::TX_VIRTUAL,
-            'Buffer' => utf8_encode($this->sendRaw(classCommand::GET_GATEWAY_WIFI, classConstant::SCAN_WIFI_CONFIG))]
+            'Buffer' => utf8_encode($this->sendRaw(classCommand::GET_GATEWAY_WIFI, chr(classConstant::SCAN_WIFI_CONFIG)))]
           );
 
           $this->SendDataToParent($jsonString);
