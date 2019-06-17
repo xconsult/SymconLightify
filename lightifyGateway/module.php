@@ -182,6 +182,7 @@ class lightifyGateway extends IPSModule
 
     if (IPS_GetKernelRunlevel() != KR_READY) return;
     $applyMode = $this->GetBuffer("applyMode");
+    $this->SetBuffer("sendQueue", vtNoString);
 
     if ($applyMode) {
       $this->RequireParent(classConstant::CLIENT_SOCKET, "Lightify Socket");
@@ -814,12 +815,30 @@ class lightifyGateway extends IPSModule
       }
     }
 
+    //Wait for function call
+    if (!empty($jsonString)) {
+      $this->SetBuffer("sendQueue", vtNoString);
+
+      for ($x = 0; $x < 500; $x++) {
+        if (!empty($this->GetBuffer("sendQueue"))) {
+          $this->SetBuffer("sendQueue", vtNoString);
+          break;
+        }
+
+        IPS_Sleep(10);
+      }
+
+      //IPS_LogMessage("SymconOSR", "<Gateway|ForwardData:x>   ".$x);
+    }
+
     return $jsonReturn;
 
   }
 
 
   public function ReceiveData($jsonString) {
+
+    $this->SetBuffer("sendQueue", $jsonString);
 
     $localMethod = $this->GetBuffer("localMethod");
     $connect = $this->ReadPropertyInteger("connectMode");
@@ -1652,6 +1671,7 @@ class lightifyGateway extends IPSModule
         }
       } else {
         //IPS_LogMessage("SymconOSR", "<Gateway|structLightifyData|Method>   ".$localMethod);
+        $syncDevices = $syncSensor = false;
 
         //Get paired devices
         if ($Categories = $this->ReadPropertyString("listCategory")) {
