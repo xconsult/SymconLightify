@@ -358,7 +358,7 @@ class lightifyGateway extends IPSModule
     $formJSON = json_encode(['elements' => $elements, 'actions' => $actions, 'status' => $status]);
 
     $data  = json_decode($formJSON);
-    $Types = ["Device", "Sensor", "Group", "Scene"];
+    $Types = [$this->Translate("Device"), $this->Translate("Sensor"), $this->Translate("Group"), $this->Translate("Scene")];
 
     //Only add default element if we do not have anything in persistence
     $Categories = json_decode($this->ReadPropertyString("listCategory"));
@@ -838,7 +838,7 @@ class lightifyGateway extends IPSModule
 
   public function ReceiveData($jsonString) {
 
-    $this->SetBuffer("sendQueue", $jsonString);
+    //IPS_LogMessage("SymconOSR", "<Gateway|GetConfigurationForParent|Categories>   ".$this->Translate("State"));
 
     $localMethod = $this->GetBuffer("localMethod");
     $connect = $this->ReadPropertyInteger("connectMode");
@@ -851,6 +851,7 @@ class lightifyGateway extends IPSModule
 
     $command = ord($data{3});
     $data    = substr($data, classConstant::BUFFER_HEADER_LENGTH + 1);
+    $this->SetBuffer("sendQueue", $data);
 
     switch ($command) {
       //Get Gateway WiFi configuration
