@@ -148,8 +148,11 @@ class lightifyGateway extends IPSModule
       IPS_SetVariableProfileIcon("OSR.Switch", "Power");
       IPS_SetVariableProfileDigits("OSR.Switch", 0);
       IPS_SetVariableProfileValues("OSR.Switch", 0, 1, 0);
-      IPS_SetVariableProfileAssociation("OSR.Switch", true, "On", vtNoString, 0xFF9200);
-      IPS_SetVariableProfileAssociation("OSR.Switch", false, "Off", vtNoString, vtNoValue);
+    }
+
+    if (IPS_VariableProfileExists("OSR.Switch")) {
+      IPS_SetVariableProfileAssociation("OSR.Switch", true, $this->Translate("On"), vtNoString, 0xFF9200);
+      IPS_SetVariableProfileAssociation("OSR.Switch", false, $this->Translate("Off"), vtNoString, vtNoValue);
     }
 
     if (!IPS_VariableProfileExists("OSR.Scene")) {
@@ -157,7 +160,10 @@ class lightifyGateway extends IPSModule
       IPS_SetVariableProfileIcon("OSR.Scene", "Power");
       IPS_SetVariableProfileDigits("OSR.Scene", 0);
       IPS_SetVariableProfileValues("OSR.Scene", 1, 1, 0);
-      IPS_SetVariableProfileAssociation("OSR.Scene", 1, "On", vtNoString, 0xFF9200);
+    }
+
+    if (IPS_VariableProfileExists("OSR.Scene")) {
+      IPS_SetVariableProfileAssociation("OSR.Scene", 1, $this->Translate("On"), vtNoString, 0xFF9200);
     }
 
   }

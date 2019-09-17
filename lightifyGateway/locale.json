@@ -1,6 +1,8 @@
 {
   "translations": {
     "de": {
+      "On"                                                                                             : "An",
+      "Off"                                                                                            : "Aus",
       " Active"                                                                                        : " Aktiv",
       "Connection"                                                                                     : "Verbindung",
       "Local only"                                                                                     : "Lokal",
@@ -43,7 +45,7 @@
       "Press Create | Update to automatically apply the devices and settings"                          : "Drücken Sie Erstellen | Aktualisieren, um die registierten Geräte und Einstellungen automatisch anzulegen",
       "Create | Update"                                                                                : "Erstellen | Aktualisieren",
       "Devices successfully synced!"                                                                   : "Geräte wurden erfolgreich synchronisiert",
-      "Lightify gateway is open"                                                                       : "Lightify gateway ist verbunden",
+      "Lightify gateway is open"                                                                       : "Lightify gateway ist geöffnet",
       "Enter all required informations"                                                                : "Die notwendigen Informationen eingeben",
       "Lightify gateway is not connected"                                                              : "Lightify gateway ist nicht verbunden",
       "Invalid IP address!"                                                                            : "Ungültige IP Addresse!",

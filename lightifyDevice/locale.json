@@ -19,9 +19,10 @@
       "State"                             : "Status",
       "Hue"                               : "Hue",
       "Color"                             : "Farbe",
-      "Saturation"                        : "Sättigung",
       "Color Temperature"                 : "Farbtemperatur",
       "Brightness"                        : "Helligkeit",
+      "Level"                             : "Helligkeit",
+      "Saturation"                        : "Sättigung",
       "Motion"                            : "Bewegung",
       "Firmware"                          : "Firmware"
     }

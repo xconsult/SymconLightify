@@ -61,6 +61,7 @@ trait LightifyControl
 
     switch ($key) {
       case "ALL_DEVICES":
+        $value = $value;
         break;
 
       case "SCENE":
@@ -70,9 +71,9 @@ trait LightifyControl
       case "STATE":
       case "COLOR":
       case "COLOR_TEMPERATURE":
-      case "BRIGHTNESS":
       case "LEVEL":
       case "SATURATION":
+        $value = $value;
         break;
     }
 
@@ -420,7 +421,6 @@ trait LightifyControl
             }
             return false;
 
-          case "BRIGHTNESS":
           case "LEVEL":
             if (($classLight && $online) || $classGroup) {
               $levelID = @$this->GetIDForIdent("LEVEL");

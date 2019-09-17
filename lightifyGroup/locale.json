@@ -8,8 +8,9 @@
       "Devices"                           : "Geräte",
       "Hue"                               : "Hue",
       "Color"                             : "Farbe",
-      "Temperature"                       : "Temperatur",
+      "Color Temperature"                 : "Farbtemperatur",
       "Brightness"                        : "Helligkeit",
+      "Level"                             : "Helligkeit",
       "Saturation"                        : "Sättigung",
       "time"                              : "Zeit",
       "Light"                             : "Lampe",
@@ -20,8 +21,7 @@
       "Group is active"                   : "Gruppe ist aktiv",
       "Lightify gateway is not connected" : "Lightify gateway ist nicht verbunden",
       "Invalid Group [id]"                : "Ungültige Gruppen [id]",
-      "State"                             : "Status",
-      "Color Temperature"                 : "Farbtemperatur"
+      "State"                             : "Status"
     }
   }
 }

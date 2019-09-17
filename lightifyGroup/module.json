@@ -3,7 +3,7 @@
 	"name": "lightifyGroup",
 	"type": 3,
 	"vendor": "OSRAM",
-	"aliases": [ "Lightify Group" ],
+	"aliases": [ "OSRAM Lightify Gruppe" ],
 	"parentRequirements": [ "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}" ],
 	"childRequirements": [],
 	"implemented": [ "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}" ],
