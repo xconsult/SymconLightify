@@ -56,7 +56,7 @@ trait LightifyControl
 
   public function RequestAction($Ident, $Value) {
 
-    $key   = (string)$Ident;
+    $key   = $Ident;
     $value = (int)$Value;
 
     switch ($key) {

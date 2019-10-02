@@ -265,6 +265,10 @@ class classConstant
   const COLOR_MAX               = "ffffff";
   const LEVEL_MIN               = 0;
   const LEVEL_MAX               = 100;
+  const SATURATION_MIN          = 0;
+  const SATURATION_MAX          = 100;
+  const INTENSITY_MIN           = 0;
+  const INTENSITY_MAX           = 100;
 
   const TIME_MIN                = 0;    //0.0 sec
   const TIME_MAX                = 8000; //8.0 sec

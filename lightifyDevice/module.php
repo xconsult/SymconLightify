@@ -411,11 +411,9 @@ class lightifyDevice extends IPSModule
 
         if (!$onlineID) {
           if ($method == classConstant::METHOD_CREATE_CHILD) {
-            $this->MaintainVariable("ONLINE", $this->Translate("Online"), vtBoolean, "OSR.Switch", 312, true);
-            $onlineID = $this->GetIDForIdent("ONLINE");
-
-            //$onlineID = $this->RegisterVariableBoolean("ONLINE", $this->Translate("Online"), "OSR.Switch", 312);
-            //$onlineID = $this->RegisterVariableBoolean("ONLINE", "Online", "OSR.Switch", 312);
+            //$this->MaintainVariable("ONLINE", $this->Translate("Online"), vtBoolean, "OSR.Switch", 312, true);
+            //$onlineID = $this->GetIDForIdent("ONLINE");
+            $onlineID = $this->RegisterVariableBoolean("ONLINE", $this->Translate("Online"), "OSR.Switch", 312);
 
             IPS_SetDisabled($onlineID, true);
             IPS_SetHidden($onlineID, true);
@@ -432,11 +430,9 @@ class lightifyDevice extends IPSModule
 
         if (!$stateID) {
           if ($method == classConstant::METHOD_CREATE_CHILD) {
-            $this->MaintainVariable("STATE", $this->Translate("State"), vtBoolean, "OSR.Switch", 313, true);
-            $stateID = $this->GetIDForIdent("STATE");
-
-            //$stateID = $this->RegisterVariableBoolean("STATE", $this->Translate("State"), "OSR.Switch", 313);
-            //$stateID = $this->RegisterVariableBoolean("STATE", "State", "OSR.Switch", 313);
+            //$this->MaintainVariable("STATE", $this->Translate("State"), vtBoolean, "OSR.Switch", 313, true);
+            //$stateID = $this->GetIDForIdent("STATE");
+            $stateID = $this->RegisterVariableBoolean("STATE", $this->Translate("State"), "OSR.Switch", 313);
 
             if ($classLight || $classPlug) {
               $this->EnableAction("STATE");
@@ -460,11 +456,9 @@ class lightifyDevice extends IPSModule
 
             if (!$hueID) {
               if ($method == classConstant::METHOD_CREATE_CHILD) {
-                $this->MaintainVariable("HUE", $this->Translate("Hue"), vtInteger, "OSR.Hue", 314, true);
-                $hueID = $this->GetIDForIdent("HUE");
-
-                //$hueID = $this->RegisterVariableInteger("HUE", $this->Translate("Hue"), "OSR.Hue", 314);
-                //$hueID = $this->RegisterVariableInteger("HUE", "Hue", "OSR.Hue", 314);
+                //$this->MaintainVariable("HUE", $this->Translate("Hue"), vtInteger, "OSR.Hue", 314, true);
+                //$hueID = $this->GetIDForIdent("HUE");
+                $hueID = $this->RegisterVariableInteger("HUE", $this->Translate("Hue"), "OSR.Hue", 314);
 
                 IPS_SetDisabled($hueID, true);
                 IPS_SetHidden($hueID, true);
@@ -498,11 +492,9 @@ class lightifyDevice extends IPSModule
 
             if (!$saturationID) {
               if ($method == classConstant::METHOD_CREATE_CHILD) {
-                $this->MaintainVariable("SATURATION", $this->Translate("Saturation"), vtInteger, "OSR.Intensity", 318, true);
-                $saturationID = $this->GetIDForIdent("SATURATION");
-
-                //$saturationID = $this->RegisterVariableInteger("SATURATION", $this->Translate("Saturation"), "OSR.Intensity", 318);
-                //$saturationID = $this->RegisterVariableInteger("SATURATION", "Saturation", "OSR.Intensity", 318);
+                //$this->MaintainVariable("SATURATION", $this->Translate("Saturation"), vtInteger, "OSR.Intensity", 318, true);
+                //$saturationID = $this->GetIDForIdent("SATURATION");
+                $saturationID = $this->RegisterVariableInteger("SATURATION", $this->Translate("Saturation"), "OSR.Intensity", 318);
                 IPS_SetIcon($saturationID, "Intensity");
 
                 $this->EnableAction("SATURATION");
@@ -523,11 +515,9 @@ class lightifyDevice extends IPSModule
               $profile = ($deviceRGB) ? "OSR.ColorTempExt" : "OSR.ColorTemp";
 
               if ($method == classConstant::METHOD_CREATE_CHILD) {
-                $this->MaintainVariable("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), vtInteger, "OSR.ColorTemp", 316, true);
-                $temperatureID = $this->GetIDForIdent("COLOR_TEMPERATURE");
-
-                //$temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), "OSR.ColorTemp", 316);
-                //$temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTemp", 316);
+                //$this->MaintainVariable("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), vtInteger, "OSR.ColorTemp", 316, true);
+                //$temperatureID = $this->GetIDForIdent("COLOR_TEMPERATURE");
+                $temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), "OSR.ColorTemp", 316);
                 $this->EnableAction("COLOR_TEMPERATURE");
               }
             }
@@ -542,20 +532,18 @@ class lightifyDevice extends IPSModule
           if ($classLight) {
             $levelID = @$this->GetIDForIdent("LEVEL");
 
-            if (!$levelID) {
+            if ($levelID === false) {
               if ($method == classConstant::METHOD_CREATE_CHILD) {
-                $this->MaintainVariable("LEVEL", $this->Translate("Level"), vtInteger, "OSR.Intensity", 317, true);
-                $levelID = $this->GetIDForIdent("LEVEL");
-
-                //$levelID = $this->RegisterVariableInteger("LEVEL", $this->Translate("Level"), "OSR.Intensity", 317);
-                //$levelID = $this->RegisterVariableInteger("LEVEL", "Level", "OSR.Intensity", 317);
+                //$this->MaintainVariable("LEVEL", $this->Translate("Level"), vtInteger, "OSR.Intensity", 317, true);
+                //$levelID = $this->GetIDForIdent("LEVEL");
+                $levelID = $this->RegisterVariableInteger("LEVEL", $this->Translate("Level"), "OSR.Intensity", 317);
                 IPS_SetIcon($levelID, "Sun");
+
+                $this->EnableAction("LEVEL");
               }
             }
 
             if ($levelID) {
-              $this->EnableAction("LEVEL");
-
               if (GetValueInteger($levelID) != $level) {
                 SetValueInteger($levelID, $level);
               }
@@ -571,11 +559,10 @@ class lightifyDevice extends IPSModule
 
           if (!$motionID) {
             if ($method == classConstant::METHOD_CREATE_CHILD) {
-              $this->MaintainVariable("MOTION", $this->Translate("Motion"), vtBooelan, "~Motion", 322, true);
-              $$motionID = $this->GetIDForIdent("MOTION");
-
-              //$motionID = $this->RegisterVariableBoolean("MOTION", $this->Translate("Motion"), "~Motion", 322);
-              //$motionID = $this->RegisterVariableBoolean("MOTION", "Motion", "~Motion", 322);
+              //$this->MaintainVariable("MOTION", $this->Translate("Motion"), vtBooelan, "~Motion", 322, true);
+              //$$motionID = $this->GetIDForIdent("MOTION");
+              $motionID = $this->RegisterVariableBoolean("MOTION", $this->Translate("Motion"), "~Motion", 322);
+              $this->EnableAction("MOTION");
             }
           }
 
