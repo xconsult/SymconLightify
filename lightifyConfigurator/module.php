@@ -38,9 +38,6 @@ class lightifyConfigurator extends IPSModule
     $this->RegisterAttributeString("listGroups", vtNoString);
     $this->RegisterAttributeString("groupDevices", vtNoString);
 
-    $this->SetBuffer("listDevices", vtNoString);
-    $this->SetBuffer("groupDevices", vtNoString);
-
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
 
   }
