@@ -1,0 +1,33 @@
+{
+  "translations": {
+    "de": {
+      "On"                                                                                             : "An",
+      "Off"                                                                                            : "Aus",
+      " Active"                                                                                        : " Aktiv",
+      "Connection"                                                                                     : "Verbindung",
+      "Local only"                                                                                     : "Lokal",
+      "Local and Cloud"                                                                                : "Lokal und Cloud",
+      "Update interval [s]"                                                                            : "Aktualisierung [s]",
+      "Serial number"                                                                                  : "Seriennummer",
+      " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" : " Geräte Informationen anzeigen (UUID, Hersteller, Modell, Eigenschaften, ZigBee, Firmware)",
+      "Disabled"                                                                                       : "Inaktiv",
+      "Send buffer"                                                                                    : "Sende Buffer",
+      "Receive buffer"                                                                                 : "Empfangs Buffer",
+      "Send/Receive buffer"                                                                            : "Sende/Empfangs Buffer",
+      "Detailed error log"                                                                             : "Detaillierte Meldungen",
+      " Messages"                                                                                      : "Meldungen",
+      "Register"                                                                                       : "Registrieren",
+      "Press "                                                                                         : "Drücken Sie ",
+      " to enable the cloud access"                                                                    : " , um den Cloud Zugriff zu aktivieren",
+      "Lightify gateway is open"                                                                       : "Lightify gateway ist geöffnet",
+      "Enter all required informations"                                                                : "Die notwendigen Informationen eingeben",
+      "Lightify gateway is not connected"                                                              : "Lightify gateway ist nicht verbunden",
+      "Invalid IP address!"                                                                            : "Ungültige IP Addresse!",
+      "Update interval < 3s"                                                                           : "Aktualisierungs Interval < 3s",
+      "Unknown error"                                                                                  : "Unbekannter Fehler",
+      "Firmware"                                                                                       : "Firmware",
+      "Lightify API registration available in cloud connection mode only!"                             : "Lightify API Registrierung ist nur mit einer Cloud Verbindung verfügbar!",
+      "Authorization code expected!"                                                                   : "Authorisierungs Code erwartet!"
+    }
+  }
+}

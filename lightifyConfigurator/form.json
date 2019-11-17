@@ -1,0 +1,115 @@
+{
+  "elements": [
+    { "type": "RowLayout",
+      "items": [
+        { "type": "PopupButton", "caption": "Options",
+          "popup": { "caption": "Options",
+            "items": [
+              { "type": "CheckBox", "name": "allDevices",   "caption": "Create 'All Devices' switch" },
+              { "type": "List",     "name": "listCategory", "caption": "Category selection", "rowCount": 4,
+                "columns": [
+                  { "caption": "Type",   "name": "itemType",   "width": "80px" },
+                  { "caption": "Target", "name": "Category",   "width": "auto" },
+                  { "caption": "Target", "name": "categoryID", "width": "10px", "visible": false,
+                    "edit": {
+                      "type": "SelectCategory"
+                    }
+                  }
+                ],
+                "values": []
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "actions": [
+    { "type": "Configurator", "name": "Configurator", "caption": "OSRAM Lightify Configurator", "delete": true, "rowCount": 10,
+      "sort": {
+        "column":    "itemID",
+        "direction": "ascending"
+      },
+      "columns": [
+        { "caption": "ID",           "name": "itemID",    "width":  "50px", "visible": false },
+        { "caption": "Type",         "name": "itemType",  "width":  "80px" },
+        { "caption": "Class",        "name": "itemClass", "width":  "80px" },
+        { "caption": "ZLL",          "name": "zigBee",    "width":  "60px" },
+        { "caption": "UUID",         "name": "UUID",      "width": "200px" },
+        { "caption": "Name",         "name": "itemName",  "width": "150px" },
+        { "caption": "Capabilities", "name": "itemLabel", "width": "250px" },
+        { "caption": "Model",        "name": "itemModel", "width": "200px" },
+        { "caption": "Firmware",     "name": "firmware",  "width": "auto"  }
+      ],
+      "values": []
+    },
+    { "type": "RowLayout",
+      "items": [
+        { "type": "PopupButton", "caption": "Add",
+          "popup": { "caption": "Add variable",
+            "items": [
+              { "type": "SelectVariable", "name": "addVariable", "caption": "Add variable" }
+            ]
+          }
+        },
+        { "type": "PopupButton", "caption": "Remove",
+          "popup": { "caption": "Remove Popup",
+            "items": [
+              { "type": "SelectVariable", "name": "removeVariable", "caption": "Remove variable" }
+            ]
+          }
+        },
+        { "type": "PopupButton", "caption": "Rename",
+          "popup": { "caption": "Rename",
+            "items": [
+              { "type": "List", "name": "listElements", "caption": "Select element", "rowCount": 10,
+                "columns": [
+                  { "caption": "Name", "name": "itemName", "width": "auto" }
+                ],
+                "values": []
+              }
+            ]
+          }
+        },
+        { "type": "PopupButton", "name": "popup", "caption": "Groups",
+          "popup": { "caption": "Groups configuration",
+            "items": [
+              { "type": "RowLayout",
+                "items": [
+                  { "type": "ValidationTextBox", "name": "name", "enabled": false, "caption": "Name" },
+                  { "type": "Button", "name": "rename", "enabled": false, "caption": "Rename group", "onClick": "OSR_RenameGroup($id, $listGroups['ID'], $name);" }
+                ]
+              },
+              { "type": "RowLayout",
+                "items": [
+                  { "type": "List", "name": "listGroups", "caption": "Group list", "rowCount": 10,
+                    "columns": [
+                      { "caption": "ID",   "name": "ID",   "width": "0px", "visible": false },
+                      { "caption": "UUID", "name": "UUID", "width": "0px", "visible": false },
+                      { "caption": "Name", "name": "name", "width": "200px", "onClick": "OSR_GetGroupConfiguration($id, $listGroups['UUID'], $listGroups['name']);" }
+                    ],
+                    "values": []
+                  },
+                  { "type": "List", "name": "listDevices", "caption": "Device list", "rowCount": 10, "onEdit": "OSR_SetGroupConfiguration($id, $listGroups['ID'], $listGroups['name'], $listDevices['UUID'], $listDevices['value']);",
+                    "columns": [
+                      { "caption": "UUID", "name": "UUID",  "width": "0px", "visible": false },
+                      { "caption": "Name", "name": "name",  "width": "200px" },
+                      { "caption": "",     "name": "value", "width": "50px",
+                        "edit": {
+                          "type": "CheckBox", "name": "with", "value": false
+                        }
+                      }
+                    ],
+                    "values": []
+                  }
+                ]
+              },
+              { "type": "ProgressBar", "name": "progress", "visible": false, "indeterminate": true, "caption": "Sync in progress, please wait ..." }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+
+}

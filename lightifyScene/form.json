@@ -1,0 +1,16 @@
+{
+  "elements": [
+    { "type": "ValidationTextBox", "name": "itemID",    "enabled": false, "caption": "Scene ID" },
+    { "type": "ValidationTextBox", "name": "itemClass", "enabled": false, "caption": "Class"    },
+    { "type": "ValidationTextBox", "name": "UUID",      "enabled": false, "caption": "UUID"     }
+  ],
+  "actions": [
+    { "type": "Button", "caption": "Apply", "onClick": "OSR_WriteValue($id, 'SCENE', $itemID);" }
+  ],
+  "status": [
+    { "code": 102, "icon": "active",   "caption": "Scene is active"                  },
+    { "code": 104, "icon": "inactive", "caption": "Scene is inactive"                },
+    { "code": 201, "icon": "inactive", "caption": "Lightify socket is not connected" },
+    { "code": 299, "icon": "error",    "caption": "Unknown error"                    }
+  ]
+}

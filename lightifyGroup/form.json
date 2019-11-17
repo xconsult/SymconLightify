@@ -1,0 +1,21 @@
+{
+  "elements": [
+    { "type": "ValidationTextBox", "name": "itemID",    "enabled": false, "caption": "Group ID" },
+    { "type": "ValidationTextBox", "name": "itemClass", "enabled": false, "caption": "Class"    },
+    { "type": "ValidationTextBox", "name": "UUID",      "enabled": false, "caption": "UUID"     }
+  ],
+  "actions": [
+    { "type": "RowLayout",
+      "items": [
+        { "type": "Button", "caption": "On",  "onClick": "OSR_WriteValue($id, 'STATE', true);"  },
+        { "type": "Button", "caption": "Off", "onClick": "OSR_WriteValue($id, 'STATE', false);" }
+      ]
+    }
+  ],
+  "status": [
+    { "code": 102, "icon": "active",   "caption": "Group is active"                  },
+    { "code": 104, "icon": "inactive", "caption": "Group is inactive"                },
+    { "code": 201, "icon": "inactive", "caption": "Lightify socket is not connected" },
+    { "code": 299, "icon": "error",    "caption": "Unknown error"                    }
+  ]
+}

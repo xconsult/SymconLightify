@@ -1,0 +1,40 @@
+{
+  "elements": [
+    { "type": "Select",   "name": "connectMode", "caption": " Connection",
+      "options": [
+        { "caption": "Local only",      "value": 1001 },
+        { "caption": "Local and Cloud", "value": 1002 }
+      ]
+    },
+    { "type": "ValidationTextBox", "name": "serialNumber", "caption": "Serial number" },
+    { "type": "NumberSpinner",     "name": "localUpdate",  "caption": "Update interval [s]", "minimum": 5 },
+    { "type": "Label", "caption": "" },
+    { "type": "CheckBox", "name": "deviceInfo", "caption": " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" },
+    { "type": "Select",   "name": "debug",      "caption": "Debug",
+      "options": [
+        { "caption": "Disabled",            "value":  0 },
+        { "caption": "Send buffer",         "value":  3 },
+        { "caption": "Receive buffer",      "value":  7 },
+        { "caption": "Send/Receive buffer", "value": 13 },
+        { "caption": "Detailed debug log",  "value": 17 }
+      ]
+    }
+  ],
+  "actions": [
+    { "type": "RowLayout",
+      "items": [
+        { "type": "Label",  "caption": "Press " },
+        { "type": "Button", "caption": "Register", "onClick": "echo OSR_LightifyRegister($id);" },
+        { "type": "Label",  "caption": " to enable the cloud access" }
+      ]
+    }
+  ],
+  "status": [
+    { "code": 101, "icon": "inactive", "caption": "Lightify gateway is closed"       },
+    { "code": 102, "icon": "active",   "caption": "Lightify gateway is active"       },
+    { "code": 104, "icon": "inactive", "caption": "Enter all required informations"  },
+    { "code": 201, "icon": "inactive", "caption": "Lightify socket is not connected" },
+    { "code": 203, "icon": "error",    "caption": "Invalid Serial number"            },
+    { "code": 299, "icon": "error",    "caption": "Unknown error"                    }
+  ]
+}
