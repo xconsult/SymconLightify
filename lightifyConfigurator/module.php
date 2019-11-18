@@ -274,6 +274,7 @@ class lightifyConfigurator extends IPSModule
     //IPS_LogMessage("SymconOSR", "<Configurator|Get Gateway devices:data>   ".$data);
 
     $Devices = [];
+    $List = [];
     $data = json_decode($data);
 
     if (is_array($data) && count($data) > 0) {
@@ -441,6 +442,7 @@ class lightifyConfigurator extends IPSModule
     //IPS_LogMessage("SymconOSR", "<Configurator|Get Gateway groups:data>   ".$data);
 
     $Groups = [];
+    $List = [];
     $data = json_decode($data);
 
     if (is_array($data) && count($data) > 0) {
@@ -556,7 +558,6 @@ class lightifyConfigurator extends IPSModule
 
     if (count($buffer) > 0) {
       $Groups = [];
-      $List   = [];
 
       foreach ($buffer as $item) {
         $instanceID = $this->getDeviceInstances(classConstant::MODULE_GROUP, $item['itemClass'], $item['UUID']);

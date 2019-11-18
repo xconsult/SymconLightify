@@ -23,18 +23,9 @@
   "actions": [
     { "type": "RowLayout",
       "items": [
-        { "type": "Label",  "caption": "Press " },
-        { "type": "Button", "caption": "Register", "onClick": "echo OSR_LightifyRegister($id);" },
-        { "type": "Label",  "caption": " to enable the cloud access" }
+        { "type": "Label",  "caption": "To enable the cloud access press " },
+        { "type": "Button", "caption": "Register", "onClick": "echo OSR_LightifyRegister($id);" }
       ]
     }
-  ],
-  "status": [
-    { "code": 101, "icon": "inactive", "caption": "Lightify gateway is closed"       },
-    { "code": 102, "icon": "active",   "caption": "Lightify gateway is active"       },
-    { "code": 104, "icon": "inactive", "caption": "Enter all required informations"  },
-    { "code": 201, "icon": "inactive", "caption": "Lightify socket is not connected" },
-    { "code": 203, "icon": "error",    "caption": "Invalid Serial number"            },
-    { "code": 299, "icon": "error",    "caption": "Unknown error"                    }
   ]
 }

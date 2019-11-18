@@ -145,6 +145,8 @@ class lightifyGateway extends IPSModule
       IPS_SetVariableProfileAssociation("OSR.Scene", 1, $this->Translate("Activate"), vtNoString, 0xFF9200);
     }
 
+    $this->ConnectParent(classConstant::CLIENT_SOCKET);
+
   }
 
 
@@ -155,6 +157,11 @@ class lightifyGateway extends IPSModule
     parent::ApplyChanges();
 
     if (IPS_GetKernelRunlevel() != KR_READY) {
+      return;
+    }
+
+    if (!$this->HasActiveParent()) {
+      echo "Lightify client socket is not connected!";
       return;
     }
 
@@ -174,14 +181,14 @@ class lightifyGateway extends IPSModule
 
     if ($this->ReadPropertyInteger("connect") == classConstant::CONNECT_LOCAL_CLOUD) {
       if (strlen($this->ReadPropertyString("serialNumber")) != self::GATEWAY_SERIAL_LENGTH) {
-        $this->SetStatus(203);
+        echo "Lightify serial number is invalid!";
         return;
       } else {
-        $this->SetStatus(102);
         $this->RegisterOAuth($this->oAuthIdent);
       }
     }
 
+    //Execute
     $this->GetLightifyData(classConstant::METHOD_APPLY_CONFIG);
     $this->SetTimerInterval("timer", $this->ReadPropertyInteger("update")*1000);
 
