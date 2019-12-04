@@ -6,22 +6,6 @@ require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 
 
-define('BODY_CMD_SET',        "/set?idx=");
-define('BODY_CMD_STATE',      "&onoff=");
-define('BODY_CMD_HUE',        "&hue=");
-define('BODY_CMD_COLOR',      "&color=");
-define('BODY_CMD_CTEMP',      "&ctemp=");
-define('BODY_CMD_LEVEL',      "&level=");
-define('BODY_CMD_SATURATION', "&saturation=");
-define('BODY_CMD_TIME',       "&time=0");
-
-define('RESSOURCE_DEVICE',    "/device");
-define('RESSOURCE_GROUP',     "/group");
-
-define('DATA_INDEX_LENGTH',      3);
-define('WAIT_TIME_SEMAPHORE', 1500); //milliseconds
-
-
 trait LightifyControl
 {
 
@@ -29,7 +13,7 @@ trait LightifyControl
   protected $lightifyBase;
   protected $fade = 0;
 
-  use ParentInstance,
+  use InstanceStatus,
       InstanceHelper;
 
 
@@ -41,39 +25,37 @@ trait LightifyControl
   }
 
 
-  private function sendData(int $command, array $buffer = []) : void {
+  private function sendData(int $cmd, array $param = []) : bool {
 
-    //IPS_LogMessage("SymconOSR", "<Lightify|sendData:buffer>   ".json_encode($buffer));
+    //Add Instance id
+    $param['id']  = $this->InstanceID;
 
-    $this->SendDataToParent(json_encode([
+    $result = $this->SendDataToParent(json_encode([
       'DataID' => classConstant::TX_GATEWAY,
-      'method' => $command,
-      'buffer' => json_encode($buffer)])
+      'method' => $cmd,
+      'buffer' => json_encode($param)])
     );
+
+    //IPS_LogMessage("SymconOSR", "<Devices|Send data:result>   ".IPS_GetName($this->InstanceID)."|".$result);
+    return (bool)$result;
 
   }
 
 
   public function RequestAction($Ident, $Value) {
 
-    $key   = $Ident;
+    $key   = (string)$Ident;
     $value = (int)$Value;
 
-    switch ($key) {
+    switch ($Ident) {
       case "ALL_DEVICES":
-        $value = $value;
-        break;
-
+      case "SAVE":
       case "SCENE":
-        $value = $this->ReadPropertyInteger("groupID");
-        break;
-
       case "STATE":
       case "COLOR":
       case "COLOR_TEMPERATURE":
       case "LEVEL":
       case "SATURATION":
-        $value = $value;
         break;
     }
 
@@ -83,434 +65,294 @@ trait LightifyControl
 
   public function WriteValue(string $key, int $value) : bool {
 
-    if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
-      if (IPS_GetProperty($parentID, "active")) {
-        $uintUUID = $this->ReadPropertyString("uintUUID");
-        $key      = strtoupper($key);
+    if (!$this->HasActiveParent()) {
+      return false;
+    }
 
-        if (!in_array($key, explode(",", classConstant::WRITE_KEY_VALUES))) {
-          return false;
-        }
+    //Validate key
+    $key = strtoupper($key);
 
-        $waitResult = @IPS_GetProperty($parentID, "waitResult");
-        $itemClass  = $this->ReadPropertyInteger("itemClass");
-        $classType  = $this->ReadPropertyInteger("classType");
+    if (!in_array($key, explode(",", classConstant::WRITE_KEY_VALUES))) {
+      return false;
+    }
 
-        $classLight  = ($itemClass == classConstant::CLASS_LIGHTIFY_LIGHT) ? true : false;
-        $classPlug   = ($itemClass == classConstant::CLASS_LIGHTIFY_PLUG) ? true : false;
-        $classMotion = ($itemClass == classConstant::CLASS_LIGHTIFY_SENSOR) ? true : false;
-        $classGroup  = ($itemClass == classConstant::CLASS_LIGHTIFY_GROUP) ? true : false;
-        $classScene  = ($itemClass == classConstant::CLASS_LIGHTIFY_SCENE) ? true : false;
-
-        $deviceRGB  = ($classType & 8) ? true: false;
-        $deviceCCT  = ($classType & 2) ? true: false;
-        $deviceCLR  = ($classType & 4) ? true: false;
-
-        if ($classLight || $classMotion || $classPlug) {
-          $flag     = chr(0x00);
-          $onlineID = @$this->GetIDForIdent("ONLINE");
-          $online   = ($onlineID) ? GetValueBoolean($onlineID) : false;
-        }
-
-        if ($classGroup || $classScene) {
-          $flag     = chr(0x02);
-          $uintUUID = str_pad(substr($uintUUID, 0, 1), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
-          $online   = false;
-
-          if ($classGroup) {
-            $this->fade = classConstant::TIME_MIN;
+    switch($key) {
+      case "ALL_DEVICES":
+        if ($value == 0  || $value == 1) {
+          if (0 < ($stateID = @$this->GetIDForIdent("ALL_DEVICES"))) {
+            $param = [
+              'flag'  => chr(0x00),
+              'args'  => utf8_encode(str_repeat(chr(0xff), 8).chr($value)),
+              'value' => $value
+            ];
+            IPS_LogMessage("SymconOSR", "<Control|Write value:buffer>   ".json_encode($param));
+            return $this->sendData(classConstant::SET_ALL_DEVICES, $param);
           }
         }
+        return false;
 
-        if ($classLight || $classMotion || $classPlug || $classGroup) {
-          $stateID = @$this->GetIDForIdent("STATE");
-          $state   = ($stateID) ? GetValueBoolean($stateID) : false;
+      case "SCENE":
+        $param = [
+          'flag'  => chr(0x02),
+          'args'  => utf8_encode(chr($value)),
+          'value' => vtNoValue
+        ];
+        return $this->sendData(classCommand::ACTIVATE_GROUP_SCENE, $param);
+    }
 
-          if ($classLight) {
-            if (!$this->fade) {
-              //$this->fade = IPS_GetProperty($this->InstanceID, "transition")*10;
-              //$this->fade = $this->ReadPropertyFloat("transition")*10;
-            }
-          }
-        }
+    //Get UUID
+    $UUID = $this->ReadPropertyString("UUID");
 
-        switch($key) {
-          case "ALL_DEVICES":
-            if ($value == 0  || $value == 1) {
-              $stateID = @$this->GetIDForIdent("ALL_DEVICES");
+    //Get class
+    $class  = $this->ReadPropertyString("itemClass");
+    $Light  = ($class == "Light") ? true : false;
+    $Plug   = ($class == "Plug") ? true : false;
+    $Motion = ($class == "Sensor") ? true : false;
+    $Group  = ($class == "Group") ? true : false;
 
-              $args = [
-                'stateID' => $stateID,
-                'state'   => $value
-              ];
-              $this->sendData(classConstant::SET_ALL_DEVICES, $args);
+    $type = $this->ReadPropertyInteger("classType");
+    $RGB  = ($type & 8) ? true: false;
+    $CCT  = ($type & 2) ? true: false;
+    $CLR  = ($type & 4) ? true: false;
 
-              if ($stateID) {
-                SetValue($stateID, (bool)$value);
-              }
+    if ($Light || $Plug || $Motion) {
+      $flag = 0;
+      $UUID = $this->lightifyBase->UUIDtoChr($this->ReadPropertyString("UUID"));
 
-              return true;
-            }
-            return false;
+      $onlineID = @$this->GetIDForIdent("ONLINE");
+      $online   = ($onlineID) ? GetValueBoolean($onlineID) : false;
+    } else {
+      $flag = 2;
+      $itemID = $this->ReadPropertyInteger("itemID")-classConstant::GROUP_ITEM_INDEX;
+      $UUID   = str_pad(chr($itemID), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
+      //$UUID   = chr($itemID);
+      $online = true;
+    }
 
-          case "SAVE":
-            if ($classLight) {
-              if ($value == 1) {
-                $args = [
-                  'ID'   => $this->InstanceID,
-                  'UUID' => utf8_encode($uintUUID)
-                ];
+    $stateID = @$this->GetIDForIdent("STATE");
+    $state   = ($stateID) ? GetValueBoolean($stateID) : false;
+    $this->fade = classConstant::TIME_MIN;
 
-                $this->sendData(classConstant::SAVE_LIGHT_STATE, $args);
-                return true;
-              }
-            }
-            return false;
-
-          case "SCENE":
-            if ($classScene) {
-              if (is_int($value)) {
-                $this->sendData(classConstant::ACTIVATE_GROUP_SCENE, ['sceneID' => $value]);
-                return true;
-              }
-            }
-            return false;
-
-          case "DEFAULT":
-            if ($value == 1) {
-              //Reset light to default values
-              if (($deviceRGB && $online) || $classGroup) {
-                $hueID   = @$this->GetIDForIdent("HUE");
-                $colorID = @$this->GetIDForIdent("COLOR");
-
-                if ($hueID && $colorID) {
-                  $saturationID = @$this->GetIDForIdent("SATURATION");
-
-                  if ($saturationID) {
-                    $hsv = $this->lightifyBase->HEX2HSV(classConstant::COLOR_MIN);
-
-                    $args = [
-                      'hueID'        => $hueID,
-                      'colorID'      => $colorID,
-                      'saturationID' => $saturationID,
-                      'UUID'         => utf8_encode($uintUUID),
-                      'flag'         => $flag,
-                      'color'        => $value,
-                      'hex'          => classConstant::COLOR_MIN,
-                      'hsv'          => $hsv,
-                      'fade'         => $this->fade
-                    ];
-                    $this->sendData(classConstant::SET_COLOR, $args);
-                  }
-                }
-              }
-
-              if (($deviceCCT && $online) || $classGroup) {
-                $temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
-
-                if ($temperatureID) {
-                  $args = [
-                    'temperatureID' => $temperatureID,
-                    'UUID'          => utf8_encode($uintUUID),
-                    'flag'          => $flag,
-                    'temperature'   => classConstant::CTEMP_CCT_MIN,
-                    'fade'          => $this->fade
-                  ];
-                  $this->sendData(classConstant::SET_COLOR_TEMPERATURE, $args);
-                }
-              }
-
-              if (($classLight && $online) || $classGroup) {
-                $levelID = @$this->GetIDForIdent("LEVEL");
-
-                if ($levelID) {
-                  $level = GetValueInteger($levelID);
-
-                  $args = [
-                    'stateID' => $stateID,
-                    'levelID' => $levelID,
-                    'light'   => $classLight,
-                    'UUID'    => utf8_encode($uintUUID),
-                    'flag'    => $flag,
-                    'state'   => $state,
-                    'level'   => classConstant::LEVEL_MAX,
-                    'fade'    => $this->fade
-                  ];
-                  $this->sendData(classConstant::SET_LEVEL, $args);
-                }
-              }
-
-              if ($classLight) {
-                //Set Soft Mode on
-                $args = [
-                  'UUID' => utf8_encode($uintUUID),
-                  'flag' => chr(0x00),
-                  'mode' => classConstant::SET_SOFT_ON,
-                  'time' => classConstant::TIME_MIN
-                ];
-                $this->sendData(classConstant::SET_SOFT_TIME, $args);
-
-                //Set Soft Mode off
-                $args = [
-                  'UUID' => utf8_encode($uintUUID),
-                  'flag' => chr(0x00),
-                  'mode' => classConstant::SET_SOFT_OFF,
-                  'time' => classConstant::TIME_MIN
-                ];
-                $this->sendData(classConstant::SET_SOFT_TIME, $args);
-
-                //Reset transition time
-                $this->SetBuffer("applyMode", 0);
-                IPS_SetProperty($this->InstanceID, "transition", classConstant::TIME_MIN);
-                IPS_ApplyChanges($this->InstanceID);
-              }
-              return true;
-            }
-            return false;
-
-          case "SOFT_ON":
-            $mode = classConstant::SET_SOFT_ON;
-
-          case "SOFT_OFF":
-            if (!isset($mode)) $mode = classConstant::SET_SOFT_OFF;
-
-          case "TRANSITION":
-            if ($classLight) {
-              if (!isset($mode)) {
-                if ($this->ReadPropertyInteger("transition") != $value) {
-                  $this->SetBuffer("applyMode", 0);
-                  IPS_SetProperty($this->InstanceID, "transition", $value);
-                  IPS_ApplyChanges($this->InstanceID);
-                }
-                return true;
-              } else {
-                $args = [
-                  'UUID' => utf8_encode($uintUUID),
-                  'flag' => chr(0x00),
-                  'mode' => $mode,
-                  'time' => $value
-                ];
-                $this->sendData(classConstant::SET_SOFT_TIME, $args);
-              }
-              return true;
-            }
-            return false;
-
-          case "RELAX":
-            $temperature = classConstant::SCENE_RELAX;
-
-          case "ACTIVE":
-            if (($classLight && $online) || $classGroup) {
-              $temperature = (isset($temperature)) ? $temperature : classConstant::SCENE_ACTIVE;
-
-              if ($value == 1) {
-                  //if (false !== ($result = $lightifyConnect->setColorTemperature($uintUUID, $flag, $temperature))) {
-                    return true;
-                  //}
-              }
-            }
-            return false;
-
-          case "PLANT_LIGHT":
-            if (($classLight && $online) || $classGroup) {
-              if ($value == 1) {
-                  //if (false !== ($result = $lightifyConnect->setColor($uintUUID, $flag, $this->lightifyBase->HEX2RGB(classConstant::SCENE_PLANT_LIGHT)))) {
-                    return true;
-                  //}
-              }
-            }
-            return false;
-
-          case "LIGHTIFY_LOOP":
-            if (($deviceRGB && $online) || $classGroup) {
-              if ($value == 0 || $value == 1) {
-                  //if (false !== ($result = $lightifyConnect->sceneLightifyLoop($uintUUID, $flag, $value, 3268))){
-                    return true;
-                  //}
-              }
-            }
-            return false;
-
-          case "STATE":
-            if ((($classLight || $classMotion || $classPlug) && $online) || $classGroup) {
-              if ($stateID && $value == 0 || $value == 1) {
-                $args = [
-                  'stateID' => $stateID,
-                  'UUID'    => utf8_encode($uintUUID),
-                  'flag'    => $flag,
-                  'state'   => $value
-                ];
-                $this->sendData(classConstant::SET_STATE, $args);
-
-                if (!$waitResult && $stateID) {
-                  SetValue($stateID, (bool)$value);
-                }
-
-                return true;
-              }
-            }
-            return false;
-
-          case "COLOR":
-            if (($deviceRGB && $online) || $classGroup) {
-              $hueID   = @$this->GetIDForIdent("HUE");
-              $colorID = @$this->GetIDForIdent("COLOR");
-
-              if ($hueID && $colorID) {
-                $saturationID = @$this->GetIDForIdent("SATURATION");
-
-                if ($saturationID && $value != GetValueInteger($colorID)) {
-                  $hex = str_pad(dechex($value), 6, "0", STR_PAD_LEFT);
-                  $hsv = $this->lightifyBase->HEX2HSV($hex);
-
-                  $args = [
-                    'hueID'        => $hueID,
-                    'colorID'      => $colorID,
-                    'saturationID' => $saturationID,
-                    'UUID'         => utf8_encode($uintUUID),
-                    'flag'         => $flag,
-                    'color'        => $value,
-                    'hex'          => $hex,
-                    'hsv'          => $hsv,
-                    'fade'         => $this->fade
-                  ];
-                  $this->sendData(classConstant::SET_COLOR, $args);
-
-                  if (!$waitResult) {
-                    if ($hueID && GetValue($hueID) != $hsv['h']) {
-                      SetValue($hueID, $hsv['h']);
-                    }
-
-                    if (GetValue($saturationID) != $hsv['s']) {
-                      SetValue($saturationID, $hsv['s']);
-                    }
-
-                    SetValue($colorID, $value);
-                  }
-                }
-
-                return true;
-              }
-            }
-            return false;
-
-          case "COLOR_TEMPERATURE":
-            if (($deviceCCT && $online) || $classGroup) {
-              $temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
-
-              if ($temperatureID) {
-                $temperature = GetValueInteger($temperatureID);
-
-                if ($value != $temperature) {
-                  $args = [
-                    'temperatureID' => $temperatureID,
-                    'UUID'          => utf8_encode($uintUUID),
-                    'flag'          => $flag,
-                    'temperature'   => $value,
-                    'fade'          => $this->fade
-                  ];
-                  $this->sendData(classConstant::SET_COLOR_TEMPERATURE, $args);
-
-                  if (!$waitResult) {
-                    SetValue($temperatureID, $value);
-                  }
-
-                  return true;
-                }
-              }
-            }
-            return false;
-
-          case "LEVEL":
-            if (($classLight && $online) || $classGroup) {
-              $levelID = @$this->GetIDForIdent("LEVEL");
-
-              if ($levelID) {
-                $level = GetValueInteger($levelID);
-
-                if ($value != $level) {
-                  $args = [
-                    'stateID' => $stateID,
-                    'levelID' => $levelID,
-                    'light'   => ($classLight) ? true : false,
-                    'UUID'    => utf8_encode($uintUUID),
-                    'flag'    => $flag,
-                    'state'   => $state,
-                    'level'   => $value,
-                    'fade'    => $this->fade
-                  ];
-                  $this->sendData(classConstant::SET_LEVEL, $args);
-
-                  if (!$waitResult) {
-                    if ($classLight && $stateID) {
-                      if ($value == 0) {
-                        SetValue($stateID, false);
-                      } else {
-                        SetValue($stateID, true);
-                      }
-                    }
-
-                    SetValue($levelID, $value);
-                  }
-
-                  return true;
-                }
-              }
-            }
-            return false;
-
-          case "SATURATION":
-            if (($deviceRGB && $online) || $classGroup) {
-              $saturationID = @$this->GetIDForIdent("SATURATION");
-              $saturationID = ($classLight && $saturationID) ? $saturationID : false;
-
-              if ($saturationID) {
-                $saturation = GetValueInteger($saturationID);
-                $colorID    = @$this->GetIDForIdent("COLOR");
-                $colorID    = ($deviceRGB && $colorID) ? $colorID : false;
-
-                if ($colorID && $value != $saturation) {
-                  $hueID = @$this->GetIDForIdent("HUE");
-
-                  if ($hueID) {
-                    $hex   = $this->lightifyBase->HSV2HEX(GetValueInteger($hueID), $value, 100);
-                    $color = hexdec($hex);
-
-                    $args = [
-                      'saturationID' => $saturationID,
-                      'colorID'      => $colorID,
-                      'UUID'         => utf8_encode($uintUUID),
-                      'flag'         => $flag,
-                      'color'        => $color,
-                      'hex'          => $hex,
-                      'saturation'   => $value,
-                      'fade'         => $this->fade
-                    ];
-                    $this->sendData(classConstant::SET_SATURATION, $args);
-
-                    if (!$waitResult) {
-                      if ($classLight) {
-                        SetValue($saturationID, $value);
-                      }
-
-                      if ($deviceRGB && GetValue($colorID) != $color) {
-                        SetValue($colorID, $color);
-                      }
-                    }
-
-                    return true;
-                  }
-                }
-              }
-            }
-            return false;
-        }
-
-        return true;
+    if ($Light) {
+      if (!$this->fade) {
+        //$this->fade = IPS_GetProperty($this->InstanceID, "transition")*10;
+        //$this->fade = $this->ReadPropertyFloat("transition")*10;
       }
     }
 
-    return false;
+    switch($key) {
+      case "SAVE":
+        if ($Light) {
+          if ($value == 1) {
+            $param = [
+              'flag'  => $flag,
+              'args'  => utf8_encode($UUID.chr(0x00)),
+              'value' => vtNoValue
+            ];
+            return $this->sendData(classCommand::SAVE_LIGHT_STATE, $param);
+          }
+        }
+        return false;
+
+      case "SOFT_ON":
+        $cmd = classCommand::SET_LIGHT_SOFT_ON;
+
+      case "SOFT_OFF":
+        if (!isset($cmd)) {
+          $cmd = classCommand::SET_LIGHT_SOFT_OFF;
+        }
+
+      case "FADE":
+        if ($Light) {
+          if (!isset($cmd)) {
+            if ($this->ReadAttributeInteger("fade") != $value) {
+              $this->WriteAttributeInteger("fade", $value);
+            }
+            return true;
+          } else {
+            $param = [
+              'flag'  => $flag,
+              'args'  => utf8_encode($UUID.chr($value).chr(0x00)),
+              'value' => vtNoValue
+            ];
+            return $this->sendData($cmd, $param);
+
+          }
+        }
+        return false;
+
+      case "LIGHTIFY_LOOP":
+        if ($online && ($RGB || $Group)) {
+          if ($value == 0 || $value == 1) {
+            return true;
+          }
+        }
+        return false;
+
+      case "STATE":
+        if ($online && $stateID && ($value == 0 || $value == 1)) {
+          $param = [
+            'flag'  => $flag,
+            'args'  => utf8_encode($UUID.chr($value)),
+            'value' => $value
+          ];
+
+          $cmd = ($Group) ? classConstant::SET_GROUP_STATE : classCommand::SET_DEVICE_STATE;
+          return $this->sendData($cmd, $param);
+        }
+        return false;
+
+      case "PLANT_LIGHT":
+        $value = classConstant::SCENE_PLANT_LIGHT;
+
+      case "COLOR":
+        if ($online && ($RGB || $Group)) {
+          $hueID   = @$this->GetIDForIdent("HUE");
+          $colorID = @$this->GetIDForIdent("COLOR");
+
+          if ($hueID && $colorID) {
+            $saturationID = @$this->GetIDForIdent("SATURATION");
+
+            if ($saturationID && $value != GetValueInteger($colorID)) {
+              $hex = str_pad(dechex($value), 6, "0", STR_PAD_LEFT);
+              $hsv = $this->lightifyBase->HEX2HSV($hex);
+              $rgb = $this->lightifyBase->HEX2RGB($hex);
+
+              $param = [
+                'flag'  => $flag,
+                'args'  => utf8_encode($UUID.chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0xff).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
+                'value' => vtNoValue
+              ];
+              $result = $this->sendData(classCommand::SET_LIGHT_COLOR, $param);
+
+              if ($result) {
+                if ($hueID && GetValue($hueID) != $hsv['h']) {
+                  SetValue($hueID, $hsv['h']);
+                }
+
+                if (GetValue($saturationID) != $hsv['s']) {
+                  SetValue($saturationID, $hsv['s']);
+                }
+                SetValue($colorID, $value);
+              }
+              return $result;
+            }
+          }
+        }
+        return false;
+
+      case "RELAX":
+        $value = classConstant::SCENE_RELAX;
+
+      case "ACTIVE":
+        if (!isset($value)) {
+          $value = classConstant::SCENE_ACTIVE;
+        }
+
+      case "COLOR_TEMPERATURE":
+        if ($online && ($CCT || $Group)) {
+          $temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
+
+          if ($temperatureID) {
+            $temperature = GetValueInteger($temperatureID);
+
+            if ($value != $temperature) {
+              $hex = dechex($value);
+
+              if (strlen($hex) < 4) {
+                $hex = str_repeat("0", 4-strlen($hex)).$hex;
+              }
+
+              $param = [
+                'flag'  => $flag,
+                'args'  => utf8_encode($UUID.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
+                'value' => vtNoValue
+              ];
+              $result = $this->sendData(classCommand::SET_COLOR_TEMPERATURE, $param);
+
+              if ($result) {
+                SetValue($temperatureID, $value);
+              }
+              return $result;
+            }
+          }
+        }
+        return false;
+
+      case "LEVEL":
+        if ($online) {
+          $levelID = @$this->GetIDForIdent("LEVEL");
+
+          if ($levelID) {
+            $level = GetValueInteger($levelID);
+
+            if ($value != $level) {
+              $param = [
+                'flag'  => $flag,
+                'args'  => utf8_encode($UUID.chr((int)$value).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
+                'value' => $value
+              ];
+              $result = $this->sendData(classCommand::SET_LIGHT_LEVEL, $param);
+
+              if ($result) {
+                if ($Light && $stateID) {
+                  if ($value == 0) {
+                    SetValue($stateID, false);
+                  } else {
+                    SetValue($stateID, true);
+                  }
+                }
+                SetValue($levelID, $value);
+              }
+              return $result;
+            }
+          }
+        }
+        return false;
+
+      case "SATURATION":
+        if ($online && ($RGB || $Group)) {
+          $saturationID = @$this->GetIDForIdent("SATURATION");
+          $saturationID = ($Light && $saturationID) ? $saturationID : false;
+
+          if ($saturationID) {
+            $saturation = GetValueInteger($saturationID);
+            $colorID    = @$this->GetIDForIdent("COLOR");
+            $colorID    = ($RGB && $colorID) ? $colorID : false;
+
+            if ($colorID && $value != $saturation) {
+              $hueID = @$this->GetIDForIdent("HUE");
+
+              if ($hueID) {
+                $hex   = $this->lightifyBase->HSV2HEX(GetValueInteger($hueID), $value, 100);
+                $color = hexdec($hex);
+                $rgb   = $this->lightifyBase->HEX2RGB($hex);
+
+                $param = [
+                  'flag'  => $flag,
+                  'args'  => utf8_encode($UUID.chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0x00).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
+                  'value' => vtNoValue
+                ];
+                $result = $this->sendData(classCommand::SET_LIGHT_SATURATION, $param);
+
+                if ($result) {
+                  if ($Light) {
+                    SetValue($saturationID, $value);
+                  }
+
+                  if ($RGB && GetValue($colorID) != $color) {
+                    SetValue($colorID, $color);
+                  }
+                  return $result;
+                }
+              }
+            }
+          }
+        }
+        return false;
+    }
+
+    return true;
 
   }
 
@@ -526,61 +368,59 @@ trait LightifyControl
   public function ReadValue(string $key)
   {
 
-    $key = strtoupper($key);
-    $key = ($key == "BRIGHTNESS") ? "LEVEL" : $key;
-
-    return $this->GetValue($key);
+    return $this->GetValue(strtoupper($key));
 
   }
 
 
   public function SetState(bool $state) : bool {
 
-    return $this->WriteValue("STATE", (int)$state);
+    $stateID = @$this->GetIDForIdent("STATE");
+    $allID   = @$this->GetIDForIdent("ALL_DEVICES");
+
+    if ($stateID || $allID) {
+      $key = ($stateID) ? "STATE" : "ALL_DEVICES";
+      return $this->WriteValue($key, (int)$state);
+    }
+
+    return false;
 
   }
 
 
   public function WriteName(string $name) : bool {
 
-    if (0 < ($parentID = $this->getParentInfo($this->InstanceID))) {
-      if (IPS_GetProperty($parentID, "active")) {
-        $itemClass = $this->ReadPropertyInteger("itemClass");
-        $name      = substr(trim($name), 0, classConstant::DATA_NAME_LENGTH);
-
-        if ($itemClass == classConstant::CLASS_LIGHTIFY_LIGHT || $itemClass == classConstant::CLASS_LIGHTIFY_PLUG || $itemClass == classConstant::CLASS_LIGHTIFY_SENSOR) {
-          $flag     = chr(0x00);
-          $command  = classConstant::SET_DEVICE_NAME;
-          $uintUUID = $this->ReadPropertyString("uintUUID");
-        }
-
-        if ($itemClass == classConstant::CLASS_LIGHTIFY_GROUP) {
-          $flag = chr(0x02);
-          $command  = classConstant::SET_GROUP_NAME;
-          $uintUUID = chr(hexdec($this->ReadPropertyInteger("groupID"))).chr(0x00);
-        }
-
-        //Forward data to splitter
-        $args = [
-          'id'   => $this->InstanceID,
-          'UUID' => utf8_encode($uintUUID),
-          'flag' => $flag,
-          'name' => $name
-        ];
-
-        $this->sendData($command, $args);
-        $waitResult = @IPS_GetProperty($parentID, "waitResult");
-
-        if (!$waitResult) {
-          if (IPS_GetName($this->InstanceID) != $name) {
-            IPS_SetName($this->InstanceID, (string)$name);
-          }
-        }
-        return true;
-      }
+    if (!$this->HasActiveParent()) {
+      return false;
     }
 
-    return false;
+    $class = $this->ReadPropertyString("itemClass");
+    $name = substr(trim($name), 0, classConstant::DATA_NAME_LENGTH);
+
+    if ($class == "Light" || $class == "Plug" || $class == "Sensor") {
+      $cmd = classCommand::SET_DEVICE_NAME;
+      $flag = chr(0x00);
+      $UUID = utf8_encode($this->lightifyBase->UUIDtoChr($this->ReadPropertyString("UUID")));
+    }
+    elseif ($class == "Group") {
+      $cmd = classCommand::SET_GROUP_NAME;
+      $flag = chr(0x02);
+      $UUID = utf8_encode(chr($this->ReadPropertyInteger("itemID")-classConstant::GROUP_ITEM_INDEX).chr(0x00));
+    }
+
+    //Forward data to splitter
+    $param = [
+      'flag'  => $flag,
+      'args'  => utf8_decode(($UUID).str_pad($name, classConstant::DATA_NAME_LENGTH).chr(0x00)),
+      'value' => vtNoValue
+    ];
+    $this->sendData($cmd, $param);
+
+    if (IPS_GetName($this->InstanceID) != $name) {
+      IPS_SetName($this->InstanceID, $name);
+    }
+
+    return true;
 
   }
 

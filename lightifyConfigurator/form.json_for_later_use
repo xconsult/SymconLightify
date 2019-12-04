@@ -1,0 +1,98 @@
+{
+  "elements": [
+    { "type": "List", "name": "listLocations", "caption": "Location selection", "rowCount": 4,
+      "columns": [
+        { "caption": "Type",     "name": "class", "width": "80px" },
+        { "caption": "Location", "name": "name",  "width": "auto" },
+        { "caption": "ID",       "name": "ID",    "width": "10px", "visible": false,
+          "edit": {
+            "type": "SelectCategory"
+          }
+        }
+      ],
+      "values": []
+    }
+  ],
+  "actions": [
+    { "type": "Configurator", "name": "Lightify", "caption": "OSRAM Lightify Configurator", "delete": true, "rowCount": 10,
+      "sort": {
+        "column":    "itemID",
+        "direction": "ascending"
+      },
+      "columns": [
+        { "caption": "ID",           "name": "itemID",    "width":  "50px", "visible": false },
+        { "caption": "Type",         "name": "itemType",  "width":  "80px" },
+        { "caption": "Class",        "name": "itemClass", "width":  "80px" },
+        { "caption": "ZLL",          "name": "zigBee",    "width":  "60px" },
+        { "caption": "UUID",         "name": "UUID",      "width": "200px" },
+        { "caption": "Name",         "name": "itemName",  "width": "150px" },
+        { "caption": "Capabilities", "name": "itemLabel", "width": "250px" },
+        { "caption": "Model",        "name": "itemModel", "width": "200px" },
+        { "caption": "Firmware",     "name": "firmware",  "width": "auto"  }
+      ],
+      "values": []
+    },
+    { "type": "RowLayout",
+      "items": [
+        { "type": "PopupButton", "caption": "Options", "onClick": "echo 'https://www.symcon.de';",
+          "popup": { "caption": "Options",
+            "items": [
+              { "type": "List", "name": "listLocations", "caption": "Category selection", "rowCount": 4, "onEdit": "OSR_SetLocations($id, $Lightify, $listLocations);",
+                "columns": [
+                  { "caption": "Type",   "name": "class", "width": "80px" },
+                  { "caption": "Target", "name": "name",  "width": "auto" },
+                  { "caption": "Target", "name": "ID",    "width": "10px", "visible": false,
+                    "edit": {
+                      "type": "SelectCategory"
+                    }
+                  }
+                ],
+                "values": []
+              }
+            ]
+          }
+        },
+        { "type": "PopupButton", "caption": "Groups",
+          "popup": { "caption": "Groups configuration",
+            "items": [
+              { "type": "RowLayout",
+                "items": [
+                  { "type": "ValidationTextBox", "name": "name", "enabled": false, "caption": "Name" },
+                  { "type": "Button", "name": "rename", "enabled": false, "caption": "Rename group", "onClick": "OSR_RenameGroup($id, $listGroups['ID'], $name);" }
+                ]
+              },
+              { "type": "RowLayout",
+                "items": [
+                  { "type": "List", "name": "listGroups", "caption": "Group list", "rowCount": 10,
+                    "columns": [
+                      { "caption": "ID",   "name": "ID",   "width": "0px", "visible": false },
+                      { "caption": "UUID", "name": "UUID", "width": "0px", "visible": false },
+                      { "caption": "Name", "name": "name", "width": "200px", "onClick": "OSR_GetGroupConfiguration($id, $listGroups['UUID'], $listGroups['name']);" }
+                    ],
+                    "values": []
+                  },
+                  { "type": "List", "name": "listDevices", "caption": "Device list", "rowCount": 10, "onEdit": "OSR_SetGroupConfiguration($id, $listGroups['ID'], $listGroups['name'], $listDevices['UUID'], $listDevices['value']);",
+                    "columns": [
+                      { "caption": "UUID", "name": "UUID",  "width": "0px", "visible": false },
+                      { "caption": "Name", "name": "name",  "width": "200px" },
+                      { "caption": "",     "name": "value", "width": "50px",
+                        "edit": {
+                          "type": "CheckBox", "value": false
+                        }
+                      }
+                    ],
+                    "values": []
+                  }
+                ]
+              },
+              { "type": "Label",       "name": "message",  "visible": false, "caption": "" },
+              { "type": "ProgressBar", "name": "progress", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." }
+            ]
+          }
+        },
+        { "type": "Image", "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAAATgAAAAAAAACQAAAAAQAAAJAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAECgAwAEAAAAAQAAAEAAAAAAlNz6EQAAAAlwSFlzAAAWJQAAFiUBSVIk8AAABKxJREFUeAHtWW2IFVUYfs6ZcfeuNzTJin6FGIWymz+CZTNKKwokCMz8TKP+uChZIKI/CooKIQhBgiRQN9lgpQ3a7EcKSv6JPtYybfvQEoVQ0S0l1HbdnXNO73su967Y7CzbOu+dmHm5c2fuOWfmvM/zfpx3zlWOBDkWnWPsHnpBQOEBOWegCIGcOwAKDyg8IOcMFCGQcwcokmAo5QHODgNX/gD43at8C1TQKDV14jxiOcCe/Rr2/TlwHXSc2peolGSnmAdoMwAM9EMZcoLhy5IYE+cS8wBA+Q+fnKKvjIgYAc5Wwp9xZwc+BFcBRk35j3Ng0h4UJ0sXDfJQERHzAA+evYBzQAI08807sNtaYD96ClFflycjYfiEu8QI4K1Hxcjp8OdRVFfl24GGEvDbHqjuFTAfPAJz7vAooyfeLEYAq8rAk8DzmKDlGaj2H4DVP8M98CLU71/CdT0Bc7aXu2+4iBGgffofOwGaUweBL94GwhL041thF3ZCXToPfPo87OBf/18CfOavhgDlgjjx3QPnYb7iPDAH9qduBM0rYeduoOLpR5iju+Jum1CbmAcwOJ/9KAkmiZ61BPqlY8C9K4Ce5+D+PI6gbT301KnQfbtpBRmFvaSHJvSJEcA6VOPfk3GdUtwWMcAdj8H98jG5/xagdDPc4R1Q5dvgbr0HONML93f/dXdO7KdYKcxqMsi4Iojbzfe7EOxZDT04BGMuQDUvh1qwjbJiULmnbSPsuSMIJ5X5UTdMxAjgZdBFRACHgB3xAQ/+uw6oT9ZQjTAEWyrB3b/BV2hq1pM1oMHsRdB0xBFYG/QfLlIJAUtxGp04gOjXfSNFT8NNZGbyAnortg1TvKoczebb7VA97VBDV+Eo89uFO2kpJOvHgIlrixk2riaVxp+j0elDUO+2QpGl3YK3oB/aCC5x7aHtwPAV6Na1UJMmw/S+R5ZfB22or6EJ9umdCFuWxYIfF6pxDE4lBFTjFKimadCXL8B9tgmWAKqHX0bYusar5t2ewOueFwh8BNPYBLe4A2HzUlHwrEwqIaCn3w277EOYybTzQ36u974Ce+B11Baw4UGozzdDD0RwjWW4pZ11AZ8aARyrwV2Pwq7shi1P9yQEe1+F3f9GZSUIaTusbR3MzAdhl3chpORWL0klB1TBsKtHJw9Cdy5BcKmfwGu4Z3dDtyz2RHA/k5VGcqvqMNY5lRCoTsrAwhnz4VaRJ5Sm0RJIQbD/Tf+Ky308eT3Bs56pEsATMMBgxjxa29srdcDpPpgzR7krE5I6AYzSW3vm/ArdQxb64slMgGclRAjgiZwK+ORF2dp6UG2q21mMAN4I5CXRl8J1g/vvieUI4DjgtM/Gd/wjGyJGgH8VZgL4yJCIEVBb8Mj4WeJAjoCq9bOEnjxRjgC2O4P3OSA7MSBIAIGuWj/pryFhbmQJIOvznqaqewE8wrIoAX5Dl0MgQyJKQIZw11RJZUeo9vRrL7j8vUoNflN0jD8Hrr0v5WsxAtwds+EWvUargIW6877MZIFUN0TijMcLQXYKYdE6oEJHlsCzRrlPggUBFcfM73fhAfm1fQV54QGFB+ScgSIEcu4ARSWY+xD4B4GCejPhFTRlAAAAAElFTkSuQmCC" }
+      ]
+    }
+  ]
+
+}

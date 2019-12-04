@@ -25,25 +25,27 @@ class classCommand
   # DB Set light soft on
   # DC Set light soft off
 
-  const GET_DEVICE_LIST       = 0x13;
-  const GET_GROUP_LIST        = 0x1E;
-  const ADD_DEVICE_TO_GROUP   = 0x20;
-  const DEL_DEVICE_FROM_GROUP = 0x21;
-  const GET_GROUP_INFO        = 0x26;
-  const SET_GROUP_NAME        = 0x27;
-  const SET_DEVICE_NAME       = 0x28;
-  const SET_LIGHT_LEVEL       = 0x31;
-  const SET_DEVICE_STATE      = 0x32;
-  const SET_COLOR_TEMPERATURE = 0x33;
-  const SET_LIGHT_COLOR       = 0x36;
-  const SAVE_LIGHT_STATE      = 0x38;
-  const ACTIVATE_GROUP_SCENE  = 0x52;
-  const GET_DEVICE_INFO       = 0x68;
-  const GET_GATEWAY_FIRMWARE  = 0x6F;
-  const CYCLE_LIGHT_COLOR     = 0xD5;
-  const SET_LIGHT_SOFT_ON     = 0xDB;
-  const SET_LIGHT_SOFT_OFF    = 0xDC;
-  const GET_GATEWAY_WIFI      = 0xE3;
+  const GET_DEVICE_LIST          = 0x13;
+  const GET_GROUP_LIST           = 0x1E;
+  const GET_SCENE_LIST           = 0x1F;
+  const ADD_DEVICE_TO_GROUP      = 0x20;
+  const RENOVE_DEVICE_FROM_GROUP = 0x21;
+  const GET_GROUP_DETAIL_INFO    = 0x26;
+  const SET_GROUP_NAME           = 0x27;
+  const SET_DEVICE_NAME          = 0x28;
+  const SET_LIGHT_LEVEL          = 0x31;
+  const SET_DEVICE_STATE         = 0x32;
+  const SET_COLOR_TEMPERATURE    = 0x33;
+  const SET_LIGHT_COLOR          = 0x36;
+  const SET_LIGHT_SATURATION     = 0x36;
+  const SAVE_LIGHT_STATE         = 0x38;
+  const ACTIVATE_GROUP_SCENE     = 0x52;
+  const GET_DEVICE_DETAIL_INFO   = 0x68;
+  const GET_GATEWAY_FIRMWARE     = 0x6F;
+  const CYCLE_LIGHT_COLOR        = 0xD5;
+  const SET_LIGHT_SOFT_ON        = 0xDB;
+  const SET_LIGHT_SOFT_OFF       = 0xDC;
+  const GET_GATEWAY_WIFI         = 0xE3;
 
 }
 
@@ -66,19 +68,26 @@ class classConstant
   const DEBUG_SEND_RECV     = 13;
   const DEBUG_DETAIL_ERRORS = 17;
 
-  const CLIENT_SOCKET  = "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}";
-  const RX_VIRTUAL     = "{018EF6B5-AB94-40C6-AA53-46943E824ACF}";
-  const TX_VIRTUAL     = "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}";
+  const CLIENT_SOCKET       = "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}";
+  const RX_VIRTUAL          = "{018EF6B5-AB94-40C6-AA53-46943E824ACF}";
+  const TX_VIRTUAL          = "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}";
 
-  const MODULE_GATEWAY = "{C3859938-D71C-4714-8B02-F2889A62F481}";
-  const MODULE_DEVICE  = "{0028DE9E-6155-451A-97E1-7D2D1563F5BA}";
-  const MODULE_GROUP   = "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}";
+  const MODULE_CONFIGURATOR = "{5552DA2D-B613-4291-8E57-61B0535B8047}";
+  const MODULE_GATEWAY      = "{C3859938-D71C-4714-8B02-F2889A62F481}";
+  const MODULE_DEVICE       = "{0028DE9E-6155-451A-97E1-7D2D1563F5BA}";
+  const MODULE_GROUP        = "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}";
+  const MODULE_SCENE        = "{4C839FA9-6926-4548-8105-DA5B111E39C3}";
 
-  const TX_GATEWAY     = "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}";
-  const TX_DEVICE      = "{0EC8C035-D581-4DF2-880D-E3C400F41682}";
-  const TX_GROUP       = "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}";
+  const TX_GATEWAY          = "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}";
+  const TX_DEVICE           = "{0EC8C035-D581-4DF2-880D-E3C400F41682}";
+  const TX_GROUP            = "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}";
+  const TX_SCENE            = "{1C913701-904E-4EAD-9A70-702597567A0F}";
 
   const GATEWAY_PORT            = 4000;
+
+  const DEVICE_ITEM_INDEX       = 1000;
+  const GROUP_ITEM_INDEX        = 2000;
+  const SCENE_ITEM_INDEX        = 3000;
 
   const STATE_ONLINE            = 2;
   const STATE_UNKNOWN           = 1;
@@ -88,82 +97,46 @@ class classConstant
   const CONNECT_LOCAL_CLOUD     = 1002;
 
   const METHOD_PARENT_CONFIG    = 1201;
-  const METHOD_LOAD_LOCAL       = 1202;
-  const METHOD_APPLY_LOCAL      = 1203;
-  const METHOD_LOAD_CHILD       = 1204;
-  const METHOD_APPLY_CHILD      = 1205;
-  const METHOD_CREATE_CHILD     = 1206;
-  const METHOD_UPDATE_CHILD     = 1207;
-  const METHOD_LOAD_CLOUD       = 1208;
-  const METHOD_WRITE_CLOUD      = 1209;
-  const METHOD_LOAD_INSTANCE    = 1210;
-  const METHOD_STATE_DEVICE     = 1211;
-  const METHOD_STATE_GROUP      = 1212;
-  const METHOD_STATE_ALL_SWITCH = 1213;
-  const METHOD_ALL_DEVICES      = 1214;
+  const METHOD_APPLY_CONFIG     = 1202;
 
-  const MODE_GATEWAY_LOCAL      = 1401;
-  const MODE_DEVICE_LOCAL       = 1402;
-  const MODE_DEVICE_GROUP       = 1403;
-  const MODE_DEVICE_CLOUD       = 1404;
-  const MODE_GROUP_LOCAL        = 1405;
-  const MODE_GROUP_CLOUD        = 1406;
-  const MODE_GROUP_SCENE        = 1407;
-  const MODE_SCENE_CLOUD        = 1408;
-  const MODE_ALL_SWITCH         = 1409;
+  const METHOD_LOAD_LOCAL       = 1203;
+  const METHOD_LOAD_CLOUD       = 1204;
 
-  const MODE_CREATE_DEVICE      = 1410;
-  const MODE_CREATE_GROUP       = 1411;
-  const MODE_CREATE_SCENE       = 1412;
-  const MODE_CREATE_ALL_SWITCH  = 1413;
-
-  const MODE_DEVICE_INFO        = 1414;
-  const MODE_MAINTAIN_ACTION    = 1415;
-  const MODE_DELETE_VARIABLE    = 1416;
-  const MODE_STATE_DEVICE       = 1417;
-  const MODE_STATE_GROUP        = 1418;
-  const MODE_STATE_ALL_SWITCH   = 1419;
-
-  const GET_GATEWAY_LOCAL       = 1604;
-  const GET_DEVICE_LOCAL        = 1605;
-  const GET_GROUP_LOCAL         = 1606;
-  const GET_DEVICE_CLOUD        = 1607;
-  const GET_GROUP_CLOUD         = 1608;
-  const GET_GROUP_SCENE         = 1609;
-  const GET_SCENE_CLOUD         = 1610;
+  const GET_GATEWAY_LOCAL       = 1601;
+  const GET_DEVICES_LOCAL       = 1602;
+  const GET_DEVICES_CLOUD       = 1603;
+  const GET_GROUPS_LOCAL        = 1604;
+  const GET_GROUPS_CLOUD        = 1605;
+  const GET_GROUP_DEVICES       = 1606;
+  const GET_GROUP_SCENES        = 1607;
+  const GET_SCENES_LOCAL        = 1608;
+  const GET_SCENES_CLOUD        = 1609;
 
   const SET_ALL_DEVICES         = 1701;
-  const SET_STATE               = 1702;
+  const SET_GROUP_STATE         = 1702;
+
   const SET_DEVICE_NAME         = 1703;
   const SET_GROUP_NAME          = 1704;
   const SET_COLOR               = 1705;
   const SET_COLOR_TEMPERATURE   = 1706;
   const SET_LEVEL               = 1707;
-  const SET_SATURATION          = 1708;
-  const SAVE_LIGHT_STATE        = 1709;
-  const SET_SOFT_TIME           = 1710;
-  const GET_PAIRED_DEVICES      = 1711;
-  const GET_GROUP_LIST          = 1712;
-  const ACTIVATE_GROUP_SCENE    = 1713;
-  const GET_DEVICE_INFO         = 1714;
-  const GET_GROUP_INFO          = 1715;
-  const SCENE_LIGHTIFY_LOOP     = 1716;
-  const GET_GATEWAY_FIRMWARE    = 1717;
-  const GET_GATEWAY_WIFI        = 1718;
+  const SET_LIGHT_SATURATION    = 1708;
+  const SET_SOFT_TIME           = 1709;
+  const GET_PAIRED_DEVICES      = 1710;
+  const GET_GROUP_LIST          = 1711;
+  const GET_DEVICE_INFO         = 1712;
+  const GET_GROUP_INFO          = 1713;
+  const GET_GATEWAY_FIRMWARE    = 1714;
+  const GET_GATEWAY_WIFI        = 1715;
 
-  const SET_BUFFER_SYNC         = 1801;
-  const SET_BUFFER_DEVICE       = 1802;
-  const SET_BUFFER_GROUP        = 1803;
-  const SET_LIGHT_DATA          = 1809;
+  const ACTIVATE_GROUP_SCENE    = 1716;
+  const SAVE_LIGHT_STATE        = 1717;
+  const SCENE_LIGHTIFY_LOOP     = 1718;
 
   const SET_STATE_ON            = 1;
   const SET_STATE_OFF           = 0;
   const SET_SOFT_ON             = 1;
   const SET_SOFT_OFF            = 0;
-
-  const MODE_DEVICE_STATE       = 2003;
-  const MODE_GROUP_STATE        = 2007;
-  const MODE_LIGHTIFY_STATE     = 2013;
 
   const OSRAM_ZIGBEE_LENGTH     = 2;
   const OSRAM_GROUP_LENGTH      = 2;
@@ -184,7 +157,7 @@ class classConstant
   const DATA_DEVICE_LOADED      = 50;
   const DATA_DEVICE_LENGTH      = 41;
   const DATA_GROUP_LENGTH       = 18;
-  const DATA_SCENE_LENGTH       = 17;
+  const DATA_SCENE_LENGTH       = 20;
   const DATA_NAME_LENGTH        = 15;
   const DATA_WIFI_LENGTH        = 97;
   const DATA_CLASS_INFO         = 10;
@@ -201,16 +174,6 @@ class classConstant
   const CLOUD_ZIGBEE_LENGTH     = 4;
   const CLOUD_OSRAM_LENGTH      = 5;  
   const CLOUD_FIRMWARE_LENGTH   = 8;
-
-  const CLASS_LIGHTIFY_LIGHT    = 2001;
-  const CLASS_LIGHTIFY_PLUG     = 2002;
-  const CLASS_LIGHTIFY_SENSOR   = 2003;
-  const CLASS_LIGHTIFY_DIMMER   = 2004;
-  const CLASS_LIGHTIFY_SWITCH   = 2005;
-  const CLASS_LIGHTIFY_GROUP    = 2006;
-  const CLASS_LIGHTIFY_SCENE    = 2007;
-  const CLASS_ALL_DEVICES       = 2008;
-  const CLASS_UNKNOWN           = 2050;
 
   const TYPE_FIXED_WHITE        = 1;   //Fixed White
   const TYPE_LIGHT_CCT          = 2;   //Tuneable White
@@ -245,11 +208,7 @@ class classConstant
   const LABEL_PLUG_ONOFF        = "On|Off";
   const LABEL_SENSOR_MOTION     = "Active|Inactive";
   const LABEL_SENSOR_CONTACT    = "Active|Inactive";
-  const LABEL_DIMMER_2WAY       = "-";
-  const LABEL_SWITCH_4WAY       = "-";
-  const LABEL_SWITCH_3WAY       = "-";
-  const LABEL_SWITCH_UNKNOWN    = "-";
-  const LABEL_SWITCH_MINI       = "-";
+  const LABEL_NO_CAPABILITY     = "-";
   const LABEL_UNKNOWN           = "-Unknown-";
 
   const CTEMP_DIMABLE_MIN       = 2700;
@@ -285,10 +244,9 @@ class classConstant
   const SCAN_WIFI_CONFIG        = 0x03;
 
   const REQUESTID_HIGH     = 4294967295;
-  const INFO_NOT_AVAILABLE = "---- Information nicht verfügbar ----";
 
-  const WRITE_KEY_VALUES   = "ALL_DEVICES,SAVE,SCENE,DEFAULT,SOFT_ON,SOFT_OFF,TRANSITION,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,BRIGHTNESS,LEVEL,SATURATION";
-  const LIST_KEY_IDENTS    = "HUE,COLOR,COLOR_TEMPERATURE,BRIGHTNESS,LEVEL,SATURATION,MOTION,SCENE,ZIGBEE,FIRMWARE";
+  const WRITE_KEY_VALUES   = "ALL_DEVICES,NAME,SAVE,SCENE,SOFT_ON,SOFT_OFF,FADE,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION";
+  const LIST_KEY_IDENTS    = "HUE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION,MOTION,SCENE,ZIGBEE,FIRMWARE";
 
 }
 
@@ -538,6 +496,25 @@ class lightifyBase
     }
 
     return ['r' => $r, 'g' => $g, 'b' => $b];
+
+  }
+
+
+  public function getInstancesByUUID(string $moduleID, array $UUID = [], array $class = []) : array {
+
+    $List = IPS_GetInstanceListByModuleID($moduleID);
+    $ID = [];
+
+    foreach ($List as $id) {
+      $a = (empty($UUID)) ? true : in_array(IPS_GetProperty($id, "UUID"), $UUID);
+      $b = (empty($class)) ? true : in_array(IPS_GetProperty($id, "itemClass"), $class);
+
+      if ($a && $b) {
+        $ID[] = $id;
+      }
+    }
+
+    return $ID;
 
   }
 
