@@ -20,8 +20,8 @@
     },
     { "type": "RowLayout", "name": "Buttons",
       "items": [
-        { "type": "PopupButton", "name": "Options", "caption": "Options",
-          "popup": { "caption": "Options",
+        { "type": "PopupButton", "name": "Locations", "caption": "Locations", "width": "115px",
+          "popup": { "caption": "Locations",
             "items": [
               { "type": "List", "name": "listLocations", "caption": "Category selection", "rowCount": 4, "onEdit": "OSR_SetLocations($id, $listLocations);",
                 "columns": [
@@ -38,13 +38,13 @@
             ]
           }
         },
-        { "type": "PopupButton", "name": "Groups", "caption": "Groups", "onClick": "echo 'https://www.symcon.de';",
-          "popup": { "caption": "Groups configuration",
+        { "type": "PopupButton", "name": "setupGroup", "caption": "Setup group", "width": "115px", "onClick": "OSR_GetListGroups($id);",
+          "popup": { "caption": "Setup group",
             "items": [
               { "type": "RowLayout",
                 "items": [
-                  { "type": "ValidationTextBox", "name": "name", "enabled": false, "caption": "Name" },
-                  { "type": "Button", "name": "rename", "enabled": false, "caption": "Rename group", "onClick": "OSR_RenameGroup($id, $listGroups, $name);" }
+                  { "type": "ValidationTextBox", "name": "newName", "enabled": false, "value": "", "caption": "Name" },
+                  { "type": "Button", "name": "rename", "enabled": false, "caption": "Rename group", "onClick": "OSR_RenameGroup($id, $listGroups, $newName);" }
                 ]
               },
               { "type": "RowLayout",
@@ -73,6 +73,30 @@
               },
               { "type": "Label",       "name": "message",  "visible": false, "caption": "" },
               { "type": "ProgressBar", "name": "progress", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." }
+            ]
+          }
+        },
+        { "type": "PopupButton", "name": "createGroup", "caption": "Create group", "width": "115px", "onClick": "OSR_GetListDevices($id);",
+          "popup": { "caption": "Create group",
+            "items": [
+              { "type": "RowLayout",
+                "items": [
+                  { "type": "ValidationTextBox", "name": "addName", "enabled": true, "value": "", "caption": "Name" },
+                  { "type": "Button", "name": "create", "enabled": true, "caption": "Create group", "onClick": "OSR_CreateGroup($id, $addDevices, $addName);" }
+                ]
+              },
+              { "type": "List", "name": "addDevices", "caption": "Device list", "rowCount": 10,
+                "columns": [
+                  { "caption": "UUID", "name": "UUID",  "width": "0px", "visible": false },
+                  { "caption": "Name", "name": "name",  "width": "190px" },
+                  { "caption": "",     "name": "value", "width": "auto",
+                    "edit": {
+                      "type": "CheckBox"
+                    }
+                  }
+                ],
+                "values": []
+              }
             ]
           }
         },

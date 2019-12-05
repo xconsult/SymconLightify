@@ -285,7 +285,7 @@ class lightifyGateway extends IPSModule
         $status = $this->waitReceive();
 
         //Sync groups
-        if ($method == classCommand::SET_GROUP_NAME) {
+        if ($method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_GROUP_NAME) {
           $this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00));
           return $this->waitReceive();
         }
