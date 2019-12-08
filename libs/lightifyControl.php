@@ -104,13 +104,13 @@ trait LightifyControl
     $UUID = $this->ReadPropertyString("UUID");
 
     //Get class
-    $class  = $this->ReadPropertyString("itemClass");
+    $class  = $this->ReadPropertyString("class");
     $Light  = ($class == "Light") ? true : false;
     $Plug   = ($class == "Plug") ? true : false;
     $Motion = ($class == "Sensor") ? true : false;
     $Group  = ($class == "Group") ? true : false;
 
-    $type = $this->ReadPropertyInteger("classType");
+    $type = $this->ReadPropertyInteger("type");
     $RGB  = ($type & 8) ? true: false;
     $CCT  = ($type & 2) ? true: false;
     $CLR  = ($type & 4) ? true: false;
@@ -123,9 +123,7 @@ trait LightifyControl
       $online   = ($onlineID) ? GetValueBoolean($onlineID) : false;
     } else {
       $flag = 2;
-      $itemID = $this->ReadPropertyInteger("itemID")-classConstant::GROUP_ITEM_INDEX;
-      $UUID   = str_pad(chr($itemID), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
-      //$UUID   = chr($itemID);
+      $UUID   = str_pad(chr($this->ReadPropertyInteger("ID")-classConstant::GROUP_ITEM_INDEX), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
       $online = true;
     }
 
@@ -394,7 +392,7 @@ trait LightifyControl
       return false;
     }
 
-    $class = $this->ReadPropertyString("itemClass");
+    $class = $this->ReadPropertyString("class");
     $name = substr(trim($name), 0, classConstant::DATA_NAME_LENGTH);
 
     if ($class == "Light" || $class == "Plug" || $class == "Sensor") {
@@ -405,7 +403,7 @@ trait LightifyControl
     elseif ($class == "Group") {
       $cmd = classCommand::SET_GROUP_NAME;
       $flag = chr(0x02);
-      $UUID = utf8_encode(chr($this->ReadPropertyInteger("itemID")-classConstant::GROUP_ITEM_INDEX).chr(0x00));
+      $UUID = utf8_encode(chr($this->ReadPropertyInteger("ID")-classConstant::GROUP_ITEM_INDEX).chr(0x00));
     }
 
     //Forward data to splitter

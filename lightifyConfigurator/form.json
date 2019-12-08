@@ -20,10 +20,10 @@
     },
     { "type": "RowLayout", "name": "Buttons",
       "items": [
-        { "type": "PopupButton", "name": "Locations", "caption": "Locations", "width": "115px",
+        { "type": "PopupButton", "name": "Locations", "caption": "Verzeichnisse", "width": "150px",
           "popup": { "caption": "Locations",
             "items": [
-              { "type": "List", "name": "listLocations", "caption": "Category selection", "rowCount": 4, "onEdit": "OSR_SetLocations($id, $listLocations);",
+              { "type": "List", "name": "listLocations", "caption": "Location selection", "rowCount": 4, "onEdit": "OSR_SetLocations($id, $listLocations);",
                 "columns": [
                   { "caption": "Type",     "name": "class", "width": "80px" },
                   { "caption": "Location", "name": "name",  "width": "auto" },
@@ -38,15 +38,15 @@
             ]
           }
         },
-        { "type": "PopupButton", "name": "SetupGroup", "caption": "Setup group", "width": "115px", "onClick": "OSR_LoadListGroups($id);",
+        { "type": "PopupButton", "name": "SetupGroup", "caption": "Gruppen Setup", "width": "150px", "onClick": "OSR_LoadListGroups($id);",
           "popup": { "caption": "Setup group",
             "items": [
               { "type": "RowLayout",
                 "items": [
-                  { "type": "ValidationTextBox", "name": "newGroup",  "width": "195px", "enabled": false, "value": "", "caption": "Rename group" },
-                  { "type": "Button", "name": "renameGroup",  "enabled": false, "caption": "Rename", "onClick": "OSR_RenameListItem($id, $listGroups, 'Group', $newGroup);" },
-                  { "type": "ValidationTextBox", "name": "newDevice", "width": "225px", "enabled": false, "value": "", "caption": "Rename device" },
-                  { "type": "Button", "name": "renameDevice", "enabled": false, "caption": "Rename", "onClick": "OSR_RenameListItem($id, $listDevices, 'Device', $newDevice);" }
+                  { "type": "ValidationTextBox", "name": "newGroup",  "width": "170px", "enabled": false, "value": "", "caption": "Rename group" },
+                  { "type": "Button", "name": "renameGroup",  "enabled": false, "caption": "Umbenennen", "onClick": "OSR_RenameListItem($id, $listGroups, 'Group', $newGroup);" },
+                  { "type": "ValidationTextBox", "name": "newDevice", "width": "170px", "enabled": false, "value": "", "caption": "Rename device" },
+                  { "type": "Button", "name": "renameDevice", "enabled": false, "caption": "Umbenennen", "onClick": "OSR_RenameListItem($id, $listDevices, 'Device', $newDevice);" }
                 ]
               },
               { "type": "RowLayout",
@@ -55,7 +55,7 @@
                     "columns": [
                       { "caption": "ID",    "name": "ID",    "width": "0px", "visible": false },
                       { "caption": "UUID",  "name": "UUID",  "width": "0px", "visible": false },
-                      { "caption": "Name",  "name": "name",  "width": "235px", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups);" }
+                      { "caption": "Name",  "name": "name",  "width": "250px", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups);" }
                     ],
                     "values": []
                   },
@@ -63,7 +63,7 @@
                     "columns": [
                       { "caption": "UUID", "name": "UUID",  "width": "0px", "visible": false },
                       { "caption": "Name", "name": "name",  "width": "200px", "onClick": "OSR_LoadDeviceConfiguration($id, $listDevices);" },
-                      { "caption": "",     "name": "value", "width": "40px",  "onClick": "OSR_LoadDeviceConfiguration($id, $listDevices);" ,
+                      { "caption": "",     "name": "value", "width": "25px",  "onClick": "OSR_LoadDeviceConfiguration($id, $listDevices);" ,
                         "edit": {
                           "type": "CheckBox"
                         }
@@ -78,13 +78,13 @@
             ]
           }
         },
-        { "type": "PopupButton", "name": "CreateGroup", "caption": "Create group", "width": "115px", "onClick": "OSR_LoadListDevices($id);",
+        { "type": "PopupButton", "name": "CreateGroup", "caption": "Gruppe erstellen", "width": "150px", "onClick": "OSR_LoadListDevices($id);",
           "popup": { "caption": "Create group",
             "items": [
               { "type": "RowLayout",
                 "items": [
-                  { "type": "ValidationTextBox", "name": "addGroup", "width": "514px", "enabled": true, "value": "", "caption": "Group name" },
-                  { "type": "Button", "name": "createGroup", "enabled": true, "caption": "Create", "onClick": "OSR_CreateGroup($id, $addDevices, $addGroup);" }
+                  { "type": "ValidationTextBox", "name": "addGroup", "width": "492px", "enabled": true, "value": "", "caption": "Group name" },
+                  { "type": "Button", "name": "createGroup", "enabled": true, "caption": "Erstellen", "onClick": "OSR_CreateGroup($id, $addDevices, $addGroup);" }
                 ]
               },
               { "type": "List", "name": "addDevices", "caption": "Device list", "rowCount": 10,
