@@ -25,13 +25,13 @@ class lightifyGroup extends IPSModule
     parent::Create();
 
     //Store at runtime
-    $this->RegisterPropertyInteger("itemID", vtNoValue);
-
-    $this->RegisterPropertyString("itemClass", vtNoString);
-    $this->RegisterPropertyInteger("classType", vtNoValue);
+    $this->RegisterPropertyInteger("ID", vtNoValue);
+    
+    $this->RegisterPropertyString("class", vtNoString);
+    $this->RegisterPropertyInteger("type", vtNoValue);
     $this->RegisterPropertyString("UUID", vtNoString);
-    $this->RegisterAttributeString("Devices", vtNoString);
 
+    $this->RegisterAttributeString("Devices", vtNoString);
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
 
   }
@@ -72,7 +72,7 @@ class lightifyGroup extends IPSModule
     }
 
     //Validate
-    if ($this->ReadPropertyInteger("itemID") != vtNoValue) {
+    if ($this->ReadPropertyInteger("ID") != vtNoValue) {
       return file_get_contents(__DIR__."/form.json");
     }
 

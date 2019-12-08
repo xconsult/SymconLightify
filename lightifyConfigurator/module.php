@@ -33,8 +33,8 @@ class lightifyConfigurator extends IPSModule
 
     //$this->RegisterPropertyString("listLocations", vtNoString);
     $this->RegisterAttributeString("listLocations", vtNoString);
-    $this->RegisterAttributeString("listDevices", vtNoString);
-    $this->RegisterAttributeString("listGroups", vtNoString);
+    //$this->RegisterAttributeString("listDevices", vtNoString);
+    //$this->RegisterAttributeString("listGroups", vtNoString);
     $this->RegisterAttributeString("groupDevices", vtNoString);
 
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
@@ -52,8 +52,8 @@ class lightifyConfigurator extends IPSModule
       return;
     }
 
-    $this->WriteAttributeString("listDevices", vtNoString);
-    $this->WriteAttributeString("listGroups", vtNoString);
+    //$this->WriteAttributeString("listDevices", vtNoString);
+    //$this->WriteAttributeString("listGroups", vtNoString);
     $this->WriteAttributeString("groupDevices", vtNoString);
 
   }
@@ -177,29 +177,28 @@ class lightifyConfigurator extends IPSModule
     foreach ($config->actions as $line) {
       if ($line->type == "Configurator" && $line->name == "Lightify") {
         foreach ($line->values as $item) {
-          if ($item->itemClass == "Light") {
+          if ($item->class == "Light" || $item->class == "Plug") {
             $location = $this->getCategoryPath($Locations[0]['ID']);
           } 
-          elseif ($item->itemClass == "Sensor") {
+          elseif ($item->class == "Sensor") {
             $location = $this->getCategoryPath($Locations[1]['ID']);
           }
-          elseif ($item->itemClass == "Group") {
-            $location = $this->getCategoryPath($Locations[1]['ID']);
+          elseif ($item->class == "Group") {
+            $location = $this->getCategoryPath($Locations[2]['ID']);
           }
-          elseif ($item->itemClass == "Scene") {
+          elseif ($item->class == "Scene") {
             $location = $this->getCategoryPath($Locations[3]['ID']);
           }
 
           $value = [
             'name'       => $item->name,
-            'itemID'     => $item->itemID,
-            'itemType'   => $item->itemType,
-            'itemClass'  => $item->itemClass,
+            'ID'         => $item->ID,
+            'brand'      => $item->brand,
+            'class'      => $item->class,
             'zigBee'     => $item->zigBee,
             'UUID'       => $item->UUID,
-            'itemName'   => $item->itemName,
-            'itemLabel'  => $item->itemLabel,
-            'itemModel'  => $item->itemModel,
+            'label'      => $item->label,
+            'model'      => $item->model,
             'firmware'   => $item->firmware,
             'instanceID' => $item->instanceID
           ];
@@ -208,9 +207,10 @@ class lightifyConfigurator extends IPSModule
             $value['create'] = [
               'moduleID'      => $item->create->moduleID,
               'configuration' => [
-                'itemID'    => $item->create->configuration->itemID,
-                'itemClass' => $item->create->configuration->itemClass,
-                'UUID'      => $item->create->configuration->UUID,
+                'ID'    => $item->create->configuration->ID,
+                'class' => $item->create->configuration->class,
+                'type'  => $item->create->configuration->type,
+                'UUID'  => $item->create->configuration->UUID,
               ],
               'location' => $location
             ];
@@ -229,47 +229,33 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  public function GetListGroups() : void {
+  public function LoadListGroups() : void {
 
     //Clear values
-    $this->UpdateFormField("newName", "value", vtNoString);
-    $this->UpdateFormField("newName", "enabled", false);
+    $this->UpdateFormField("newGroup", "value", vtNoString);
+    $this->UpdateFormField("newGroup", "enabled", false);
+    $this->UpdateFormField("renameGroup", "enabled", false);
+
     $this->UpdateFormField("listDevices", "values", json_encode([]));
-    $this->UpdateFormField("message", "visible", false);
+    $this->UpdateFormField("setupMessage", "visible", false);
 
-    //Load data
-   $data = $this->SendDataToParent(json_encode([
-      'DataID' => classConstant::TX_GATEWAY,
-      'method' => classConstant::GET_GROUPS_LOCAL])
-    );
-    //IPS_LogMessage("SymconOSR", "<Configurator|Get Gateway groups:data>   ".$data);
-
-    $data = json_decode($data);
-    $List = [];
-
-    if (is_array($data) && count($data) > 0) {
-      foreach ($data as $group) {
-        $List[] = [
-          'ID'   => classConstant::GROUP_ITEM_INDEX+$group->id,
-          'UUID' => $group->UUID,
-          'name' => $group->name
-        ];
-      }
-    }
+    $this->UpdateFormField("newDevice", "value", vtNoString);
+    $this->UpdateFormField("newDevice", "enabled", false);
+    $this->UpdateFormField("renameDevice", "enabled", false);
 
     //Load list
-    $this->UpdateFormField("listGroups", "values", json_encode($List));
+    $this->UpdateFormField("listGroups", "values", $this->getListGroups());
 
   }
 
 
-  public function GetGroupConfiguration(object $List) : void {
+  public function LoadGroupConfiguration(object $List) : void {
 
     //Set fields
-    $this->UpdateFormField("newName", "enabled", true);
-    $this->UpdateFormField("newName", "value", $List['name']);
-    $this->UpdateFormField("rename", "enabled", true);
-    $this->UpdateFormField("message", "visible", false);
+    $this->UpdateFormField("newGroup", "enabled", true);
+    $this->UpdateFormField("newGroup", "value", $List['name']);
+    $this->UpdateFormField("renameGroup", "enabled", true);
+    $this->UpdateFormField("setupMessage", "visible", false);
 
     //Get data
     $data = $this->SendDataToParent(json_encode([
@@ -282,7 +268,7 @@ class lightifyConfigurator extends IPSModule
     $Devices = [];
 
     if (is_array($data) && count($data) > 0) {
-      $buffer = json_decode($this->ReadAttributeString("listDevices"));
+      $buffer = json_decode($this->getListDevices());
 
       foreach ($buffer as $key) {
         $value = false;
@@ -312,137 +298,235 @@ class lightifyConfigurator extends IPSModule
   }
 
 
+  public function LoadDeviceConfiguration(object $List) : void {
+
+    //Set fields
+    $this->UpdateFormField("newDevice", "enabled", true);
+    $this->UpdateFormField("newDevice", "value", $List['name']);
+    $this->UpdateFormField("renameDevice", "enabled", true);
+
+  }
+
+
   public function SetGroupConfiguration(object $List, int $itemID, string $name) : void {
 
-    if (!empty($name)) {
-      //Iterate through
-      $Devices = json_decode($this->GetBuffer("listDevices"));
-      $buffer = [];
+    if (empty($name)) {
+      //Error handling
+      echo "HoHo...";
+      return;
+    }
 
-      foreach ($Devices as $item) {
-        $value = $item->value;
+    //Iterate through
+    $Devices = json_decode($this->GetBuffer("listDevices"));
+    $buffer = [];
 
-        if ($item->UUID == $List['UUID']) {
-          $value  = $List['value'];
-          $update = ($item->value != $value) ? true : false;
-        }
+    foreach ($Devices as $item) {
+      $value = $item->value;
 
-        $buffer[] = [
-          'UUID'  => $item->UUID,
-          'name'  => $item->name,
-          'value' => $value
+      if ($item->UUID == $List['UUID']) {
+        $value  = $List['value'];
+        $update = ($item->value != $value) ? true : false;
+      }
+
+      $buffer[] = [
+        'UUID'  => $item->UUID,
+        'name'  => $item->name,
+        'value' => $value
+      ];
+    }
+    $this->SetBuffer("listDevices", json_encode($buffer));
+
+    if ($update) {
+      //Set fields
+      $this->UpdateFormField("setupMessage", "visible", false);
+      $this->UpdateFormField("setupProgress", "visible", true);
+
+      if ($List['value']) {
+        $cmd = classCommand::ADD_DEVICE_TO_GROUP;
+
+        $param = [
+          'flag'  => 2,
+          'args'  => utf8_encode(chr($itemID-classConstant::GROUP_ITEM_INDEX).chr(0x00).$this->lightifyBase->UUIDtoChr($List['UUID']).chr(strlen($name)).$name),
+          'value' => vtNoValue
+        ];
+      } else {
+        $cmd = classCommand::RENOVE_DEVICE_FROM_GROUP;
+
+        $param = [
+          'flag'  => 2,
+          'args'  => utf8_encode(chr($itemID-classConstant::GROUP_ITEM_INDEX).chr(0x00).$this->lightifyBase->UUIDtoChr($List['UUID'])),
+          'value' => vtNoValue
         ];
       }
-      $this->SetBuffer("listDevices", json_encode($buffer));
 
-      if ($update) {
-        //Set fields
-        $this->UpdateFormField("message", "visible", false);
-        $this->UpdateFormField("progress", "visible", true);
+      $result = $this->sendData($cmd, $param);
+      $status = json_decode($result);
 
-        if ($List['value']) {
-          $cmd = classCommand::ADD_DEVICE_TO_GROUP;
+      if ($status->flag || $status->code == 0) {
+        if ($cmd == classCommand::RENOVE_DEVICE_FROM_GROUP) {
+          $cnt = 0;
 
-          $param = [
-            'flag'  => 2,
-            'args'  => utf8_encode(chr($itemID-classConstant::GROUP_ITEM_INDEX).chr(0x00).$this->lightifyBase->UUIDtoChr($List['UUID']).chr(strlen($name)).$name),
-            'value' => vtNoValue
-          ];
-        } else {
-          $cmd = classCommand::RENOVE_DEVICE_FROM_GROUP;
-
-          $param = [
-            'flag'  => 2,
-            'args'  => utf8_encode(chr($itemID-classConstant::GROUP_ITEM_INDEX).chr(0x00).$this->lightifyBase->UUIDtoChr($List['UUID'])),
-            'value' => vtNoValue
-          ];
-        }
-
-        $result = $this->sendData($cmd, $param);
-        $status = json_decode($result);
-
-        if ($status->flag || $status->code == 0) {
-          if ($cmd == classCommand::RENOVE_DEVICE_FROM_GROUP) {
-            $cnt = 0;
-
-            foreach ($List as $line) {
-              if ($line['value']) {
-                $cnt++;
-              }
-            }
-
-            if ($cnt == 0) {
-              $this->GetListGroups();
+          foreach ($List as $line) {
+            if ($line['value']) {
+              $cnt++;
             }
           }
 
-          $this->UpdateFormField("progress", "visible", false);
-          return;
+          if ($cnt == 0) {
+            $this->GetListGroups();
+          }
         }
-        //IPS_LogMessage("SymconOSR", "<Configurator|Set group configuration:result>   ".$result);
 
-        //Error handling
-        $caption = ($value) ? "Adding device to group failed!" : "Removing device from group failed!";
-
-        $this->UpdateFormField("progress", "visible", false);
-        $this->UpdateFormField("message", "caption", $this->Translate($caption));
-        $this->UpdateFormField("message", "visible", true);
-
-        IPS_LogMessage("SymconOSR", "<Configurator|Set group configuration:error>   ".$caption);
+        $this->UpdateFormField("setupProgress", "visible", false);
+        return;
       }
+      //IPS_LogMessage("SymconOSR", "<Configurator|Set group configuration:result>   ".$result);
+
+      //Error handling
+      $caption = ($value) ? "Adding device to group failed!" : "Removing device from group failed!";
+
+      $this->UpdateFormField("setupProgress", "visible", false);
+      $this->UpdateFormField("setupMessage", "caption", $this->Translate($caption));
+      $this->UpdateFormField("setupMessage", "visible", true);
+
+      IPS_LogMessage("SymconOSR", "<Configurator|Set group configuration:error>   ".$caption);
     }
 
   }
 
 
-  public function RenameGroup(object $List, string $name) : void {
+  public function RenameListItem(object $List, string $item, string $name) : void {
 
-    if (!empty($List['name']) && !empty($name) && $name != $List['name']) {
-      $this->UpdateFormField("progress", "visible", true);
-      IPS_LogMessage("SymconOSR", "<Configurator|Rename group:data>   ".$List['ID']."|".$List['name']."|".$name);
+    if (empty($List['name']) || empty($name)) {
+      //Error handling
+      echo "HoHo...";
+      return;
+    }
 
-      $param = [
-        'flag'  => chr(0x02),
-        'args'  => utf8_decode(chr((int)$List['ID']-classConstant::GROUP_ITEM_INDEX).chr(0x00).str_pad($name, classConstant::DATA_NAME_LENGTH).chr(0x00)),
-        'value' => vtNoValue
-      ];
+    if ($name != $List['name']) {
+      $this->UpdateFormField("setupProgress", "visible", true);
+      $name = str_pad($name, classConstant::DATA_NAME_LENGTH);
 
-      $result = $this->sendData(classCommand::SET_GROUP_NAME, $param);
+      if ($item == "Group") {
+        IPS_LogMessage("SymconOSR", "<Configurator|Rename group:data>   ".$List['ID']."|".$List['name']."|".$name);
+        $cmd = classCommand::SET_GROUP_NAME;
+
+        $param = [
+          'flag'  => 2,
+          'args'  => utf8_encode(chr((int)$List['ID']-classConstant::GROUP_ITEM_INDEX).chr(0x00).$name.chr(0x00)),
+          'value' => vtNoValue
+        ];
+      } else {
+        IPS_LogMessage("SymconOSR", "<Configurator|Rename device:data>   ".$List['UUID']."|".$List['name']."|".$name);
+        $cmd = classCommand::SET_DEVICE_NAME;
+
+        $param = [
+          'flag'  => 0,
+          'args'  => utf8_encode($this->lightifyBase->UUIDtoChr($List['UUID']).$name.chr(0x00)),
+          'value' => vtNoValue
+        ];
+      }
+
+      $result = $this->sendData($cmd, $param);
       $status = json_decode($result);
-      $this->UpdateFormField("progress", "visible", false);
+      IPS_Sleep(1500);
 
       if ($status->flag && $status->code == 0) {
-        $Groups = $this->getGatewayGroups();
-
-        $this->UpdateFormField("listGroups", "values", $this->ReadAttributeString("listGroups"));
+        $this->UpdateFormField("listGroups", "values", $this->getListGroups());
         $this->UpdateFormField("listDevices", "values", json_encode([]));
 
-        $this->UpdateFormField("name", "value", vtNoString);
-        $this->UpdateFormField("name", "enabled", false);
-        $this->UpdateFormField("rename", "enabled", false);
-      } else {
-        $this->UpdateFormField("message", "caption", $this->Translate("Rename group failed!"));
-        $this->UpdateFormField("message", "visible", true);
+        $this->UpdateFormField("newGroup", "value", vtNoString);
+        $this->UpdateFormField("newGroup", "enabled", false);
+        $this->UpdateFormField("renameGroup", "enabled", false);
 
-        IPS_LogMessage("SymconOSR", "<Configurator|Rename group:error>   Rename group failed!");
+        $this->UpdateFormField("newDevice", "value", vtNoString);
+        $this->UpdateFormField("newDevice", "enabled", false);
+        $this->UpdateFormField("renameDevice", "enabled", false);
+
+        $this->UpdateFormField("setupProgress", "visible", false);
+      } else {
+        $error = ($item == "Group") ? "Rename group failed!" : "Rename device failed!";
+
+        $this->UpdateFormField("setupProgress", "visible", false);
+        $this->UpdateFormField("setupMessage", "caption", $this->Translate($error));
+        $this->UpdateFormField("setupMessage", "visible", true);
+
+        IPS_LogMessage("SymconOSR", "<Configurator|Rename list item:error>   ".$error);
       }
     }
 
   }
 
 
-  public function GetListDevices() : void {
+  public function LoadListDevices() : void {
 
-    $this->UpdateFormField("addDevices", "values", $this->ReadAttributeString("listDevices"));
+    $this->UpdateFormField("addDevices", "values", $this->getListDevices());
 
   }
 
 
   public function CreateGroup(object $List, $name) : void {
 
-    $this->UpdateFormField("addName", "value", vtNoString);
+    $this->UpdateFormField("addGroup", "value", vtNoString);
     $this->UpdateFormField("addDevices", "values", $this->ReadAttributeString("listDevices"));
 
+  }
+
+
+  protected function getListDevices() : string {
+    $data = $this->SendDataToParent(json_encode([
+      'DataID' => classConstant::TX_GATEWAY,
+      'method' => classConstant::GET_DEVICES_LOCAL])
+    );
+    //IPS_LogMessage("SymconOSR", "<Configurator|Get Gateway groups:data>   ".$data);
+
+    $data = json_decode($data);
+    $List = [];
+
+    if (is_array($data) && count($data) > 0) {
+      foreach ($data as $device) {
+        switch ($device->type) {
+          case classConstant::TYPE_FIXED_WHITE:
+          case classConstant::TYPE_LIGHT_CCT:
+          case classConstant::TYPE_LIGHT_DIMABLE:
+          case classConstant::TYPE_LIGHT_COLOR:
+          case classConstant::TYPE_LIGHT_EXT_COLOR:
+          case classConstant::TYPE_PLUG_ONOFF:
+            $List[] = [
+              'UUID'  => $device->UUID,
+              'name'  => $device->name,
+              'value' => false
+            ];
+            break;
+        }
+      }
+    }
+
+    return json_encode($List);
+  }
+
+
+  protected function getListGroups() : string {
+    $data = $this->SendDataToParent(json_encode([
+      'DataID' => classConstant::TX_GATEWAY,
+      'method' => classConstant::GET_GROUPS_LOCAL])
+    );
+    //IPS_LogMessage("SymconOSR", "<Configurator|Get Gateway groups:data>   ".$data);
+
+    $data = json_decode($data);
+    $List = [];
+
+    if (is_array($data) && count($data) > 0) {
+      foreach ($data as $group) {
+        $List[] = [
+          'ID'   => classConstant::GROUP_ITEM_INDEX+$group->id,
+          'UUID' => $group->UUID,
+          'name' => $group->name
+        ];
+      }
+    }
+
+    return json_encode($List);
   }
 
 
@@ -456,59 +540,58 @@ class lightifyConfigurator extends IPSModule
 
     $data = json_decode($data);
     $Devices = [];
-    $List    = [];
 
     if (is_array($data) && count($data) > 0) {
       foreach ($data as $device) {
-        $classType = $device->type;
-        $itemClass = vtNoString;
-        $itemLabel = vtNoString;
-        $itemModel = vtNoString;
+        $type  = $device->type;
+        $class = vtNoString;
+        $label = vtNoString;
+        $model = vtNoString;
         $known = true;
 
         //Decode device info
-        switch ($classType) {
+        switch ($type) {
           case classConstant::TYPE_FIXED_WHITE:
-            $itemType  = "Device";
-            $itemLabel = classConstant::LABEL_FIXED_WHITE;
+            $brand = "Device";
+            $label = classConstant::LABEL_FIXED_WHITE;
             break;
 
           case classConstant::TYPE_LIGHT_CCT:
-            $itemLabel = classConstant::LABEL_LIGHT_CCT;
+            $label = classConstant::LABEL_LIGHT_CCT;
 
           case classConstant::TYPE_LIGHT_DIMABLE:
-            $itemType  = "Device";
-            $itemClass = "Light";
+            $brand = "Device";
+            $class = "Light";
 
-            if ($itemLabel == vtNoString) {
-              $itemLabel = classConstant::LABEL_LIGHT_DIMABLE;
+            if ($label == vtNoString) {
+              $label = classConstant::LABEL_LIGHT_DIMABLE;
             }
             break;
 
           case classConstant::TYPE_LIGHT_COLOR:
-            if ($itemLabel == vtNoString) {
-              $itemLabel = classConstant::LABEL_LIGHT_COLOR;
+            if ($label == vtNoString) {
+              $label = classConstant::LABEL_LIGHT_COLOR;
             }
 
           case classConstant::TYPE_LIGHT_EXT_COLOR:
-            $itemType  = "Device";
-            $itemClass = "Light";
+            $brand = "Device";
+            $class = "Light";
 
-            if ($itemLabel == vtNoString) {
-              $itemLabel = classConstant::LABEL_LIGHT_EXT_COLOR;
+            if ($label == vtNoString) {
+              $label = classConstant::LABEL_LIGHT_EXT_COLOR;
             }
             break;
 
           case classConstant::TYPE_PLUG_ONOFF:
-            $itemType  = "Device";
-            $itemClass = "Plug";
-            $itemLabel = classConstant::LABEL_PLUG_ONOFF;
+            $brand = "Device";
+            $class = "Plug";
+            $label = classConstant::LABEL_PLUG_ONOFF;
             break;
 
           case classConstant::TYPE_SENSOR_MOTION:
-            $itemType  = "Sensor";
-            $itemClass = "Sensor";
-            $itemLabel = classConstant::LABEL_SENSOR_MOTION;
+            $brand = "Sensor";
+            $class = "Sensor";
+            $label = classConstant::LABEL_SENSOR_MOTION;
             break;
 
           case classConstant::TYPE_DIMMER_2WAY:
@@ -516,17 +599,17 @@ class lightifyConfigurator extends IPSModule
 
           case classConstant::TYPE_SWITCH_4WAY:
           case classConstant::TYPE_SWITCH_MINI:
-            $itemType = "Device";
+            $brand = "Device";
 
-            if ($itemClass == vtNoString) {
-              $itemClass = "Switch";
+            if ($class == vtNoString) {
+              $class = "Switch";
             }
            break;
 
           case classConstant::TYPE_ALL_DEVICES:
-            $itemType  = "Device";
-            $itemClass = "Light";
-            $itemLabel = "On|Off";
+            $brand = "Device";
+            $class = "Light";
+            $label = "On|Off";
             break;
 
           default:
@@ -553,20 +636,20 @@ class lightifyConfigurator extends IPSModule
 
             foreach ($cloud->devices as $key => $item) {
               if ($device->name == trim($item->name)) {
-                $itemModel = strtoupper($item->deviceModel);
+                $model = strtoupper($item->deviceModel);
 
                 //Modell mapping
-                if (substr($itemModel, 0, 10) == "CLA60 RGBW") {
-                  $itemModel = "CLASSIC A60 RGBW";
+                if (substr($model, 0, 10) == "CLA60 RGBW") {
+                  $model = "CLASSIC A60 RGBW";
                 }
-                elseif (substr($itemModel, 0, 8) == "CLA60 TW") {
-                  $itemModel = "CLASSIC A60 TW";
+                elseif (substr($model, 0, 8) == "CLA60 TW") {
+                  $model = "CLASSIC A60 TW";
                 }
-                elseif (substr($itemModel, 0, 19) == "CLASSIC A60 W CLEAR") {
-                  $itemModel = "CLASSIC A60 W CLEAR";
+                elseif (substr($model, 0, 19) == "CLASSIC A60 W CLEAR") {
+                  $model = "CLASSIC A60 W CLEAR";
                 }
-                elseif (substr($itemModel, 0, 4) == "PLUG") {
-                  $itemModel = classConstant::MODEL_PLUG_ONOFF;
+                elseif (substr($model, 0, 4) == "PLUG") {
+                  $model = classConstant::MODEL_PLUG_ONOFF;
                 }
 
                 break;
@@ -576,27 +659,18 @@ class lightifyConfigurator extends IPSModule
         }
 
         $Devices[] = [
-          'parent'    => 1,
-          'itemID'    => classConstant::DEVICE_ITEM_INDEX+$device->id,
-          'itemType'  => $itemType,
-          'itemClass' => $itemClass,
-          'classType' => $classType,
-          'zigBee'    => $device->zigBee,
-          'UUID'      => $device->UUID,
-          'itemName'  => $device->name,
-          'itemLabel' => $itemLabel,
-          'itemModel' => $itemModel,
-          'firmware'  => $device->firmware
+          'parent'   => 1,
+          'ID'       => classConstant::DEVICE_ITEM_INDEX+$device->id,
+          'brand'    => $brand,
+          'class'    => $class,
+          'type'     => $type,
+          'zigBee'   => $device->zigBee,
+          'UUID'     => $device->UUID,
+          'name'     => $device->name,
+          'label'    => $label,
+          'model'    => $model,
+          'firmware' => $device->firmware
         ];
-
-        if ($itemClass == "Light" || $itemClass == "Plug") {
-          $List[] = [
-            //'ID'   => classConstant::DEVICE_ITEM_INDEX+$device->id,
-            'UUID'  => $device->UUID,
-            'name'  => $device->name,
-            'value' => false
-          ];
-        }
       }
 
       if ($this->debug % 2) {
@@ -604,7 +678,6 @@ class lightifyConfigurator extends IPSModule
       }
     }
 
-    $this->WriteAttributeString("listDevices", json_encode($List));
     return $Devices;
 
   }
@@ -620,17 +693,16 @@ class lightifyConfigurator extends IPSModule
 
     $data = json_decode($data);
     $Groups = [];
-    $List   = [];
 
     if (is_array($data) && count($data) > 0) {
       foreach ($data as $group) {
         $Groups[] = [
-          'parent'    => 2,
-          'itemID'    => classConstant::GROUP_ITEM_INDEX+$group->id,
-          'itemType'  => "Group",
-          'itemClass' => "Group",
-          'UUID'      => $group->UUID,
-          'itemName'  => $group->name
+          'parent' => 2,
+          'ID'     => classConstant::GROUP_ITEM_INDEX+$group->id,
+          'brand'  => "Group",
+          'class'  => "Group",
+          'UUID'   => $group->UUID,
+          'name'   => $group->name
         ];
       }
 
@@ -658,12 +730,12 @@ class lightifyConfigurator extends IPSModule
     if (is_array($data) && count($data) > 0) {
       foreach ($data as $scene) {
         $Scenes[] = [
-          'parent'    => 3,
-          'itemID'    => classConstant::SCENE_ITEM_INDEX+$scene->id,
-          'itemType'  => "Scene",
-          'itemClass' => "Scene",
-          'UUID'      => $scene->UUID,
-          'itemName'  => $scene->name
+          'parent' => 3,
+          'ID'     => classConstant::SCENE_ITEM_INDEX+$scene->id,
+          'brand'  => "Scene",
+          'class'  => "Scene",
+          'UUID'   => $scene->UUID,
+          'name'   => $scene->name
         ];
       }
 
@@ -696,32 +768,32 @@ class lightifyConfigurator extends IPSModule
       $Devices = [];
 
       foreach ($buffer as $item) {
-        $instanceID = $this->getDeviceInstances(classConstant::MODULE_DEVICE, $item['itemClass'], $item['UUID']);
-        $location   = ($item['itemClass'] == "Light") ? $loDevice : $loSensor;
+        $instanceID = $this->getDeviceInstances(classConstant::MODULE_DEVICE, $item['class'], $item['UUID']);
+        $location   = ($item['class'] == "Light") ? $loDevice : $loSensor;
         //IPS_LogMessage("SymconOSR", "<Configurator|Get device configurator:location>   ".$item['itemClass']."|".json_encode($location));
 
         $device = [
-          'name'       => $item['itemName'],
-          'itemID'     => $item['itemID'],
-          'itemType'   => $this->translate($item['itemType']),
-          'itemClass'  => $this->translate($item['itemClass']),
+          'name'       => $item['name'],
+          'ID'         => $item['ID'],
+          'brand'      => $this->translate($item['brand']),
+          'class'      => $this->translate($item['class']),
           'zigBee'     => $item['zigBee'],
           'UUID'       => $item['UUID'],
-          'itemName'   => $item['itemName'],
-          'itemLabel'  => $item['itemLabel'],
-          'itemModel'  => $item['itemModel'],
+          'name'       => $item['name'],
+          'label'      => $item['label'],
+          'model'      => $item['model'],
           'firmware'   => $item['firmware'],
           'instanceID' => $instanceID
         ];
 
-        if ($item['itemClass'] != "Dimmer" && $item['itemClass'] != "Switch") {
+        if ($item['class'] != "Dimmer" && $item['class'] != "Switch") {
           $device['create'] = [
             'moduleID'      => classConstant::MODULE_DEVICE,
             'configuration' => [
-              'itemID'    => $item['itemID'],
-              'itemClass' => $item['itemClass'],
-              'classType' => $item['classType'],
-              'UUID'      => $item['UUID']
+              'ID'    => $item['ID'],
+              'class' => $item['class'],
+              'type'  => $item['type'],
+              'UUID'  => $item['UUID']
             ],
             'location' => $location
           ];
@@ -752,18 +824,17 @@ class lightifyConfigurator extends IPSModule
       $Groups = [];
 
       foreach ($buffer as $item) {
-        $instanceID = $this->getDeviceInstances(classConstant::MODULE_GROUP, $item['itemClass'], $item['UUID']);
+        $instanceID = $this->getDeviceInstances(classConstant::MODULE_GROUP, $item['class'], $item['UUID']);
 
         $group = [
-          'name'       => $item['itemName'],
-          'itemID'     => $item['itemID'],
-          'itemType'   => $this->translate($item['itemType']),
-          'itemClass'  => $this->translate($item['itemClass']),
+          'name'       => $item['name'],
+          'ID'         => $item['ID'],
+          'brand'      => $this->translate($item['brand']),
+          'class'      => $this->translate($item['class']),
           'zigBee'     => vtNoString,
           'UUID'       => $item['UUID'],
-          'itemName'   => $item['itemName'],
-          'itemLabel'  => vtNoString,
-          'itemModel'  => vtNoString,
+          'label'      => vtNoString,
+          'model'      => vtNoString,
           'firmware'   => vtNoString,
           'instanceID' => $instanceID
         ];
@@ -771,9 +842,10 @@ class lightifyConfigurator extends IPSModule
         $group['create'] = [
           'moduleID'      => classConstant::MODULE_GROUP,
           'configuration' => [
-            'itemID'    => $item['itemID'],
-            'itemClass' => $item['itemClass'],
-            'UUID'      => $item['UUID'],
+            'ID'    => $item['ID'],
+            'class' => $item['class'],
+            'type'  => vtNoValue,
+            'UUID'  => $item['UUID'],
           ],
           'location' => $location
         ];
@@ -803,18 +875,17 @@ class lightifyConfigurator extends IPSModule
       $Scenes = [];
 
       foreach ($buffer as $item) {
-        $instanceID = $this->getDeviceInstances(classConstant::MODULE_SCENE, $item['itemClass'], $item['UUID']);
+        $instanceID = $this->getDeviceInstances(classConstant::MODULE_SCENE, $item['class'], $item['UUID']);
 
         $scene = [
-          'name'       => $item['itemName'],
-          'itemID'     => $item['itemID'],
-          'itemType'   => $this->translate($item['itemType']),
-          'itemClass'  => $this->translate($item['itemClass']),
+          'name'       => $item['name'],
+          'ID'         => $item['ID'],
+          'brand'      => $this->translate($item['brand']),
+          'class'      => $this->translate($item['class']),
           'zigBee'     => vtNoString,
           'UUID'       => $item['UUID'],
-          'itemName'   => $item['itemName'],
-          'itemLabel'  => vtNoString,
-          'itemModel'  => vtNoString,
+          'label'      => vtNoString,
+          'model'      => vtNoString,
           'firmware'   => vtNoString,
           'instanceID' => $instanceID
         ];
@@ -822,9 +893,10 @@ class lightifyConfigurator extends IPSModule
         $scene['create'] = [
           'moduleID'      => classConstant::MODULE_SCENE,
           'configuration' => [
-            'itemID'    => $item['itemID'],
-            'itemClass' => $item['itemClass'],
-            'UUID'      => $item['UUID'],
+            'ID'    => $item['ID'],
+            'class' => $item['class'],
+            'type'  => vtNoValue,
+            'UUID'  => $item['UUID'],
           ],
           'location' => $location
         ];
@@ -847,7 +919,7 @@ class lightifyConfigurator extends IPSModule
 
       foreach ($Elements as $item) {
         $Values[] = [
-          'itemName' => $item['itemName']
+          'name' => $item['name']
         ];
       }
 
@@ -859,12 +931,12 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  private function getDeviceInstances($moduleID, $itemClass, $UUID) {
+  private function getDeviceInstances($moduleID, $class, $UUID) {
 
     $IDs = IPS_GetInstanceListByModuleID($moduleID);
 
     foreach ($IDs as $id) {
-      if (($itemClass == vtNoString || IPS_GetProperty($id, "itemClass") == $itemClass) && IPS_GetProperty($id, "UUID") == $UUID) {
+      if (($class == vtNoString || IPS_GetProperty($id, "class") == $class) && IPS_GetProperty($id, "UUID") == $UUID) {
         return $id;
       }
     }

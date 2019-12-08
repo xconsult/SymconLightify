@@ -1,8 +1,8 @@
 {
   "elements": [
-    { "type": "ValidationTextBox", "name": "itemID",    "enabled": false, "caption": "Group ID" },
-    { "type": "ValidationTextBox", "name": "itemClass", "enabled": false, "caption": "Class"    },
-    { "type": "ValidationTextBox", "name": "UUID",      "enabled": false, "caption": "UUID"     }
+    { "type": "ValidationTextBox", "name": "ID",    "enabled": false, "caption": "Group ID" },
+    { "type": "ValidationTextBox", "name": "class", "enabled": false, "caption": "Class"    },
+    { "type": "ValidationTextBox", "name": "UUID",  "enabled": false, "caption": "UUID"     }
   ],
   "actions": [
     { "type": "RowLayout",

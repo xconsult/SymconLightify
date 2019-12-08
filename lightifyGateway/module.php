@@ -76,7 +76,7 @@ class lightifyGateway extends IPSModule
     $this->RegisterPropertyString("serialNumber", vtNoString);
     
     $this->RegisterPropertyInteger("update", TIMER_SYNC_LOCAL);
-    $this->RegisterTimer("timer", 0, "OSR_GetLightifyData($this->InstanceID, 1203);");
+    $this->RegisterTimer("timer", TIMER_SYNC_LOCAL*1000, "OSR_GetLightifyData($this->InstanceID, 1203);");
 
     //Cloud Access Token
     $this->RegisterAttributeString("osramToken", vtNoString);
@@ -160,10 +160,6 @@ class lightifyGateway extends IPSModule
     parent::ApplyChanges();
 
     if (IPS_GetKernelRunlevel() != KR_READY) {
-      return;
-    }
-
-    if (!$this->HasActiveParent()) {
       return;
     }
 
@@ -263,8 +259,8 @@ class lightifyGateway extends IPSModule
       case classCommand::SET_COLOR_TEMPERATURE:
       case classCommand::SET_LIGHT_LEVEL:
       case classConstant::SET_LIGHT_SATURATION:
-      case classCommand::SET_DEVICE_NAME:
       case classCommand::SET_GROUP_NAME:
+      case classCommand::SET_DEVICE_NAME:
       case classCommand::SET_LIGHT_SOFT_ON:
       case classCommand::SET_LIGHT_SOFT_OFF:
         $cmd = $method;
@@ -293,7 +289,7 @@ class lightifyGateway extends IPSModule
         //Sync devixes
         $this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01));
 
-        if ($method == classCommand::ADD_DEVICE_TO_GROUP || $method == classCommand::RENOVE_DEVICE_FROM_GROUP) {
+        if ($method == classCommand::ADD_DEVICE_TO_GROUP || $method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_DEVICE_NAME) {
           return $this->waitReceive();
         }
       }
@@ -498,20 +494,21 @@ class lightifyGateway extends IPSModule
 
       if (!$firmwareID) {
         if (false !== ($firmwareID = $this->RegisterVariableString("FIRMWARE", $this->Translate("Firmware"), vtNoString, 304))) {
-          SetValueString($firmwareID, "-.-.-.--");
+          SetValueString($firmwareID, vtNoString);
           IPS_SetDisabled($firmwareID, true);
         }
       }
+    }
 
-      if ($ssidID) {
-        $this->sendRaw(classCommand::GET_GATEWAY_WIFI, chr(classConstant::SCAN_WIFI_CONFIG));
-        return;
-      }
-    } else {
-      //Get paired devices
-      $this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01));
+    //Get Lightify infos
+    if (empty(GetValueString($ssidID)) || empty(GetValueString($firmwareID))) {
+      $this->sendRaw(classCommand::GET_GATEWAY_WIFI, chr(classConstant::SCAN_WIFI_CONFIG));
       return;
     }
+
+    //Get paired devices
+    $this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01));
+    return;
 
   }
 

@@ -2,19 +2,19 @@
   "actions": [
     { "type": "Configurator", "name": "Lightify", "caption": "OSRAM Lightify Configurator", "delete": true, "rowCount": 10,
       "sort": {
-        "column":    "itemID",
+        "column":    "ID",
         "direction": "ascending"
       },
       "columns": [
-        { "caption": "ID",           "name": "itemID",    "width":  "50px", "visible": false },
-        { "caption": "Type",         "name": "itemType",  "width":  "80px" },
-        { "caption": "Class",        "name": "itemClass", "width":  "80px" },
-        { "caption": "ZLL",          "name": "zigBee",    "width":  "60px" },
-        { "caption": "UUID",         "name": "UUID",      "width": "200px" },
-        { "caption": "Name",         "name": "itemName",  "width": "150px" },
-        { "caption": "Capabilities", "name": "itemLabel", "width": "250px" },
-        { "caption": "Model",        "name": "itemModel", "width": "200px" },
-        { "caption": "Firmware",     "name": "firmware",  "width": "auto"  }
+        { "caption": "ID",           "name": "ID",       "width":  "50px", "visible": false },
+        { "caption": "Brand",        "name": "brand",    "width":  "80px" },
+        { "caption": "Class",        "name": "class",    "width":  "80px" },
+        { "caption": "ZLL",          "name": "zigBee",   "width":  "60px" },
+        { "caption": "UUID",         "name": "UUID",     "width": "200px" },
+        { "caption": "Name",         "name": "name",     "width": "150px" },
+        { "caption": "Capabilities", "name": "label",    "width": "250px" },
+        { "caption": "Model",        "name": "model",    "width": "200px" },
+        { "caption": "Firmware",     "name": "firmware", "width": "auto"  }
       ],
       "values": []
     },
@@ -38,13 +38,15 @@
             ]
           }
         },
-        { "type": "PopupButton", "name": "setupGroup", "caption": "Setup group", "width": "115px", "onClick": "OSR_GetListGroups($id);",
+        { "type": "PopupButton", "name": "SetupGroup", "caption": "Setup group", "width": "115px", "onClick": "OSR_LoadListGroups($id);",
           "popup": { "caption": "Setup group",
             "items": [
               { "type": "RowLayout",
                 "items": [
-                  { "type": "ValidationTextBox", "name": "newName", "enabled": false, "value": "", "caption": "Name" },
-                  { "type": "Button", "name": "rename", "enabled": false, "caption": "Rename group", "onClick": "OSR_RenameGroup($id, $listGroups, $newName);" }
+                  { "type": "ValidationTextBox", "name": "newGroup",  "width": "195px", "enabled": false, "value": "", "caption": "Rename group" },
+                  { "type": "Button", "name": "renameGroup",  "enabled": false, "caption": "Rename", "onClick": "OSR_RenameListItem($id, $listGroups, 'Group', $newGroup);" },
+                  { "type": "ValidationTextBox", "name": "newDevice", "width": "225px", "enabled": false, "value": "", "caption": "Rename device" },
+                  { "type": "Button", "name": "renameDevice", "enabled": false, "caption": "Rename", "onClick": "OSR_RenameListItem($id, $listDevices, 'Device', $newDevice);" }
                 ]
               },
               { "type": "RowLayout",
@@ -53,15 +55,15 @@
                     "columns": [
                       { "caption": "ID",    "name": "ID",    "width": "0px", "visible": false },
                       { "caption": "UUID",  "name": "UUID",  "width": "0px", "visible": false },
-                      { "caption": "Name",  "name": "name",  "width": "230px", "onClick": "OSR_GetGroupConfiguration($id, $listGroups);" }
+                      { "caption": "Name",  "name": "name",  "width": "235px", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups);" }
                     ],
                     "values": []
                   },
                   { "type": "List", "name": "listDevices", "caption": "Device list", "rowCount": 10, "onEdit": "OSR_SetGroupConfiguration($id, $listDevices, $listGroups['ID'], $listGroups['name']);",
                     "columns": [
                       { "caption": "UUID", "name": "UUID",  "width": "0px", "visible": false },
-                      { "caption": "Name", "name": "name",  "width": "190px" },
-                      { "caption": "",     "name": "value", "width": "40px",
+                      { "caption": "Name", "name": "name",  "width": "200px", "onClick": "OSR_LoadDeviceConfiguration($id, $listDevices);" },
+                      { "caption": "",     "name": "value", "width": "40px",  "onClick": "OSR_LoadDeviceConfiguration($id, $listDevices);" ,
                         "edit": {
                           "type": "CheckBox"
                         }
@@ -71,18 +73,18 @@
                   }
                 ]
               },
-              { "type": "Label",       "name": "message",  "visible": false, "caption": "" },
-              { "type": "ProgressBar", "name": "progress", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." }
+              { "type": "Label",       "name": "setupMessage",  "visible": false, "caption": "" },
+              { "type": "ProgressBar", "name": "setupProgress", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." }
             ]
           }
         },
-        { "type": "PopupButton", "name": "createGroup", "caption": "Create group", "width": "115px", "onClick": "OSR_GetListDevices($id);",
+        { "type": "PopupButton", "name": "CreateGroup", "caption": "Create group", "width": "115px", "onClick": "OSR_LoadListDevices($id);",
           "popup": { "caption": "Create group",
             "items": [
               { "type": "RowLayout",
                 "items": [
-                  { "type": "ValidationTextBox", "name": "addName", "enabled": true, "value": "", "caption": "Name" },
-                  { "type": "Button", "name": "create", "enabled": true, "caption": "Create group", "onClick": "OSR_CreateGroup($id, $addDevices, $addName);" }
+                  { "type": "ValidationTextBox", "name": "addGroup", "width": "514px", "enabled": true, "value": "", "caption": "Group name" },
+                  { "type": "Button", "name": "createGroup", "enabled": true, "caption": "Create", "onClick": "OSR_CreateGroup($id, $addDevices, $addGroup);" }
                 ]
               },
               { "type": "List", "name": "addDevices", "caption": "Device list", "rowCount": 10,
@@ -96,7 +98,9 @@
                   }
                 ],
                 "values": []
-              }
+              },
+              { "type": "Label",       "name": "createMessage",  "visible": false, "caption": "" },
+              { "type": "ProgressBar", "name": "createProgress", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." }
             ]
           }
         },

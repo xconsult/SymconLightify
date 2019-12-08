@@ -17,14 +17,13 @@ class lightifyDevice extends IPSModule
     parent::Create();
 
     //Store at runtime
-    $this->RegisterPropertyInteger("itemID", vtNoValue);
+    $this->RegisterPropertyInteger("ID", vtNoValue);
 
-    $this->RegisterPropertyString("itemClass", vtNoString);
-    $this->RegisterPropertyInteger("classType", vtNoValue);
+    $this->RegisterPropertyString("class", vtNoString);
+    $this->RegisterPropertyInteger("type", vtNoValue);
     $this->RegisterPropertyString("UUID", vtNoString);
 
     $this->RegisterAttributeInteger("transition", classConstant::TIME_MIN);
-
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
 
   }
@@ -67,12 +66,12 @@ class lightifyDevice extends IPSModule
     }
 
     //Validate
-    $itemID = $this->ReadPropertyInteger("itemID");
+    $itemID = $this->ReadPropertyInteger("ID");
 
     if ($itemID != vtNoValue) {
       $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
 
-      if ($itemID == 1000 || $this->ReadPropertyString("itemClass") != "Light") {
+      if ($itemID == 1000 || $this->ReadPropertyString("class") != "Light") {
         $formJSON['actions'][0]['items'][2]['visible'] = false;
       }
       return json_encode($formJSON);
@@ -134,44 +133,44 @@ class lightifyDevice extends IPSModule
   private function setDeviceInfo(array $data) : void {
 
     //Decode device class
-    $classLight = $classPlug = $classMotion = false;
-    $classType  = $data['type'];
+    $light = $plug = $motion = false;
+    $type  = $data['type'];
 
-    switch ($classType) {
+    switch ($type) {
       case classConstant::TYPE_PLUG_ONOFF:
-        $classPlug = true;
+        $plug = true;
         break;
 
       case classConstant::TYPE_SENSOR_MOTION:
-        $classMotion = true;
+        $motion = true;
         break;
 
       case classConstant::TYPE_DIMMER_2WAY:
-        $classDimmer = true;
+        $dimmer = true;
         break;
 
       case classConstant::TYPE_SWITCH_4WAY:
       case classConstant::TYPE_SWITCH_MINI:
-        $classSwitch = true;
+        $switch = true;
         break;
 
       default:
-        $classLight = true;
+        $light = true;
     }
 
     //Additional informations
     $zigBee   = $data['zigBee'];
     $firmware = $data['firmware'];
 
-    if ($classLight || $classPlug || $classMotion) {
-      $deviceRGB  = ($classType & 8) ? true: false;
-      $deviceCCT  = ($classType & 2) ? true: false;
-      $deviceCLR  = ($classType & 4) ? true: false;
+    if ($light || $plug || $motion) {
+      $RGB = ($type & 8) ? true: false;
+      $CCT = ($type & 2) ? true: false;
+      $CLR = ($type & 4) ? true: false;
 
       $hue    = $color = $level      = vtNoString;
       $temperature     = $saturation = vtNoString;
 
-      if ($classLight) {
+      if ($light) {
         $level = $data['level'];
         $white = $data['white'];
         $rgb   = $data['rgb'];
@@ -179,13 +178,13 @@ class lightifyDevice extends IPSModule
         $hsv   = $this->lightifyBase->HEX2HSV($hex);
       }
 
-      if ($deviceRGB) {
+      if ($RGB) {
         $hue        = $hsv['h'];
         $color      = hexdec($hex);
         $saturation = $hsv['s'];
       }
 
-      if ($deviceCCT) {
+      if ($CCT) {
         $temperature = $data['cct'];
       }
 
@@ -211,21 +210,21 @@ class lightifyDevice extends IPSModule
         //$stateID = $this->GetIDForIdent("STATE");
         $stateID = $this->RegisterVariableBoolean("STATE", $this->Translate("State"), "OSR.Switch", 313);
 
-        if ($classLight || $classPlug) {
+        if ($light || $plug) {
           $this->EnableAction("STATE");
         }
       }
 
       if ($stateID) {
-        $state = ($classMotion) ? (bool)$data['rgb']['r'] : $data['state'];
+        $state = ($motion) ? (bool)$data['rgb']['r'] : $data['state'];
 
         if (GetValueBoolean($stateID) != $state) {
           SetValueBoolean($stateID, $state);
         }
       }
 
-      if ($classLight || $classPlug) {
-        if ($deviceRGB) {
+      if ($light || $plug) {
+        if ($RGB) {
           if (false === ($hueID = @$this->GetIDForIdent("HUE"))) {
             //$this->MaintainVariable("HUE", $this->Translate("Hue"), vtInteger, "OSR.Hue", 314, true);
             //$hueID = $this->GetIDForIdent("HUE");
@@ -273,9 +272,9 @@ class lightifyDevice extends IPSModule
           }
         }
 
-        if ($deviceCCT) {
+        if ($CCT) {
           if (false === ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE"))) {
-            $profile = ($deviceRGB) ? "OSR.ColorTempExt" : "OSR.ColorTemp";
+            $profile = ($RGB) ? "OSR.ColorTempExt" : "OSR.ColorTemp";
 
             //$this->MaintainVariable("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), vtInteger, "OSR.ColorTemp", 316, true);
             //$temperatureID = $this->GetIDForIdent("COLOR_TEMPERATURE");
@@ -290,7 +289,7 @@ class lightifyDevice extends IPSModule
           }
         }
 
-        if ($classLight) {
+        if ($light) {
           if (false === ($levelID = @$this->GetIDForIdent("LEVEL"))) {
             //$this->MaintainVariable("LEVEL", $this->Translate("Level"), vtInteger, "OSR.Intensity", 317, true);
             //$levelID = $this->GetIDForIdent("LEVEL");
@@ -308,7 +307,7 @@ class lightifyDevice extends IPSModule
         }
       }
 
-      if ($classMotion) {
+      if ($motion) {
         if (false === ($motionID = @$this->GetIDForIdent("MOTION"))) {
           //$this->MaintainVariable("MOTION", $this->Translate("Motion"), vtBooelan, "~Motion", 322, true);
           //$$motionID = $this->GetIDForIdent("MOTION");
@@ -317,10 +316,10 @@ class lightifyDevice extends IPSModule
         }
 
         if ($motionID) {
-          $motion = $data['rgb']['g']; //Motion detection = green
+          $detect = $data['rgb']['g']; //Motion detection = green
 
-          if (GetValueBoolean($motionID) != $motion) {
-            SetValueBoolean($motionID, $motion);
+          if (GetValueBoolean($motionID) != $detect) {
+            SetValueBoolean($motionID, $detect);
           }
         }
       }
