@@ -309,7 +309,8 @@ class lightifyConfigurator extends IPSModule
   public function SetGroupConfiguration(object $List, int $itemID, string $name) : void {
 
     if (!$List['online']) {
-      $this->UpdateFormField("setupMessage", "caption", $this->Translate("Device is offline and cannot be added/removed!"));
+      $this->UpdateFormField("setupMessage", "caption", $this->Translate("Device is offline and cannot be ".(($List['value']) ? "added!" : "removed!")));
+      $this->UpdateFormField("listDevices", "values", $this->GetBuffer("listDevices"));
       return;
     }
 
