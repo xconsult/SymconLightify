@@ -101,34 +101,28 @@ class lightifyDiscovery extends IPSModule
 
     if (IPS_ModuleExists(self::MODULE_DNSSD)) {
       $moduleID = IPS_GetInstanceListByModuleID(self::MODULE_DNSSD)[0];
-      $mDNS = ZC_QueryServiceType($moduleID, "_http._tcp", "");
-      //IPS_LogMessage("SymconOSR", "<Discovery|mDNS query:info>   ".json_encode($mDNS));
+      //$mType = ZC_QueryServiceTypes($moduleID);
+      $mDNS  = ZC_QueryServiceType($moduleID, "_http._tcp", "");
+      //$query = ZC_QueryService($moduleID, "Lightify-017c3b28", "_http._tcp", "local.");
+      //IPS_LogMessage("SymconOSR", "<Discovery|mDNS query:info>   ".$moduleID."|".json_encode($query));
 
-      for ($i = 0; $i < 10; $i++) {
-        foreach ($mDNS as $item) {
-          $name = $item['Name'];
+      foreach ($mDNS as $item) {
+        $name = $item['Name'];
 
-          if (stripos($name, "Lightify") !== false) {
-            $query = ZC_QueryService($moduleID, $name, $item['Type'],"local.");
-            //IPS_LogMessage("SymconOSR", "<Discovery|Service query:info>   ".$moduleID."|".json_encode($query));
+        if (stripos($name, "Lightify-") !== false) {
+          $query = ZC_QueryService($moduleID, $name, $item['Type'],"local.");
+          //IPS_LogMessage("SymconOSR", "<Discovery|Service query:info>   ".$moduleID."|".json_encode($query));
 
-            foreach ($query as $device) {
-              if (array_key_exists("IPv4", $device)) {
-                $Gateways[] = [
-                  'IP'     => $device['IPv4'][0],
-                  'Name'   => $name,
-                  'Serial' => "OSR".strtoupper(substr($name, strrpos($name, "-")+1-strlen($name)))
-                ];
-              }
+          foreach ($query as $device) {
+            if (array_key_exists("IPv4", $device)) {
+              $Gateways[] = [
+                'IP'     => $device['IPv4'][0],
+                'Name'   => $name,
+                'Serial' => "OSR".strtoupper(substr($name, strrpos($name, "-")+1-strlen($name)))
+              ];
             }
           }
         }
-
-        if (!empty($query)) {
-          break;
-        }
-
-        usleep(100000);
       }
     }
 

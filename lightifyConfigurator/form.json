@@ -55,14 +55,14 @@
                     "columns": [
                       { "caption": "ID",    "name": "ID",    "width": "0px", "visible": false },
                       { "caption": "UUID",  "name": "UUID",  "width": "0px", "visible": false },
-                      { "caption": "Name",  "name": "name",  "width": "250px", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups);" }
+                      { "caption": "Name",  "name": "name",  "width": "250px", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups, 'initial');" }
                     ],
                     "values": []
                   },
                   { "type": "List", "name": "listDevices", "caption": "Device list", "rowCount": 10, "onEdit": "OSR_SetGroupConfiguration($id, $listDevices, $listGroups['ID'], $listGroups['name']);",
                     "columns": [
                       { "caption": "UUID", "name": "UUID",   "width": "0px", "visible": false },
-                      { "caption": "Name", "name": "name",   "width": "200px", "onClick": "OSR_LoadDeviceConfiguration($id, $listDevices);" },
+                      { "caption": "Name", "name": "name",   "width": "202px", "onClick": "OSR_SetDeviceRename($id, $listDevices);" },
                       { "caption": "",     "name": "value",  "width": "25px", 
                         "edit": {
                           "type": "CheckBox"
@@ -85,12 +85,17 @@
                   ]
                 }
               },
-              { "type": "Label",       "name": "setupMessage",  "caption": "" },
-              { "type": "ProgressBar", "name": "setupProgress", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." }
+              { "type": "RowLayout",
+                "items": [
+                  { "type": "ProgressBar", "name": "setupProgress", "width": "586px", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." },
+                  { "type": "Label",  "name": "setupMessage", "width": "492px", "caption": "" },
+                  { "type": "Button", "name": "setupRefresh", "width": "94px",  "enabled": true, "caption": "Refresh", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups, 'refresh');" }
+                ]
+              }
             ]
           }
         },
-        { "type": "PopupButton", "name": "CreateGroup", "caption": "Create group", "width": "150px", "onClick": "OSR_LoadListDevices($id);",
+        { "type": "PopupButton", "name": "CreateGroup", "caption": "Create group", "width": "150px", "onClick": "OSR_LoadListDevices($id, 'initial');",
           "popup": { "caption": "Create group",
             "items": [
               { "type": "RowLayout",
@@ -111,8 +116,13 @@
                 ],
                 "values": []
               },
-              { "type": "Label",       "name": "createMessage",  "caption": "" },
-              { "type": "ProgressBar", "name": "createProgress", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." }
+              { "type": "RowLayout",
+                "items": [
+                  { "type": "ProgressBar", "name": "createProgress", "width": "586px", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." },
+                  { "type": "Label",  "name": "createMessage", "width": "492px", "caption": "" },
+                  { "type": "Button", "name": "createRefresh", "width": "94px",  "enabled": true, "caption": "Refresh", "onClick": "OSR_LoadListDevices($id, 'refresh');" }
+                ]
+              }
             ]
           }
         },
