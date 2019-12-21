@@ -1,27 +1,13 @@
 {
   "translations": {
     "de": {
-      "Group/Scene [id]"                  : "Gruppen/Szenen [id]",
-      "Class"                             : "Klasse",
-      "Group"                             : "Gruppe",
-      "Scene"                             : "Szene",
-      "Devices"                           : "Geräte",
-      "Hue"                               : "Hue",
-      "Color"                             : "Farbe",
-      "Color Temperature"                 : "Farbtemperatur",
-      "Brightness"                        : "Helligkeit",
-      "Level"                             : "Helligkeit",
-      "Saturation"                        : "Sättigung",
-      "time"                              : "Zeit",
-      "Light"                             : "Lampe",
-      "Plug"                              : "Steckdose",
-      "On"                                : "An",
-      "Off"                               : "Aus",
-      "Apply"                             : "Anwenden",
-      "Group is active"                   : "Gruppe ist aktiv",
-      "Lightify gateway is not connected" : "Lightify gateway ist nicht verbunden",
-      "Invalid Group [id]"                : "Ungültige Gruppen [id]",
-      "State"                             : "Status"
+      "Scene [id]"                       : "Szenen [id]",
+      "Class"                            : "Klasse",
+      "Scene"                            : "Szene",
+      "Apply"                            : "Anwenden",
+      "Scene is active"                  : "Szene ist aktiv",
+      "Scene is inactive"                : "Szene ist inaktiv",
+      "Lightify socket is not connected" : "Lightify Socket ist nicht verbunden"
     }
   }
 }

@@ -9,7 +9,6 @@
     { "type": "ValidationTextBox", "name": "serialNumber", "caption": "Serial number" },
     { "type": "NumberSpinner",     "name": "localUpdate",  "caption": "Update interval [s]", "minimum": 5 },
     { "type": "Label", "caption": "" },
-    { "type": "CheckBox", "name": "deviceInfo", "caption": " Show device specific informations (UUID, Manufacturer, Model, Capabilities, ZigBee, Firmware)" },
     { "type": "Select",   "name": "debug",      "caption": "Debug",
       "options": [
         { "caption": "Disabled",            "value":  0 },
@@ -23,8 +22,8 @@
   "actions": [
     { "type": "RowLayout",
       "items": [
-        { "type": "Label",  "name": "enable",   "visible": true, "caption": "To enable cloud access " },
-        { "type": "Button", "name": "register", "enabled": true, "caption": "Register", "onClick": "echo OSR_LightifyRegister($id);" },
+        { "type": "Label",  "name": "enable",   "visible": true,  "caption": "To enable cloud access " },
+        { "type": "Button", "name": "register", "width": "105px", "enabled": true, "caption": "Register", "onClick": "echo OSR_LightifyRegister($id);" },
         { "type": "Image", "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAAATgAAAAAAAACQAAAAAQAAAJAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAECgAwAEAAAAAQAAAEAAAAAAlNz6EQAAAAlwSFlzAAAWJQAAFiUBSVIk8AAABKxJREFUeAHtWW2IFVUYfs6ZcfeuNzTJin6FGIWymz+CZTNKKwokCMz8TKP+uChZIKI/CooKIQhBgiRQN9lgpQ3a7EcKSv6JPtYybfvQEoVQ0S0l1HbdnXNO73su967Y7CzbOu+dmHm5c2fuOWfmvM/zfpx3zlWOBDkWnWPsHnpBQOEBOWegCIGcOwAKDyg8IOcMFCGQcwcokmAo5QHODgNX/gD43at8C1TQKDV14jxiOcCe/Rr2/TlwHXSc2peolGSnmAdoMwAM9EMZcoLhy5IYE+cS8wBA+Q+fnKKvjIgYAc5Wwp9xZwc+BFcBRk35j3Ng0h4UJ0sXDfJQERHzAA+evYBzQAI08807sNtaYD96ClFflycjYfiEu8QI4K1Hxcjp8OdRVFfl24GGEvDbHqjuFTAfPAJz7vAooyfeLEYAq8rAk8DzmKDlGaj2H4DVP8M98CLU71/CdT0Bc7aXu2+4iBGgffofOwGaUweBL94GwhL041thF3ZCXToPfPo87OBf/18CfOavhgDlgjjx3QPnYb7iPDAH9qduBM0rYeduoOLpR5iju+Jum1CbmAcwOJ/9KAkmiZ61BPqlY8C9K4Ce5+D+PI6gbT301KnQfbtpBRmFvaSHJvSJEcA6VOPfk3GdUtwWMcAdj8H98jG5/xagdDPc4R1Q5dvgbr0HONML93f/dXdO7KdYKcxqMsi4Iojbzfe7EOxZDT04BGMuQDUvh1qwjbJiULmnbSPsuSMIJ5X5UTdMxAjgZdBFRACHgB3xAQ/+uw6oT9ZQjTAEWyrB3b/BV2hq1pM1oMHsRdB0xBFYG/QfLlIJAUtxGp04gOjXfSNFT8NNZGbyAnortg1TvKoczebb7VA97VBDV+Eo89uFO2kpJOvHgIlrixk2riaVxp+j0elDUO+2QpGl3YK3oB/aCC5x7aHtwPAV6Na1UJMmw/S+R5ZfB22or6EJ9umdCFuWxYIfF6pxDE4lBFTjFKimadCXL8B9tgmWAKqHX0bYusar5t2ewOueFwh8BNPYBLe4A2HzUlHwrEwqIaCn3w277EOYybTzQ36u974Ce+B11Baw4UGozzdDD0RwjWW4pZ11AZ8aARyrwV2Pwq7shi1P9yQEe1+F3f9GZSUIaTusbR3MzAdhl3chpORWL0klB1TBsKtHJw9Cdy5BcKmfwGu4Z3dDtyz2RHA/k5VGcqvqMNY5lRCoTsrAwhnz4VaRJ5Sm0RJIQbD/Tf+Ky308eT3Bs56pEsATMMBgxjxa29srdcDpPpgzR7krE5I6AYzSW3vm/ArdQxb64slMgGclRAjgiZwK+ORF2dp6UG2q21mMAN4I5CXRl8J1g/vvieUI4DjgtM/Gd/wjGyJGgH8VZgL4yJCIEVBb8Mj4WeJAjoCq9bOEnjxRjgC2O4P3OSA7MSBIAIGuWj/pryFhbmQJIOvznqaqewE8wrIoAX5Dl0MgQyJKQIZw11RJZUeo9vRrL7j8vUoNflN0jD8Hrr0v5WsxAtwds+EWvUargIW6877MZIFUN0TijMcLQXYKYdE6oEJHlsCzRrlPggUBFcfM73fhAfm1fQV54QGFB+ScgSIEcu4ARSWY+xD4B4GCejPhFTRlAAAAAElFTkSuQmCC" }
       ]
     }
