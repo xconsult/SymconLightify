@@ -6,11 +6,9 @@ require_once __DIR__.'/../libs/lightifyControl.php';
 
 
 define('ROW_COLOR_LIGHT_ON',  "#fffde7");
-define('ROW_COLOR_CCT_ON',    "#ffecB3");
+define('ROW_COLOR_CCT_ON',    "#ffffff");
 define('ROW_COLOR_PLUG_ON',   "#cdfcc6");
 define('ROW_COLOR_STATE_OFF', "#f6c3c2");
-define('ROW_COLOR_LIGHT_OFF', "#f6c3c2");
-define('ROW_COLOR_PLUG_OFF',  "#f6c3c2");
 
 
 class lightifyGroup extends IPSModule
@@ -160,14 +158,10 @@ class lightifyGroup extends IPSModule
                   if ($class == $this->Translate("Plug")) {
                     $rowColor = ROW_COLOR_PLUG_ON;
                   } else {
-                    $rowColor = ($temperature) ? ROW_COLOR_CCT_ON : ROW_COLOR_LIGHT_ON;
+                    $rowColor = ($color != vtNoString) ? "#".$color : ROW_COLOR_CCT_ON;
                   }
                 } else {
-                  if ($class == $this->Translate("Plug")) {
-                    $rowColor = ($state) ? ROW_COLOR_STATE_OFF : ROW_COLOR_PLUG_OFF;
-                  } else {
-                    $rowColor = ($state) ? ROW_COLOR_STATE_OFF : ROW_COLOR_LIGHT_OFF;
-                  }
+                  $rowColor = ROW_COLOR_STATE_OFF;
                 }
               }
 
@@ -175,7 +169,7 @@ class lightifyGroup extends IPSModule
                 'InstanceID'  => $instanceID,
                 'name'        => IPS_GetName($instanceID),
                 'hue'         => $hue,
-                'color'       => ($color != vtNoString) ? "#".strtoupper($color) : vtNoString,
+                'color'       => ($color != vtNoString) ? "#".$color : vtNoString,
                 'temperature' => $temperature,
                 'level'       => $level,
                 'saturation'  => $saturation,
