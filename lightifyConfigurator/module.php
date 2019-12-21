@@ -6,6 +6,9 @@ require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 
 
+define('ROW_COLOR_OFFLINE',  "#f6c3c2");
+
+
 class lightifyConfigurator extends IPSModule
 {
 
@@ -290,7 +293,7 @@ class lightifyConfigurator extends IPSModule
           'name'     => $key->name,
           'online'   => $key->online,
           'value'    => $value,
-          'rowColor' => ($key->online) ? "" : "#ffc0c0"
+          'rowColor' => ($key->online) ? "" : ROW_COLOR_OFFLINE
         ];
       }
 
@@ -498,7 +501,7 @@ class lightifyConfigurator extends IPSModule
         'name'     => $item->name,
         'online'   => $item->online,
         'value'    => $item->value,
-        'rowColor' => ($item->online) ? "" : "#ffc0c0"
+        'rowColor' => ($item->online) ? "" : ROW_COLOR_OFFLINE
       ];
     }
 
@@ -1027,7 +1030,7 @@ class lightifyConfigurator extends IPSModule
     $IDs = IPS_GetInstanceListByModuleID($moduleID);
 
     foreach ($IDs as $id) {
-      if (($class == vtNoString || IPS_GetProperty($id, "class") == $class) && IPS_GetProperty($id, "UUID") == $UUID) {
+      if (($class == vtNoString || @IPS_GetProperty($id, "class") == $class) && @IPS_GetProperty($id, "UUID") == $UUID) {
         return $id;
       }
     }

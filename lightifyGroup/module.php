@@ -7,10 +7,10 @@ require_once __DIR__.'/../libs/lightifyControl.php';
 
 define('ROW_COLOR_LIGHT_ON',  "#fffde7");
 define('ROW_COLOR_CCT_ON',    "#ffecB3");
-define('ROW_COLOR_PLUG_ON',   "#c5e1a5");
-define('ROW_COLOR_STATE_OFF', "#ffffff");
-define('ROW_COLOR_LIGHT_OFF', "#e0e0e0");
-define('ROW_COLOR_PLUG_OFF',  "#ef9a9a");
+define('ROW_COLOR_PLUG_ON',   "#cdfcc6");
+define('ROW_COLOR_STATE_OFF', "#f6c3c2");
+define('ROW_COLOR_LIGHT_OFF', "#f6c3c2");
+define('ROW_COLOR_PLUG_OFF',  "#f6c3c2");
 
 
 class lightifyGroup extends IPSModule
@@ -117,6 +117,80 @@ class lightifyGroup extends IPSModule
         break;
       }
     }
+
+  }
+
+
+  public function PanelGroupDevices() : void {
+
+      //Get data
+      $data = $this->SendDataToParent(json_encode([
+        'DataID' => classConstant::TX_GATEWAY,
+        'method' => classConstant::GET_GROUP_DEVICES])
+      );
+      //IPS_LogMessage("SymconOSR", "<Configurator|Get Group configuration:data>   ".$data);
+
+      $data = json_decode($data);
+      $Devices = [];
+
+      if (is_array($data) && count($data) > 0) {
+        foreach ($data as $item) {
+          if ($item->Group == $this->ReadPropertyString("UUID")) {
+            foreach ($item->Devices as $UUID) {
+              $instanceID = $this->getDeviceInstances(classConstant::MODULE_DEVICE, $UUID);
+
+              if ($instanceID) {
+                $stateID = @IPS_GetObjectIDByIdent("STATE", $instanceID);
+                $state   = ($stateID) ? GetValueBoolean($stateID) : false;
+                $class   = @IPS_GetProperty($instanceID, "class");
+
+                $hueID         = @IPS_GetObjectIDByIdent("HUE", $instanceID);
+                $colorID       = @IPS_GetObjectIDByIdent("COLOR", $instanceID);
+                $temperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $instanceID);
+                $levelID       = @IPS_GetObjectIDByIdent("LEVEL", $instanceID);
+                $saturationID  = @IPS_GetObjectIDByIdent("SATURATION", $instanceID);
+
+                $hue           = ($hueID) ?  GetValueformatted($hueID) : vtNoString;
+                $color         = ($colorID) ? strtolower(GetValueformatted($colorID)) : vtNoString;
+                $temperature   = ($temperatureID) ? GetValueformatted($temperatureID) : vtNoString;
+                $level         = ($levelID) ? preg_replace('/\s+/', '', GetValueformatted($levelID)) : vtNoString;
+                $saturation    = ($saturationID) ? preg_replace('/\s+/', '', GetValueformatted($saturationID)) : vtNoString;
+
+                if ($state) {
+                  if ($class == $this->Translate("Plug")) {
+                    $rowColor = ROW_COLOR_PLUG_ON;
+                  } else {
+                    $rowColor = ($temperature) ? ROW_COLOR_CCT_ON : ROW_COLOR_LIGHT_ON;
+                  }
+                } else {
+                  if ($class == $this->Translate("Plug")) {
+                    $rowColor = ($state) ? ROW_COLOR_STATE_OFF : ROW_COLOR_PLUG_OFF;
+                  } else {
+                    $rowColor = ($state) ? ROW_COLOR_STATE_OFF : ROW_COLOR_LIGHT_OFF;
+                  }
+                }
+              }
+
+              $Devices[] = [
+                'InstanceID'  => $instanceID,
+                'name'        => IPS_GetName($instanceID),
+                'hue'         => $hue,
+                'color'       => ($color != vtNoString) ? "#".strtoupper($color) : vtNoString,
+                'temperature' => $temperature,
+                'level'       => $level,
+                'saturation'  => $saturation,
+                'transition'  => vtNoString,
+                'rowColor'    => $rowColor
+              ];
+            }
+            //IPS_LogMessage("SymconOSR", "<Configurator|Group devices:list>   ".json_encode($Devices));
+            break;
+          }
+        }
+      }
+
+      //Load list
+      $this->UpdateFormField("listDevices", "values", json_encode($Devices));
 
   }
 
@@ -283,6 +357,21 @@ class lightifyGroup extends IPSModule
         SetValueInteger($saturationID, $saturation);
       }
     }
+
+  }
+
+
+  private function getDeviceInstances($moduleID, $UUID) {
+
+    $IDs = IPS_GetInstanceListByModuleID($moduleID);
+
+    foreach ($IDs as $id) {
+      if (@IPS_GetProperty($id, "UUID") == $UUID) {
+        return $id;
+      }
+    }
+
+    return 0;
 
   }
 
