@@ -871,7 +871,7 @@ class lightifyConfigurator extends IPSModule
 
       foreach ($buffer as $item) {
         $instanceID = $this->getDeviceInstances(classConstant::MODULE_DEVICE, $item['class'], $item['UUID']);
-        $location   = ($item['class'] == "Light") ? $loDevice : $loSensor;
+        $location   = ($item['class'] == "Sensor") ? $loSensor : $loDevice;
         //IPS_LogMessage("SymconOSR", "<Configurator|Get device configurator:location>   ".$item['itemClass']."|".json_encode($location));
 
         $device = [

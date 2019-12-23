@@ -26,14 +26,17 @@
       "items": [
         { "type": "List", "name": "listDevices", "rowCount": 10,
           "columns": [
-            { "caption": "Instance ID", "name": "instanceID",  "width":  "0px", "visible": false },
-            { "caption": "Name",        "name": "name",        "width":  "180px" },
-            { "caption": "Hue",         "name": "hue",         "width":  "80px"  },
-            { "caption": "Color",       "name": "color",       "width":  "100px" },
-            { "caption": "Temperature", "name": "temperature", "width":  "110px" },
-            { "caption": "Level",       "name": "level",       "width":  "110px" },
-            { "caption": "Saturation",  "name": "saturation",  "width":  "110px" },
-            { "caption": "T [ms]",      "name": "transition",  "width":  "60px"  }
+            { "caption": "Instance ID", "name": "instanceID",  "width": "0px", "visible": false },
+            { "caption": "Class",       "name": "class",       "width": "80px"  },
+            { "caption": "ZLL",         "name": "zigBee",      "width": "60px"  },
+            { "caption": "Name",        "name": "name",        "width": "150px" },
+            { "caption": "Hue",         "name": "hue",         "width": "50px"  },
+            { "caption": "Color",       "name": "color",       "width": "80px"  },
+            { "caption": "Temperature", "name": "temperature", "width": "110px" },
+            { "caption": "Level",       "name": "level",       "width": "90px"  },
+            { "caption": "Saturation",  "name": "saturation",  "width": "90px"  },
+            { "caption": "T [ms]",      "name": "transition",  "width": "60px"  },
+            { "caption": "Firmware",     "name": "firmware",   "width": "100px" }
           ],
           "values": []
         }
