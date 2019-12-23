@@ -24,9 +24,7 @@ class lightifyGroup extends IPSModule
 
     //Store at runtime
     $this->RegisterPropertyInteger("ID", vtNoValue);
-    
     $this->RegisterPropertyString("class", vtNoString);
-    $this->RegisterPropertyInteger("type", vtNoValue);
     $this->RegisterPropertyString("UUID", vtNoString);
 
     $this->RegisterAttributeString("Devices", vtNoString);
@@ -71,18 +69,32 @@ class lightifyGroup extends IPSModule
 
     //Validate
     if ($this->ReadPropertyInteger("ID") != vtNoValue) {
-      return file_get_contents(__DIR__."/form.json");
+      $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
+
+      if ($stateID = @$this->GetIDForIdent("STATE")) {
+        if (GetValueBoolean($stateID)) {
+          $formJSON['elements'][0]['items'][1]['visible'] = true;
+        } else {
+          $formJSON['elements'][0]['items'][2]['visible'] = true;
+        }
+      }
+
+      //Expansion Panel
+      $formJSON['actions'][1]['items'][0]['values'] = $this->PanelGroupDevices();
+      return json_encode($formJSON);
     }
 
     $elements[] = [
       'type'    => "Label",
       'caption' => "Group can only be configured over the Lightify Discovery Instance!"
     ];
+
     $status[] = [
       'code'    => 104,
       'icon'    => "inactive",
       'caption' => "Group is inactive"
     ];
+
     $formJSON = [
       'elements' => $elements,
       'status'   => $status
@@ -119,7 +131,7 @@ class lightifyGroup extends IPSModule
   }
 
 
-  public function PanelGroupDevices() : void {
+  public function PanelGroupDevices() : array {
 
       //Get data
       $data = $this->SendDataToParent(json_encode([
@@ -184,6 +196,7 @@ class lightifyGroup extends IPSModule
       }
 
       //Load list
+      return $Devices;
       $this->UpdateFormField("listDevices", "values", json_encode($Devices));
 
   }

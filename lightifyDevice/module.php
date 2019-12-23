@@ -17,10 +17,9 @@ class lightifyDevice extends IPSModule
     parent::Create();
 
     //Store at runtime
-    $this->RegisterPropertyInteger("ID", vtNoValue);
-
     $this->RegisterPropertyString("class", vtNoString);
     $this->RegisterPropertyInteger("type", vtNoValue);
+    $this->RegisterPropertyString("zigBee", vtNoString);
     $this->RegisterPropertyString("UUID", vtNoString);
 
     $this->RegisterAttributeInteger("transition", classConstant::TIME_MIN);
@@ -66,14 +65,24 @@ class lightifyDevice extends IPSModule
     }
 
     //Validate
-    $itemID = $this->ReadPropertyInteger("ID");
+    $type = $this->ReadPropertyInteger("type");
 
-    if ($itemID != vtNoValue) {
+    if ($type != vtNoValue) {
       $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
 
-      if ($itemID == 1000 || $this->ReadPropertyString("class") != "Light") {
+      if ($type == classConstant::TYPE_ALL_DEVICES) {
+        $stateID = @$this->GetIDForIdent("ALL_DEVICES");
         $formJSON['actions'][0]['items'][2]['visible'] = false;
+      } else {
+        $stateID = @$this->GetIDForIdent("STATE");
       }
+
+      if ($stateID && GetValueBoolean($stateID)) {
+        $formJSON['elements'][0]['items'][1]['visible'] = true;
+      } else {
+        $formJSON['elements'][0]['items'][2]['visible'] = true;
+      }
+
       return json_encode($formJSON);
     }
 
@@ -81,11 +90,13 @@ class lightifyDevice extends IPSModule
       'type'    => "Label",
       'caption' => "Group can only be configured over the Lightify Discovery Instance!"
     ];
+
     $status[] = [
       'code'    => 104,
       'icon'    => "inactive",
       'caption' => "Device is inactive"
     ];
+
     $formJSON = [
       'elements' => $elements,
       'status'   => $status
@@ -321,6 +332,17 @@ class lightifyDevice extends IPSModule
           if (GetValueBoolean($motionID) != $detect) {
             SetValueBoolean($motionID, $detect);
           }
+        }
+      }
+
+      //Firmware
+      if (false === ($firmwareID = @$this->GetIDForIdent("FIRMWARE"))) {
+        $firmwareID = $this->RegisterVariableString("FIRMWARE", $this->Translate("Firmware"), "", 324);
+      }
+
+      if ($firmwareID) {
+        if (GetValueString($firmwareID) != $firmware) {
+          SetValueString($firmwareID, $firmware);
         }
       }
     }

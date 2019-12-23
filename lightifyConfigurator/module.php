@@ -202,15 +202,23 @@ class lightifyConfigurator extends IPSModule
           ];
 
           if (isset($item->create)) {
+            $config = [];
+
+            if ($item->brand == "Group" || $item->brand == "Scene") {
+              $config['ID'] = $item->create->configuration->ID;
+            }
+            $config['class'] = $item->create->configuration->class;
+
+            if ($item->brand == "Device" || $item->brand == "Sensor") {
+              $config['type']   = $item->create->configuration->type;
+              $config['zigBee'] = $item->create->configuration->zigBee;
+            }
+            $config['UUID'] = $item->create->configuration->UUID;
+
             $value['create'] = [
               'moduleID'      => $item->create->moduleID,
-              'configuration' => [
-                'ID'    => $item->create->configuration->ID,
-                'class' => $item->create->configuration->class,
-                'type'  => $item->create->configuration->type,
-                'UUID'  => $item->create->configuration->UUID,
-              ],
-              'location' => $location
+              'configuration' => $config,
+              'location'      => $location
             ];
           }
 
@@ -346,7 +354,7 @@ class lightifyConfigurator extends IPSModule
 
         $param = [
           'flag'  => 2,
-          'args'  => utf8_encode(chr($itemID-classConstant::GROUP_ITEM_INDEX).chr(0x00).$this->lightifyBase->UUIDtoChr($List['UUID']).chr(strlen($name)).$name),
+          'args'  => utf8_encode(chr($itemID).chr(0x00).$this->lightifyBase->UUIDtoChr($List['UUID']).chr(strlen($name)).$name),
           'value' => vtNoValue
         ];
       } else {
@@ -354,7 +362,7 @@ class lightifyConfigurator extends IPSModule
 
         $param = [
           'flag'  => 2,
-          'args'  => utf8_encode(chr($itemID-classConstant::GROUP_ITEM_INDEX).chr(0x00).$this->lightifyBase->UUIDtoChr($List['UUID'])),
+          'args'  => utf8_encode(chr($itemID).chr(0x00).$this->lightifyBase->UUIDtoChr($List['UUID'])),
           'value' => vtNoValue
         ];
       }
@@ -613,7 +621,7 @@ class lightifyConfigurator extends IPSModule
     if (is_array($data) && count($data) > 0) {
       foreach ($data as $group) {
         $List[] = [
-          'ID'   => classConstant::GROUP_ITEM_INDEX+$group->id,
+          'ID'   => $group->id,
           'UUID' => $group->UUID,
           'name' => $group->name
         ];
@@ -881,15 +889,17 @@ class lightifyConfigurator extends IPSModule
         ];
 
         if ($item['class'] != "Dimmer" && $item['class'] != "Switch") {
+          $config = [
+            'class'  => $item['class'],
+            'type'   => $item['type'],
+            'zigBee' => $item['zigBee'],
+            'UUID'   => $item['UUID']
+          ];
+
           $device['create'] = [
             'moduleID'      => classConstant::MODULE_DEVICE,
-            'configuration' => [
-              'ID'    => $item['ID'],
-              'class' => $item['class'],
-              'type'  => $item['type'],
-              'UUID'  => $item['UUID']
-            ],
-            'location' => $location
+            'configuration' => $config,
+            'location'      => $location
           ];
         }
 
@@ -933,15 +943,16 @@ class lightifyConfigurator extends IPSModule
           'instanceID' => $instanceID
         ];
 
+        $config = [
+          'ID'    => $item['ID']-classConstant::GROUP_ITEM_INDEX,
+          'class' => $item['class'],
+          'UUID'  => $item['UUID']
+        ];
+
         $group['create'] = [
           'moduleID'      => classConstant::MODULE_GROUP,
-          'configuration' => [
-            'ID'    => $item['ID'],
-            'class' => $item['class'],
-            'type'  => vtNoValue,
-            'UUID'  => $item['UUID'],
-          ],
-          'location' => $location
+          'configuration' => $config,
+          'location'      => $location
         ];
 
         $Groups[] = $group;
@@ -984,15 +995,16 @@ class lightifyConfigurator extends IPSModule
           'instanceID' => $instanceID
         ];
 
+        $config = [
+          'ID'    => $item['ID']-classConstant::SCENE_ITEM_INDEX,
+          'class' => $item['class'],
+          'UUID'  => $item['UUID']
+        ];
+
         $scene['create'] = [
           'moduleID'      => classConstant::MODULE_SCENE,
-          'configuration' => [
-            'ID'    => $item['ID'],
-            'class' => $item['class'],
-            'type'  => vtNoValue,
-            'UUID'  => $item['UUID'],
-          ],
-          'location' => $location
+          'configuration' => $config,
+          'location'      => $location
         ];
 
         $Scenes[] = $scene;

@@ -18,9 +18,7 @@ class lightifyScene extends IPSModule
 
     //Store at runtime
     $this->RegisterPropertyInteger("ID", vtNoValue);
-
     $this->RegisterPropertyString("class", vtNoString);
-    $this->RegisterPropertyInteger("type", vtNoValue);
     $this->RegisterPropertyString("UUID", vtNoString);
 
     $this->ConnectParent(classConstant::MODULE_GATEWAY);

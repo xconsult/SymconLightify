@@ -6,8 +6,7 @@
         "direction": "ascending"
       },
       "columns": [
-        { "caption": "ID",           "name": "ID",       "width":  "50px", "visible": false },
-        { "caption": "Brand",        "name": "brand",    "width":  "80px" },
+        { "caption": "[id]",         "name": "ID",       "width":  "60px" },
         { "caption": "Class",        "name": "class",    "width":  "80px" },
         { "caption": "ZLL",          "name": "zigBee",   "width":  "60px" },
         { "caption": "UUID",         "name": "UUID",     "width": "200px" },
@@ -53,9 +52,9 @@
                 "items": [
                   { "type": "List", "name": "listGroups", "caption": "Group list", "rowCount": 10,
                     "columns": [
-                      { "caption": "ID",    "name": "ID",    "width": "0px", "visible": false },
-                      { "caption": "UUID",  "name": "UUID",  "width": "0px", "visible": false },
-                      { "caption": "Name",  "name": "name",  "width": "250px", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups, 'initial');" }
+                      { "caption": "[id]",  "name": "ID",    "width": "35px" },
+                      { "caption": "UUID",  "name": "UUID",  "width": "0px",   "visible": false },
+                      { "caption": "Name",  "name": "name",  "width": "215px", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups, 'initial');" }
                     ],
                     "values": []
                   },

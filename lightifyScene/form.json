@@ -1,8 +1,12 @@
 {
   "elements": [
-    { "type": "ValidationTextBox", "name": "ID",    "enabled": false, "caption": "Scene [id]" },
     { "type": "ValidationTextBox", "name": "class", "enabled": false, "caption": "Class"      },
-    { "type": "ValidationTextBox", "name": "UUID",  "enabled": false, "caption": "UUID"       }
+    { "type": "RowLayout",
+      "items": [
+        { "type": "ValidationTextBox", "name": "ID",    "enabled": false, "caption": "Scene [id]" },
+        { "type": "ValidationTextBox", "name": "UUID",  "enabled": false, "caption": "UUID"       }
+      ]
+    }
   ],
   "actions": [
     { "type": "RowLayout",
