@@ -7,7 +7,7 @@
       },
       "columns": [
         { "caption": "[id]",         "name": "ID",       "width":  "60px" },
-        { "caption": "Class",        "name": "class",    "width":  "80px" },
+        { "caption": "Class",        "name": "class",    "width":  "95px" },
         { "caption": "ZLL",          "name": "zigBee",   "width":  "60px" },
         { "caption": "UUID",         "name": "UUID",     "width": "200px" },
         { "caption": "Name",         "name": "name",     "width": "150px" },
