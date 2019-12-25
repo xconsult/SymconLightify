@@ -19,7 +19,7 @@
     },
     { "type": "RowLayout", "name": "Buttons",
       "items": [
-        { "type": "PopupButton", "name": "Locations", "caption": "Locations", "width": "150px",
+        { "type": "PopupButton", "name": "Locations", "caption": "Locations", "width": "155px",
           "popup": { "caption": "Locations",
             "items": [
               { "type": "List", "name": "listLocations", "caption": "Location selection", "rowCount": 4, "onEdit": "OSR_SetLocations($id, $listLocations);",
@@ -37,7 +37,7 @@
             ]
           }
         },
-        { "type": "PopupButton", "name": "SetupGroup", "caption": "Group setup", "width": "150px", "onClick": "OSR_LoadListGroups($id);",
+        { "type": "PopupButton", "name": "SetupGroup", "caption": "Group setup", "width": "155px", "onClick": "OSR_LoadListGroups($id);",
           "popup": { "caption": "Setup group",
             "items": [
               { "type": "RowLayout",
@@ -87,14 +87,14 @@
               { "type": "RowLayout",
                 "items": [
                   { "type": "ProgressBar", "name": "setupProgress", "width": "586px", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." },
-                  { "type": "Label",  "name": "setupMessage", "width": "492px", "caption": "" },
-                  { "type": "Button", "name": "setupRefresh", "width": "94px",  "enabled": true, "caption": "Refresh", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups, 'refresh');" }
+                  { "type": "Label",  "name": "setupMessage", "width": "460px", "caption": "" },
+                  { "type": "Button", "name": "setupRefresh", "width": "126px", "enabled": true, "caption": "Refresh", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups, 'refresh');" }
                 ]
               }
             ]
           }
         },
-        { "type": "PopupButton", "name": "CreateGroup", "caption": "Create group", "width": "150px", "onClick": "OSR_LoadListDevices($id, 'initial');",
+        { "type": "PopupButton", "name": "CreateGroup", "caption": "Create group", "width": "155px", "onClick": "OSR_LoadListDevices($id, 'initial');",
           "popup": { "caption": "Create group",
             "items": [
               { "type": "RowLayout",
@@ -118,8 +118,8 @@
               { "type": "RowLayout",
                 "items": [
                   { "type": "ProgressBar", "name": "createProgress", "width": "586px", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." },
-                  { "type": "Label",  "name": "createMessage", "width": "492px", "caption": "" },
-                  { "type": "Button", "name": "createRefresh", "width": "94px",  "enabled": true, "caption": "Refresh", "onClick": "OSR_LoadListDevices($id, 'refresh');" }
+                  { "type": "Label",  "name": "createMessage", "width": "460px", "caption": "" },
+                  { "type": "Button", "name": "createRefresh", "width": "126px", "enabled": true, "caption": "Refresh", "onClick": "OSR_LoadListDevices($id, 'refresh');" }
                 ]
               }
             ]

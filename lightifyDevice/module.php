@@ -69,8 +69,9 @@ class lightifyDevice extends IPSModule
 
     if ($type != vtNoValue) {
       $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
+      $class = $this->ReadPropertyString("class");
 
-      if ($type == classConstant::TYPE_ALL_DEVICES) {
+      if ($class == "Sensor" || $class == "Switch" || $type == classConstant::TYPE_ALL_DEVICES) {
         $stateID = @$this->GetIDForIdent("ALL_DEVICES");
         $formJSON['actions'][0]['items'][2]['visible'] = false;
       } else {

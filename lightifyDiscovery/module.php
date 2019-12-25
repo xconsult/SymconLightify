@@ -38,13 +38,13 @@ class lightifyDiscovery extends IPSModule
 
     foreach ($Gateways as $gateway) {
       $gatewayIP    = $gateway['IP'];
-      $serialNumber = $gateway['Serial'];
+      $serialNumber = $gateway['serial'];
       $instanceID   = $this->getGatewayInstances($serialNumber);
 
       $value = [
         'name'         => "OSRAM Lightify Configurator",
         'gatewayIP'    => $gatewayIP,
-        'gatewayName'  => $gateway['Name'],
+        'gatewayName'  => $gateway['name'],
         'serialNumber' => $serialNumber,
         'instanceName' => ($instanceID) ? IPS_GetName($instanceID) : "OSRAM Lightify Gateway",
         'instanceID'   => $instanceID,
@@ -117,8 +117,8 @@ class lightifyDiscovery extends IPSModule
             if (array_key_exists("IPv4", $device)) {
               $Gateways[] = [
                 'IP'     => $device['IPv4'][0],
-                'Name'   => $name,
-                'Serial' => "OSR".strtoupper(substr($name, strrpos($name, "-")+1-strlen($name)))
+                'name'   => $name,
+                'serial' => "OSR".strtoupper(substr($name, strrpos($name, "-")+1-strlen($name)))
               ];
             }
           }

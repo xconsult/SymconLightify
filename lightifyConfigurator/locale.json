@@ -1,6 +1,22 @@
 {
   "translations": {
     "de": {
+      "OSRAM Lightify Configurator"                  : "OSRAM Lightify Konfigurator",
+      "Class"                                        : "Klasse",
+      "Capabilities"                                 : "Eigenschaften",
+      "Model"                                        : "Modell",
+      "Locations"                                    : "Kategorien",
+      "Location selection"                           : "Kategorien wählen",
+      "Location"                                     : "Kategorie",
+      "Group setup"                                  : "Gruppe einrichten",
+      "Rename"                                       : "Umbenennen",
+      "Group list"                                   : "Gruppen Liste",
+      "Device list"                                  : "Geräte Liste",
+      "Synchronisation in progress, please wait ..." : "Synchronisation läuft, bitte warten ...",
+      "Refresh"                                      : "Aktualisieren",
+      "Create group"                                 : "Gruppe erstellen",
+      "Group name"                                   : "Gruppen Name",
+      "Create"                                       : "Erstellen"
     }
   }
 }

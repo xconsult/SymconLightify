@@ -8,7 +8,7 @@
       "columns": [
         { "caption": "Gateway IP",    "name": "gatewayIP",    "width": "200px" },
         { "caption": "Gateway name",  "name": "gatewayName",  "width": "250px" },
-        { "caption": "Serial Number", "name": "serialNumber", "width": "250px" },
+        { "caption": "Serial number", "name": "serialNumber", "width": "250px" },
         { "caption": "Instance name", "name": "instanceName", "width": "auto"  }
       ],
       "values": []

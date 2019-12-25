@@ -84,6 +84,7 @@ class lightifyConfigurator extends IPSModule
     $Class = [
       $this->Translate("Device"),
       $this->Translate("Sensor"),
+      $this->Translate("Switch"),
       $this->Translate("Group"),
       $this->Translate("Scene")
     ];
