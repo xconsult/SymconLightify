@@ -22,11 +22,11 @@
         { "type": "PopupButton", "name": "Locations", "caption": "Locations", "width": "155px",
           "popup": { "caption": "Locations",
             "items": [
-              { "type": "List", "name": "listLocations", "caption": "Location selection", "rowCount": 4, "onEdit": "OSR_SetLocations($id, $listLocations);",
+              { "type": "List", "name": "listLocations", "caption": "Location selection", "rowCount": 4, "onEdit": "OSR_LigthifyConfigurator($id, ['method' => 1801, 'list' => $listLocations]);",
                 "columns": [
                   { "caption": "Type",     "name": "class", "width": "80px" },
                   { "caption": "Location", "name": "name",  "width": "auto" },
-                  { "caption": "ID",       "name": "ID",    "width": "50px", "visible": false,
+                  { "caption": "[id]",     "name": "ID",    "width": "50px", "visible": false,
                     "edit": {
                       "type": "SelectCategory"
                     }
@@ -37,15 +37,15 @@
             ]
           }
         },
-        { "type": "PopupButton", "name": "SetupGroup", "caption": "Group setup", "width": "155px", "onClick": "OSR_LoadListGroups($id);",
+        { "type": "PopupButton", "name": "SetupGroup", "caption": "Group setup", "width": "155px", "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1802]);",
           "popup": { "caption": "Setup group",
             "items": [
               { "type": "RowLayout",
                 "items": [
                   { "type": "ValidationTextBox", "name": "newGroup",  "width": "170px", "enabled": false, "value": "", "caption": "Rename group" },
-                  { "type": "Button", "name": "renameGroup", "width": "115px", "enabled": false, "caption": "Rename", "onClick": "OSR_RenameListItem($id, $listGroups, 'Group', $newGroup);" },
+                  { "type": "Button", "name": "renameGroup", "width": "115px", "enabled": false, "caption": "Rename", "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1803, 'list' => $listGroups, 'name' => $newGroup]);" },
                   { "type": "ValidationTextBox", "name": "newDevice", "width": "170px", "enabled": false, "value": "", "caption": "Rename device" },
-                  { "type": "Button", "name": "renameDevice", "width": "115px", "enabled": false, "caption": "Rename", "onClick": "OSR_RenameListItem($id, $listDevices, 'Device', $newDevice);" }
+                  { "type": "Button", "name": "renameDevice", "width": "115px", "enabled": false, "caption": "Rename", "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1804, 'list' => $listDevices, 'name' => $newDevice]);" }
                 ]
               },
               { "type": "RowLayout",
@@ -54,14 +54,14 @@
                     "columns": [
                       { "caption": "[id]",  "name": "ID",    "width": "35px" },
                       { "caption": "UUID",  "name": "UUID",  "width": "0px",   "visible": false },
-                      { "caption": "Name",  "name": "name",  "width": "215px", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups, 'initial');" }
+                      { "caption": "Name",  "name": "name",  "width": "215px", "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1805, 'mode' => 1901, 'list' => $listGroups]);" }
                     ],
                     "values": []
                   },
-                  { "type": "List", "name": "listDevices", "caption": "Device list", "rowCount": 10, "onEdit": "OSR_SetGroupConfiguration($id, $listDevices, $listGroups['ID'], $listGroups['name']);",
+                  { "type": "List", "name": "listDevices", "caption": "Device list", "rowCount": 10, "onEdit": "OSR_LigthifyConfigurator($id, ['method' => 1806, 'list' => $listDevices, 'ID' => $listGroups['ID'], 'name' => $listGroups['name']]);",
                     "columns": [
                       { "caption": "UUID", "name": "UUID",   "width": "0px", "visible": false },
-                      { "caption": "Name", "name": "name",   "width": "202px", "onClick": "OSR_SetDeviceRename($id, $listDevices);" },
+                      { "caption": "Name", "name": "name",   "width": "202px", "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1807, 'name' => $listDevices['name']]);" },
                       { "caption": "",     "name": "value",  "width": "25px", 
                         "edit": {
                           "type": "CheckBox"
@@ -88,19 +88,19 @@
                 "items": [
                   { "type": "ProgressBar", "name": "setupProgress", "width": "586px", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." },
                   { "type": "Label",  "name": "setupMessage", "width": "460px", "caption": "" },
-                  { "type": "Button", "name": "setupRefresh", "width": "126px", "enabled": true, "caption": "Refresh", "onClick": "OSR_LoadGroupConfiguration($id, $listGroups, 'refresh');" }
+                  { "type": "Button", "name": "setupRefresh", "width": "126px", "enabled": true, "caption": "Refresh", "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1805, 'mode' => 1902, 'list' => $listGroups]);" }
                 ]
               }
             ]
           }
         },
-        { "type": "PopupButton", "name": "CreateGroup", "caption": "Create group", "width": "155px", "onClick": "OSR_LoadListDevices($id, 'initial');",
+        { "type": "PopupButton", "name": "CreateGroup", "caption": "Create group", "width": "155px", "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1808, 'mode' => 1901]);",
           "popup": { "caption": "Create group",
             "items": [
               { "type": "RowLayout",
                 "items": [
                   { "type": "ValidationTextBox", "name": "addGroup", "width": "492px", "enabled": true, "value": "", "caption": "Group name" },
-                  { "type": "Button", "name": "createGroup", "width": "94px", "enabled": true, "caption": "Create", "onClick": "OSR_CreateGroup($id, $addDevices, $addGroup);" }
+                  { "type": "Button", "name": "createGroup", "width": "94px", "enabled": true, "caption": "Create", "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1808, 'list' => $addDevices, 'name' => $addGroup]);" }
                 ]
               },
               { "type": "List", "name": "addDevices", "caption": "Device list", "rowCount": 10,
@@ -119,7 +119,7 @@
                 "items": [
                   { "type": "ProgressBar", "name": "createProgress", "width": "586px", "visible": false, "indeterminate": true, "caption": "Synchronisation in progress, please wait ..." },
                   { "type": "Label",  "name": "createMessage", "width": "460px", "caption": "" },
-                  { "type": "Button", "name": "createRefresh", "width": "126px", "enabled": true, "caption": "Refresh", "onClick": "OSR_LoadListDevices($id, 'refresh');" }
+                  { "type": "Button", "name": "createRefresh", "width": "126px", "enabled": true, "caption": "Refresh", "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1808, ''mode' => 1902]);" }
                 ]
               }
             ]

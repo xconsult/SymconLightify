@@ -156,7 +156,47 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  public function SetLocations(object $List) : void {
+  public function LigthifyConfigurator(array $param) : void {
+
+    switch ($param['method']) {
+      case classConstant::METHOD_SET_LOCATIONS:
+        $this->setLocations($param['list']);
+        break;
+
+      case classConstant::METHOD_LOAD_LIST_GROUPS:
+        $this->loadListGroups();
+        break;
+
+      case classConstant::METHOD_RENAME_LIST_GROUP:
+      case classConstant::METHOD_RENAME_LIST_DEVICE:
+        $this->renameListItem($param['method'], $param['list'], $param['name']);
+        break;
+
+      case classConstant::METHOD_LOAD_GROUP_CONFIG:
+        $this->loadGroupConfiguration($param['mode'], $param['list']);
+        break;
+
+      case classConstant::METHOD_SET_GROUP_CONFIG:
+        $this->setGroupConfiguration($param['list'], $param['ID'], $param['name']);
+        break;
+
+      case classConstant::METHOD_SET_DEVICE_RENAME:
+        $this->setDeviceRename($param['name']);
+        break;
+
+      case classConstant::METHOD_LOAD_LIST_DEVICES:
+        $this->loadListDevices($param['mode']);
+        break;
+
+      case classConstant::METHOD_CREATE_GROUP:
+        $this->createGroup($param['list'], $param['name']);
+        break;
+    }
+
+  }
+
+
+  private function setLocations(object $List) : void {
 
     //Iterate through
     $Locations = [];
@@ -236,7 +276,7 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  public function LoadListGroups() : void {
+  private function loadListGroups() : void {
 
     //Clear values
     $this->UpdateFormField("newGroup", "value", vtNoString);
@@ -257,9 +297,9 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  public function LoadGroupConfiguration(object $List, string $mode) : void {
+  private function loadGroupConfiguration(int $mode, object $List) : void {
 
-    if ($mode == "initial") {
+    if ($mode == classConstant::MODE_CONFIG_INITIAL) {
       $this->UpdateFormField("newGroup", "enabled", true);
       $this->UpdateFormField("newGroup", "value", $List['name']);
       $this->UpdateFormField("renameGroup", "enabled", true);
@@ -315,7 +355,7 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  public function SetGroupConfiguration(object $List, int $itemID, string $name) : void {
+  private function setGroupConfiguration(object $List, int $itemID, string $name) : void {
 
     if (!$List['online']) {
       $this->UpdateFormField("setupMessage", "caption", $this->Translate("Device is offline and cannot be ".(($List['value']) ? "added!" : "removed!")));
@@ -420,20 +460,28 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  public function SetDeviceRename(object $List) : void {
+  private function setDeviceRename(string $name) : void {
 
     //Set fields
+    $this->UpdateFormField("setupMessage", "caption", vtNoString);
+
     $this->UpdateFormField("newDevice", "enabled", true);
-    $this->UpdateFormField("newDevice", "value", $List['name']);
+    $this->UpdateFormField("newDevice", "value", $name);
     $this->UpdateFormField("renameDevice", "enabled", true);
 
   }
 
 
-  public function RenameListItem(object $List, string $item, string $name) : void {
+  private function renameListItem(int $method, object $List, string $name) : void {
 
     if (empty($List['name']) || empty(trim($name))) {
-      $this->UpdateFormField("setupMessage", "caption", $this->Translate($item." name cannot be empty!"));
+      if ($method == classConstant::METHOD_RENAME_LIST_GROUP) {
+       $caption = "Group name cannot be empty!";
+      } else {
+       $caption = "Device name cannot be empty!";
+      }
+
+      $this->UpdateFormField("setupMessage", "caption", $this->Translate($caption));
       return;
     }
 
@@ -441,7 +489,7 @@ class lightifyConfigurator extends IPSModule
       $this->UpdateFormField("setupProgress", "visible", true);
       $name = str_pad($name, classConstant::DATA_NAME_LENGTH);
 
-      if ($item == "Group") {
+      if ($method == classConstant::METHOD_RENAME_LIST_GROUP) {
         //IPS_LogMessage("SymconOSR", "<Configurator|Rename group:data>   ".$List['ID']."|".$List['name']."|".$name);
         $cmd = classCommand::SET_GROUP_NAME;
 
@@ -479,7 +527,7 @@ class lightifyConfigurator extends IPSModule
 
         $this->UpdateFormField("setupProgress", "visible", false);
       } else {
-        $error = ($item == "Group") ? "Rename group failed!" : "Rename device failed!";
+        $error = ($method == classConstant::METHOD_RENAME_LIST_GROUP) ? "Rename group failed!" : "Rename device failed!";
 
         $this->UpdateFormField("setupProgress", "visible", false);
         $this->UpdateFormField("setupMessage", "caption", $this->Translate($error));
@@ -492,9 +540,9 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  public function LoadListDevices(string $mode) : void {
+  private function loadListDevices(int $mode) : void {
 
-    if ($mode == "initial") {
+    if ($mode == classConstant::MODE_CONFIG_INITIAL) {
       $this->UpdateFormField("addGroup", "value", vtNoString);
     }
     $this->UpdateFormField("createMessage", "caption", vtNoString);
@@ -519,14 +567,14 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  public function CreateGroup(object $List, $name) : void {
+  private function createGroup(object $List, string $name) : void {
 
     $Groups = json_decode($this->getListGroups());
     $ID = count($Groups)+1;
     $i = 0;
 
     if ($ID == 17 || empty(trim($name))) {
-      $caption = ($ID == 17) ? $this->Translate("Maximal number of groups reached!") : $this->Translate("Group name cannot be empty!"); 
+      $caption = ($ID == 17) ? $this->Translate("Maximum number [16] of groups exeeded!") : $this->Translate("Group name cannot be empty!"); 
       $this->UpdateFormField("createMessage", "caption", $caption);
       return;
     }

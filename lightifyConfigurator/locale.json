@@ -23,7 +23,18 @@
       "Refresh"                                      : "Aktualisieren",
       "Create group"                                 : "Gruppe erstellen",
       "Group name"                                   : "Gruppen Name",
-      "Create"                                       : "Erstellen"
+      "Create"                                       : "Erstellen",
+      "Synchronisation in progress, please wait ..." : "Synchronisation läuft, bitte warten ...",
+      "Device is offline and cannot be "             : "Gerät ist offline und kann nicht ",
+      "added!"                                       : "hinzugefügt werden!",
+      "removed!"                                     : "gelöscht werden!",
+      "Adding device to group failed!"               : "Gerät zur Gruppe hinzugefügen, ist fehlgeschlagen!",
+      "Removing device from group failed!"           : "Gerät aus der Gruppe löschen, ist fehlgeschlagen!",
+      "Group name cannot be empty!"                  : "Gruppen Name darf nicht leer sein!",
+      "Device name cannot be empty!"                 : "Geräte Name darf nicht leer sein!",
+      "Rename group failed!"                         : "Umbennen Gruppe ist fehlgeschlagen!",
+      "Rename device failed!"                        : "Umbennen Gerät ist fehlgeschlagen!",
+      "Maximum number [16] of groups exeeded!"       : "Maximale Anzahl [16] von Gruppen überschritten!"
     }
   }
 }

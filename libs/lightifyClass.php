@@ -83,170 +83,183 @@ class classConstant
   const TX_GROUP            = "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}";
   const TX_SCENE            = "{1C913701-904E-4EAD-9A70-702597567A0F}";
 
-  const GATEWAY_PORT            = 4000;
+  const GATEWAY_PORT              = 4000;
 
-  const DEVICE_ITEM_INDEX       = 1000;
-  const GROUP_ITEM_INDEX        = 2000;
-  const SCENE_ITEM_INDEX        = 3000;
+  const DEVICE_ITEM_INDEX         = 1000;
+  const GROUP_ITEM_INDEX          = 2000;
+  const SCENE_ITEM_INDEX          = 3000;
 
-  const STATE_ONLINE            = 2;
-  const STATE_UNKNOWN           = 1;
-  const STATE_OFFLINE           = 0;
+  const STATE_ONLINE              = 2;
+  const STATE_UNKNOWN             = 1;
+  const STATE_OFFLINE             = 0;
 
-  const CONNECT_LOCAL_ONLY      = 1001;
-  const CONNECT_LOCAL_CLOUD     = 1002;
+  const CONNECT_LOCAL_ONLY        = 1001;
+  const CONNECT_LOCAL_CLOUD       = 1002;
 
-  const METHOD_PARENT_CONFIG    = 1201;
-  const METHOD_APPLY_CONFIG     = 1202;
+  const METHOD_PARENT_CONFIG      = 1201;
+  const METHOD_APPLY_CONFIG       = 1202;
 
-  const METHOD_LOAD_LOCAL       = 1203;
-  const METHOD_LOAD_CLOUD       = 1204;
+  const METHOD_LOAD_LOCAL         = 1203;
+  const METHOD_LOAD_CLOUD         = 1204;
 
-  const GET_GATEWAY_LOCAL       = 1601;
-  const GET_DEVICES_LOCAL       = 1602;
-  const GET_DEVICES_CLOUD       = 1603;
-  const GET_GROUPS_LOCAL        = 1604;
-  const GET_GROUPS_CLOUD        = 1605;
-  const GET_GROUP_DEVICES       = 1606;
-  const GET_GROUP_SCENES        = 1607;
-  const GET_SCENES_LOCAL        = 1608;
-  const GET_SCENES_CLOUD        = 1609;
+  const GET_GATEWAY_LOCAL         = 1601;
+  const GET_DEVICES_LOCAL         = 1602;
+  const GET_DEVICES_CLOUD         = 1603;
+  const GET_GROUPS_LOCAL          = 1604;
+  const GET_GROUPS_CLOUD          = 1605;
+  const GET_GROUP_DEVICES         = 1606;
+  const GET_GROUP_SCENES          = 1607;
+  const GET_SCENES_LOCAL          = 1608;
+  const GET_SCENES_CLOUD          = 1609;
 
-  const SET_ALL_DEVICES         = 1701;
-  const SET_GROUP_STATE         = 1702;
+  const SET_ALL_DEVICES           = 1701;
+  const SET_GROUP_STATE           = 1702;
 
-  const SET_DEVICE_NAME         = 1703;
-  const SET_GROUP_NAME          = 1704;
-  const SET_COLOR               = 1705;
-  const SET_COLOR_TEMPERATURE   = 1706;
-  const SET_LEVEL               = 1707;
-  const SET_LIGHT_SATURATION    = 1708;
-  const SET_SOFT_TIME           = 1709;
-  const GET_PAIRED_DEVICES      = 1710;
-  const GET_GROUP_LIST          = 1711;
-  const GET_DEVICE_INFO         = 1712;
-  const GET_GROUP_INFO          = 1713;
-  const GET_GATEWAY_FIRMWARE    = 1714;
-  const GET_GATEWAY_WIFI        = 1715;
+  const SET_DEVICE_NAME           = 1703;
+  const SET_GROUP_NAME            = 1704;
+  const SET_COLOR                 = 1705;
+  const SET_COLOR_TEMPERATURE     = 1706;
+  const SET_LEVEL                 = 1707;
+  const SET_LIGHT_SATURATION      = 1708;
+  const SET_SOFT_TIME             = 1709;
+  const GET_PAIRED_DEVICES        = 1710;
+  const GET_GROUP_LIST            = 1711;
+  const GET_DEVICE_INFO           = 1712;
+  const GET_GROUP_INFO            = 1713;
+  const GET_GATEWAY_FIRMWARE      = 1714;
+  const GET_GATEWAY_WIFI          = 1715;
 
-  const ACTIVATE_GROUP_SCENE    = 1716;
-  const SAVE_LIGHT_STATE        = 1717;
-  const SCENE_LIGHTIFY_LOOP     = 1718;
+  const ACTIVATE_GROUP_SCENE      = 1716;
+  const SAVE_LIGHT_STATE          = 1717;
+  const SCENE_LIGHTIFY_LOOP       = 1718;
 
-  const SET_STATE_ON            = 1;
-  const SET_STATE_OFF           = 0;
-  const SET_SOFT_ON             = 1;
-  const SET_SOFT_OFF            = 0;
+  const METHOD_SET_LOCATIONS      = 1801;
+  const METHOD_LOAD_LIST_GROUPS   = 1802;
+  const METHOD_RENAME_LIST_GROUP  = 1803;
+  const METHOD_RENAME_LIST_DEVICE = 1804;
+  const METHOD_LOAD_GROUP_CONFIG  = 1805;
+  const METHOD_SET_GROUP_CONFIG   = 1806;
+  const METHOD_SET_DEVICE_RENAME  = 1807;
+  const METHOD_LOAD_LIST_DEVICES  = 1808;
+  const METHOD_CREATE_GROUP       = 1809;
 
-  const OSRAM_ZIGBEE_LENGTH     = 2;
-  const OSRAM_GROUP_LENGTH      = 2;
+  const MODE_CONFIG_INITIAL       = 1901;
+  const MODE_CONFIG_REFRESH       = 1902;
 
-  const ITEM_FILTER_LENGTH      = 2;
-  const UUID_OSRAM_LIGHTIFY     = "84:18:26";
-  const UUID_OSRAM_LENGTH       = 8;
-  const UUID_DEVICE_LENGTH      = 8;
-  const UUID_GROUP_LENGTH       = 2;
-  const UUID_SCENE_LENGTH       = 1;
-  const UUID_STRING_LENGTH      = 23;
+  const SET_STATE_ON              = 1;
+  const SET_STATE_OFF             = 0;
+  const SET_SOFT_ON               = 1;
+  const SET_SOFT_OFF              = 0;
 
-  const BUFFER_HEADER_LENGTH    = 8;
-  const BUFFER_TOKEN_LENGTH     = 4;
-  const BUFFER_REPLY_LENGTH     = 11;
-  const BUFFER_ONLINE_LENGTH    = 23;
+  const OSRAM_ZIGBEE_LENGTH       = 2;
+  const OSRAM_GROUP_LENGTH        = 2;
 
-  const DATA_DEVICE_LOADED      = 50;
-  const DATA_DEVICE_LENGTH      = 41;
-  const DATA_GROUP_LENGTH       = 18;
-  const DATA_SCENE_LENGTH       = 20;
-  const DATA_NAME_LENGTH        = 15;
-  const DATA_WIFI_LENGTH        = 97;
-  const DATA_CLASS_INFO         = 10;
-  const DATA_DEVICE_LIST        = 33;
-  const DATA_GROUP_LIST         = 19;
-  const DATA_SCENE_LIST         = 32;
-  const DATA_GROUP_DEVICE       = 10;
+  const ITEM_FILTER_LENGTH        = 2;
+  const UUID_OSRAM_LIGHTIFY       = "84:18:26";
+  const UUID_OSRAM_LENGTH         = 8;
+  const UUID_DEVICE_LENGTH        = 8;
+  const UUID_GROUP_LENGTH         = 2;
+  const UUID_SCENE_LENGTH         = 1;
+  const UUID_STRING_LENGTH        = 23;
 
-  const WIFI_PROFILE_LENGTH     = 31;
-  const WIFI_SSID_LENGTH        = 32;
-  const WIFI_BSSID_LENGTH       = 5;
-  const WIFI_CHANNEL_LENGTH     = 3;
+  const BUFFER_HEADER_LENGTH      = 8;
+  const BUFFER_TOKEN_LENGTH       = 4;
+  const BUFFER_REPLY_LENGTH       = 11;
+  const BUFFER_ONLINE_LENGTH      = 23;
 
-  const CLOUD_ZIGBEE_LENGTH     = 4;
-  const CLOUD_OSRAM_LENGTH      = 5;  
-  const CLOUD_FIRMWARE_LENGTH   = 8;
+  const DATA_DEVICE_LOADED        = 50;
+  const DATA_DEVICE_LENGTH        = 41;
+  const DATA_GROUP_LENGTH         = 18;
+  const DATA_SCENE_LENGTH         = 20;
+  const DATA_NAME_LENGTH          = 15;
+  const DATA_WIFI_LENGTH          = 97;
+  const DATA_CLASS_INFO           = 10;
+  const DATA_DEVICE_LIST          = 33;
+  const DATA_GROUP_LIST           = 19;
+  const DATA_SCENE_LIST           = 32;
+  const DATA_GROUP_DEVICE         = 10;
 
-  const TYPE_FIXED_WHITE        = 1;   //Fixed White
-  const TYPE_LIGHT_CCT          = 2;   //Tuneable White
-  const TYPE_LIGHT_DIMABLE      = 4;   //Can only control level
-  const TYPE_LIGHT_COLOR        = 8;   //Fixed White and RGB
-  const TYPE_LIGHT_EXT_COLOR    = 10;  //Tuneable White and RGBW
-  const TYPE_PLUG_ONOFF         = 16;  //Only On/off capable lamp/device
-  const TYPE_SENSOR_CONTACT     = 31;  //Contact sensor
-  const TYPE_SENSOR_MOTION      = 32;  //Motion sensor
-  const TYPE_DIMMER_2WAY        = 64;  //2 button dimmer
-  const TYPE_SWITCH_4WAY        = 65;  //4 butten switch
-  const TYPE_SWITCH_3WAY        = 66;  //3 butten switch
-  const TYPE_SWITCH_UKNOWN      = 67;  //Unknown switch
-  const TYPE_SWITCH_MINI        = 66;  //Switch Mini
-  const TYPE_LIGHT_CCT_TRADFRI  = 128; //Tradfri Tuneable White
+  const WIFI_PROFILE_LENGTH       = 31;
+  const WIFI_SSID_LENGTH          = 32;
+  const WIFI_BSSID_LENGTH         = 5;
+  const WIFI_CHANNEL_LENGTH       = 3;
 
-  const TYPE_DEVICE             = 0;   // 0x00
-  const TYPE_DEVICE_GROUP       = 240; // 0xF0
-  const TYPE_GROUP_SCENE        = 241; // 0xF1
-  const TYPE_ALL_DEVICES        = 255; // 0xFF
-  const GROUP_ALL_DEVICES       = 255; // 0xFF
+  const CLOUD_ZIGBEE_LENGTH       = 4;
+  const CLOUD_OSRAM_LENGTH        = 5;  
+  const CLOUD_FIRMWARE_LENGTH     = 8;
 
-  const MODEL_MANUFACTURER      = "OSRAM";
-  const MODEL_PLUG_ONOFF        = "PLUG";
-  const MODEL_UNKNOWN           = "UNKNOWN";
+  const TYPE_FIXED_WHITE          = 1;   //Fixed White
+  const TYPE_LIGHT_CCT            = 2;   //Tuneable White
+  const TYPE_LIGHT_DIMABLE        = 4;   //Can only control level
+  const TYPE_LIGHT_COLOR          = 8;   //Fixed White and RGB
+  const TYPE_LIGHT_EXT_COLOR      = 10;  //Tuneable White and RGBW
+  const TYPE_PLUG_ONOFF           = 16;  //Only On/off capable lamp/device
+  const TYPE_SENSOR_CONTACT       = 31;  //Contact sensor
+  const TYPE_SENSOR_MOTION        = 32;  //Motion sensor
+  const TYPE_DIMMER_2WAY          = 64;  //2 button dimmer
+  const TYPE_SWITCH_4WAY          = 65;  //4 butten switch
+  const TYPE_SWITCH_3WAY          = 66;  //3 butten switch
+  const TYPE_SWITCH_UKNOWN        = 67;  //Unknown switch
+  const TYPE_SWITCH_MINI          = 66;  //Switch Mini
+  const TYPE_LIGHT_CCT_TRADFRI    = 128; //Tradfri Tuneable White
 
-  const LABEL_FIXED_WHITE       = "On|Off";
-  const LABEL_LIGHT_CCT         = "On|Off Level Temperature";
-  const LABEL_LIGHT_DIMABLE     = "On|Off Level";
-  const LABEL_LIGHT_COLOR       = "On|Off Level Colour";
-  const LABEL_LIGHT_EXT_COLOR   = "On|Off Level Colour Temperature";
-  const LABEL_PLUG_ONOFF        = "On|Off";
-  const LABEL_SENSOR_MOTION     = "Active|Inactive";
-  const LABEL_SENSOR_CONTACT    = "Active|Inactive";
-  const LABEL_NO_CAPABILITY     = "-";
-  const LABEL_UNKNOWN           = "-Unknown-";
+  const TYPE_DEVICE               = 0;   // 0x00
+  const TYPE_DEVICE_GROUP         = 240; // 0xF0
+  const TYPE_GROUP_SCENE          = 241; // 0xF1
+  const TYPE_ALL_DEVICES          = 255; // 0xFF
+  const GROUP_ALL_DEVICES         = 255; // 0xFF
 
-  const CTEMP_DIMABLE_MIN       = 2700;
-  const CTEMP_DIMABLE_MAX       = 6500;
-  const CTEMP_CCT_MIN           = 2700;
-  const CTEMP_CCT_MAX           = 6500;
-  const CTEMP_COLOR_MIN         = 2000;
-  const CTEMP_COLOR_MAX         = 8000;
+  const MODEL_MANUFACTURER        = "OSRAM";
+  const MODEL_PLUG_ONOFF          = "PLUG";
+  const MODEL_UNKNOWN             = "UNKNOWN";
 
-  const HUE_MIN                 = 0;
-  const HUE_MAX                 = 360;
-  const COLOR_MIN               = "0000ff";
-  const COLOR_MAX               = "ffffff";
-  const LEVEL_MIN               = 0;
-  const LEVEL_MAX               = 100;
-  const SATURATION_MIN          = 0;
-  const SATURATION_MAX          = 100;
-  const INTENSITY_MIN           = 0;
-  const INTENSITY_MAX           = 100;
+  const LABEL_FIXED_WHITE         = "On|Off";
+  const LABEL_LIGHT_CCT           = "On|Off Level Temperature";
+  const LABEL_LIGHT_DIMABLE       = "On|Off Level";
+  const LABEL_LIGHT_COLOR         = "On|Off Level Colour";
+  const LABEL_LIGHT_EXT_COLOR     = "On|Off Level Colour Temperature";
+  const LABEL_PLUG_ONOFF          = "On|Off";
+  const LABEL_SENSOR_MOTION       = "Active|Inactive";
+  const LABEL_SENSOR_CONTACT      = "Active|Inactive";
+  const LABEL_NO_CAPABILITY       = "-";
+  const LABEL_UNKNOWN             = "-Unknown-";
 
-  const TIME_MIN                = 0;    //0.0 sec
-  const TIME_MAX                = 8000; //8.0 sec
+  const CTEMP_DIMABLE_MIN         = 2700;
+  const CTEMP_DIMABLE_MAX         = 6500;
+  const CTEMP_CCT_MIN             = 2700;
+  const CTEMP_CCT_MAX             = 6500;
+  const CTEMP_COLOR_MIN           = 2000;
+  const CTEMP_COLOR_MAX           = 8000;
 
-  const COLOR_SPEED_MIN         = 5;
-  const COLOR_SPEED_MAX         = 65535;
+  const HUE_MIN                   = 0;
+  const HUE_MAX                   = 360;
+  const COLOR_MIN                 = "0000ff";
+  const COLOR_MAX                 = "ffffff";
+  const LEVEL_MIN                 = 0;
+  const LEVEL_MAX                 = 100;
+  const SATURATION_MIN            = 0;
+  const SATURATION_MAX            = 100;
+  const INTENSITY_MIN             = 0;
+  const INTENSITY_MAX             = 100;
 
-  const SCENE_RELAX             = 2700;
-  const SCENE_ACTIVE            = 6500;
-  const SCENE_PLANT_LIGHT       = "ff2a6D";
+  const TIME_MIN                  = 0;    //0.0 sec
+  const TIME_MAX                  = 8000; //8.0 sec
 
-  const GET_WIFI_CONFIG         = 0x00;
-  const SET_WIFI_CONFIG         = 0x01;
-  const SCAN_WIFI_CONFIG        = 0x03;
+  const COLOR_SPEED_MIN           = 5;
+  const COLOR_SPEED_MAX           = 65535;
 
-  const REQUESTID_HIGH     = 4294967295;
+  const SCENE_RELAX               = 2700;
+  const SCENE_ACTIVE              = 6500;
+  const SCENE_PLANT_LIGHT         = "ff2a6D";
 
-  const WRITE_KEY_VALUES   = "ALL_DEVICES,NAME,SAVE,SCENE,SOFT_ON,SOFT_OFF,FADE,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION";
-  const LIST_KEY_IDENTS    = "HUE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION,MOTION,SCENE,ZIGBEE,FIRMWARE";
+  const GET_WIFI_CONFIG           = 0x00;
+  const SET_WIFI_CONFIG           = 0x01;
+  const SCAN_WIFI_CONFIG          = 0x03;
+
+  const REQUESTID_HIGH   = 4294967295;
+
+  const WRITE_KEY_VALUES = "ALL_DEVICES,NAME,SAVE,SCENE,SOFT_ON,SOFT_OFF,FADE,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION";
+  const LIST_KEY_IDENTS  = "HUE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION,MOTION,SCENE,ZIGBEE,FIRMWARE";
 
 }
 
