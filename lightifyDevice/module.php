@@ -171,6 +171,7 @@ class lightifyDevice extends IPSModule
     }
 
     //Additional informations
+    $disable  = true;
     $zigBee   = $data['zigBee'];
     $firmware = $data['firmware'];
 
@@ -210,7 +211,8 @@ class lightifyDevice extends IPSModule
       }
 
       if ($onlineID) {
-        $online = $data['online'];
+        $online  = $data['online'];
+        $disable = (bool)!$online;
 
         if (GetValueBoolean($onlineID) != $online) {
           SetValueBoolean($onlineID, $online);
@@ -218,19 +220,23 @@ class lightifyDevice extends IPSModule
       }
 
       if (false === ($stateID = @$this->GetIDForIdent("STATE"))) {
-        //$this->MaintainVariable("STATE", $this->Translate("State"), vtBoolean, "OSR.Switch", 313, true);
+        //$this->MaintainVariable("STATE", $this->Translate("State"), vtBoolean, "OSR.Switch", 313, $online);
         //$stateID = $this->GetIDForIdent("STATE");
         $stateID = $this->RegisterVariableBoolean("STATE", $this->Translate("State"), "OSR.Switch", 313);
-
-        if ($light || $plug) {
-          $this->EnableAction("STATE");
-        }
       }
 
       if ($stateID) {
         $state = ($motion) ? (bool)$data['rgb']['r'] : $data['state'];
 
-        if (GetValueBoolean($stateID) != $state) {
+        if ($light || $plug) {
+          if ($disable) {
+            $this->DisableAction("STATE");
+          } else {
+            $this->EnableAction("STATE");
+          }
+        }
+
+        if (!$disable && GetValueBoolean($stateID) != $state) {
           SetValueBoolean($stateID, $state);
         }
       }
@@ -247,7 +253,7 @@ class lightifyDevice extends IPSModule
           }
 
           if ($hueID) {
-            if (GetValueInteger($hueID) != $hue) {
+            if (!$disable && GetValueInteger($hueID) != $hue) {
               SetValueInteger($hueID, $hue);
             }
           }
@@ -259,11 +265,16 @@ class lightifyDevice extends IPSModule
             //$colorID = $this->RegisterVariableInteger("COLOR", $this->Translate("Color"), "~HexColor", 315);
             //$colorID = $this->RegisterVariableInteger("COLOR", "Color", "~HexColor", 315);
             IPS_SetIcon($colorID, "Paintbrush");
-            $this->EnableAction("COLOR");
           }
 
           if ($colorID) {
-            if (GetValueInteger($colorID) != $color) {
+            if ($disable) {
+              $this->DisableAction("COLOR");
+            } else {
+              $this->EnableAction("COLOR");
+            }
+
+            if (!$disable && GetValueInteger($colorID) != $color) {
               SetValueInteger($colorID, $color);
             }
           }
@@ -272,13 +283,17 @@ class lightifyDevice extends IPSModule
             //$this->MaintainVariable("SATURATION", $this->Translate("Saturation"), vtInteger, "OSR.Intensity", 318, true);
             //$saturationID = $this->GetIDForIdent("SATURATION");
             $saturationID = $this->RegisterVariableInteger("SATURATION", $this->Translate("Saturation"), "OSR.Intensity", 318);
-
             IPS_SetIcon($saturationID, "Intensity");
-            $this->EnableAction("SATURATION");
           }
 
           if ($saturationID) {
-            if (GetValueInteger($saturationID) != $saturation) {
+            if ($disable) {
+              $this->DisableAction("SATURATION");
+            } else {
+              $this->EnableAction("SATURATION");
+            }
+
+            if (!$disable && GetValueInteger($saturationID) != $saturation) {
               SetValueInteger($saturationID, $saturation);
             }
           }
@@ -291,11 +306,16 @@ class lightifyDevice extends IPSModule
             //$this->MaintainVariable("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), vtInteger, "OSR.ColorTemp", 316, true);
             //$temperatureID = $this->GetIDForIdent("COLOR_TEMPERATURE");
             $temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), "OSR.ColorTemp", 316);
-            $this->EnableAction("COLOR_TEMPERATURE");
           }
 
           if ($temperatureID) {
-            if (GetValueInteger($temperatureID) != $temperature) {
+            if ($disable) {
+              $this->DisableAction("COLOR_TEMPERATURE");
+            } else {
+              $this->EnableAction("COLOR_TEMPERATURE");
+            }
+
+            if (!$disable && GetValueInteger($temperatureID) != $temperature) {
               SetValueInteger($temperatureID, $temperature);
             }
           }
@@ -306,13 +326,17 @@ class lightifyDevice extends IPSModule
             //$this->MaintainVariable("LEVEL", $this->Translate("Level"), vtInteger, "OSR.Intensity", 317, true);
             //$levelID = $this->GetIDForIdent("LEVEL");
             $levelID = $this->RegisterVariableInteger("LEVEL", $this->Translate("Level"), "OSR.Intensity", 317);
-
             IPS_SetIcon($levelID, "Sun");
-            $this->EnableAction("LEVEL");
           }
 
           if ($levelID) {
-            if (GetValueInteger($levelID) != $level) {
+            if ($disable) {
+              $this->DisableAction("LEVEL");
+            } else {
+              $this->EnableAction("LEVEL");
+            }
+
+            if (!$disable && GetValueInteger($levelID) != $level) {
               SetValueInteger($levelID, $level);
             }
           }
@@ -324,13 +348,18 @@ class lightifyDevice extends IPSModule
           //$this->MaintainVariable("MOTION", $this->Translate("Motion"), vtBooelan, "~Motion", 322, true);
           //$$motionID = $this->GetIDForIdent("MOTION");
           $motionID = $this->RegisterVariableBoolean("MOTION", $this->Translate("Motion"), "~Motion", 322);
-          $this->EnableAction("MOTION");
         }
 
         if ($motionID) {
           $detect = $data['rgb']['g']; //Motion detection = green
 
-          if (GetValueBoolean($motionID) != $detect) {
+          if ($disable) {
+            $this->DisableAction("MOTION");
+          } else {
+            $this->EnableAction("MOTION");
+          }
+
+          if (!$disable && GetValueBoolean($motionID) != $detect) {
             SetValueBoolean($motionID, $detect);
           }
         }
@@ -339,6 +368,7 @@ class lightifyDevice extends IPSModule
       //Firmware
       if (false === ($firmwareID = @$this->GetIDForIdent("FIRMWARE"))) {
         $firmwareID = $this->RegisterVariableString("FIRMWARE", $this->Translate("Firmware"), "", 324);
+        IPS_SetDisabled($firmwareID, true);
       }
 
       if ($firmwareID) {

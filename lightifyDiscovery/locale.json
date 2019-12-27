@@ -1,9 +1,10 @@
 {
   "translations": {
     "de": {
-      "Gateway name"  : "Gateway Name",
-      "Serial number" : "Serien Nummer",
-      "Instance name" : "Instanz Name"
+      "IP address"       : "IP-Adresse",
+      "Gateway name"     : "Gateway Name",
+      "Serial number"    : "Serien Nummer",
+      "Instance name"    : "Instanz Name"
     }
   }
 }
