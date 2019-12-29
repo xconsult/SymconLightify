@@ -229,7 +229,7 @@ class lightifyConfigurator extends IPSModule
 
     //Iterate through
     $Locations = [];
-    $Values = [];
+    $Values    = [];
 
     foreach ($List as $line) {
       $Locations[] = [
@@ -263,7 +263,7 @@ class lightifyConfigurator extends IPSModule
           elseif ($item->module == "Scene") {
             $location = $this->getCategoryPath($Locations[5]['ID']);
           } else {
-            $location = vtNoString;
+            $location = 0;
           }
 
           $value = [
@@ -304,10 +304,12 @@ class lightifyConfigurator extends IPSModule
         }
       }
     }
-    //IPS_LogMessage("SymconOSR", "<Configurator|Set Locations:Values>   ".json_encode($Values));
 
-    $this->UpdateFormField("listLocations", "values", json_encode($Locations));
-    $this->WriteAttributeString("listLocations", json_encode($Locations));
+    //IPS_LogMessage("SymconOSR", "<Configurator|Set Locations:Values>   ".json_encode($Values));
+    $Locations = json_encode($Locations);
+
+    $this->UpdateFormField("listLocations", "values", $Locations);
+    $this->WriteAttributeString("listLocations", $Locations);
     $this->UpdateFormField("Lightify", "values", json_encode($Values));
 
   }

@@ -139,7 +139,7 @@ class lightifyDevice extends IPSModule
 
     $data  = json_decode($JSONString, true);
     $debug = IPS_GetProperty($data['id'], "debug");
-    IPS_LogMessage("SymconOSR", "<Device|Receive:data>   ".IPS_GetName($this->InstanceID)."|".count($data)."|".json_encode($data));
+    //IPS_LogMessage("SymconOSR", "<Device|Receive:data>   ".IPS_GetName($this->InstanceID)."|".count($data)."|".json_encode($data));
 
     foreach ($data['buffer'] as $device) {
       if ($device['UUID'] == $this->ReadPropertyString("UUID")) {
