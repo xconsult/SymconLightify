@@ -18,7 +18,7 @@ class lightifyScene extends IPSModule
 
     //Store at runtime
     $this->RegisterPropertyInteger("ID", vtNoValue);
-    $this->RegisterPropertyString("class", vtNoString);
+    $this->RegisterPropertyString("module", vtNoString);
     $this->RegisterPropertyString("UUID", vtNoString);
 
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
@@ -62,7 +62,10 @@ class lightifyScene extends IPSModule
 
     //Validate
     if ($this->ReadPropertyInteger("ID") != vtNoValue) {
-      return file_get_contents(__DIR__."/form.json");
+      $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
+      $formJSON['actions'][0]['onClick'] = "OSR_WriteValue(\$id, 'SCENE', ".$this->ReadPropertyInteger("ID").");";
+
+      return json_encode($formJSON);
     }
 
     $elements[] = [

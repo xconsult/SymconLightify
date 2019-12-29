@@ -6,12 +6,45 @@ require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 
 
-define('ROW_COLOR_OFFLINE',  "#f6c3c2");
-
-
 class lightifyConfigurator extends IPSModule
 {
 
+  const DEVICE_ITEM_INDEX         = 1000;
+  const GROUP_ITEM_INDEX          = 2000;
+  const SCENE_ITEM_INDEX          = 3000;
+
+  const METHOD_SET_LOCATIONS      = "set:locations";
+  const METHOD_LOAD_LIST_GROUPS   = "load:list:groups";
+  const METHOD_RENAME_LIST_GROUP  = "rename:list:group";
+  const METHOD_RENAME_LIST_DEVICE = "rename:list:device";
+  const METHOD_LOAD_GROUP_CONFIG  = "load:group:config";
+  const METHOD_SET_GROUP_CONFIG   = "set:group:config";
+  const METHOD_SET_DEVICE_RENAME  = "set:device:rename";
+  const METHOD_LOAD_LIST_DEVICES  = "load:list:devices";
+  const METHOD_CREATE_GROUP       = "create:group";
+
+  const MODE_CONFIG_INITIAL       = "config:initial";
+  const MODE_CONFIG_REFRESH       = "config:refresh";
+
+  const MODEL_MANUFACTURER        = "OSRAM";
+  const MODEL_PLUG_ONOFF          = "PLUG";
+  const MODEL_UNKNOWN             = "UNKNOWN";
+
+  const LABEL_FIXED_WHITE         = "On|Off";
+  const LABEL_LIGHT_CCT           = "On|Off Level Temperature";
+  const LABEL_LIGHT_DIMABLE       = "On|Off Level";
+  const LABEL_LIGHT_COLOR         = "On|Off Level Colour";
+  const LABEL_LIGHT_EXT_COLOR     = "On|Off Level Colour Temperature";
+  const LABEL_PLUG_ONOFF          = "On|Off";
+  const LABEL_SENSOR_MOTION       = "Active|Inactive";
+  const LABEL_SENSOR_CONTACT      = "Active|Inactive";
+  const LABEL_DIMMER_2WAY         = "2 Button Dimmer";
+  const LABEL_SWITCH_MINI         = "3 Button Switch Mini";
+  const LABEL_SWITCH_4WAY         = "4 Button Switch";
+  const LABEL_NO_CAPABILITY       = "-";
+  const LABEL_UNKNOWN             = "-Unknown-";
+
+  const ROW_COLOR_OFFLINE         = "#f6c3c2";
 
   protected $lightifyBase;
   protected $debug = false;
@@ -81,12 +114,8 @@ class lightifyConfigurator extends IPSModule
     $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
     $Values = [];
 
-    $Class = [
-      $this->Translate("Device"),
-      $this->Translate("Sensor"),
-      $this->Translate("Switch"),
-      $this->Translate("Group"),
-      $this->Translate("Scene")
+    $module = [
+      "Lights", "Plugs", "Sensors", "Switches", "Groups", "Scenes"
     ];
 
     //Only add default element if we do not have anything in persistence
@@ -96,11 +125,11 @@ class lightifyConfigurator extends IPSModule
     if (empty($Locations)) {
       $Locations = [];
 
-      foreach ($Class as $item) {
+      foreach ($module as $item) {
         $Locations[] = [
-          'class' => $item,
-          'name'  => IPS_GetName(0),
-          'ID'    => 0
+          'module' => $this->Translate($item),
+          'name'   => IPS_GetName(0),
+          'ID'     => 0
         ];
       }
 
@@ -113,15 +142,15 @@ class lightifyConfigurator extends IPSModule
         //Order is determinted by the order of array elements
         if ($row['ID'] && IPS_ObjectExists($row['ID'])) {
           $formJSON['actions'][1]['items'][0]['popup']['items'][0]['values'][$index] = [
-            'class' => $Class[$index],
-            'name'  => IPS_GetName(0)."\\".IPS_GetLocation($row['ID']),
-            'ID'    => $row['ID']
+            'module' => $this->Translate($module[$index]),
+            'name'   => IPS_GetName(0)."\\".IPS_GetLocation($row['ID']),
+            'ID'     => $row['ID']
           ];
         } else {
           $formJSON['actions'][1]['items'][0]['popup']['items'][0]['values'][$index] = [
-            'class' => $Class[$index],
-            'name'  => IPS_GetName(0),
-            'ID'    => 0
+            'module' => $this->Translate($module[$index]),
+            'name'   => IPS_GetName(0),
+            'ID'     => 0
           ];
         }
       }
@@ -159,36 +188,36 @@ class lightifyConfigurator extends IPSModule
   public function LigthifyConfigurator(array $param) : void {
 
     switch ($param['method']) {
-      case classConstant::METHOD_SET_LOCATIONS:
+      case self::METHOD_SET_LOCATIONS:
         $this->setLocations($param['list']);
         break;
 
-      case classConstant::METHOD_LOAD_LIST_GROUPS:
+      case self::METHOD_LOAD_LIST_GROUPS:
         $this->loadListGroups();
         break;
 
-      case classConstant::METHOD_RENAME_LIST_GROUP:
-      case classConstant::METHOD_RENAME_LIST_DEVICE:
+      case self::METHOD_RENAME_LIST_GROUP:
+      case self::METHOD_RENAME_LIST_DEVICE:
         $this->renameListItem($param['method'], $param['list'], $param['name']);
         break;
 
-      case classConstant::METHOD_LOAD_GROUP_CONFIG:
+      case self::METHOD_LOAD_GROUP_CONFIG:
         $this->loadGroupConfiguration($param['mode'], $param['list']);
         break;
 
-      case classConstant::METHOD_SET_GROUP_CONFIG:
+      case self::METHOD_SET_GROUP_CONFIG:
         $this->setGroupConfiguration($param['list'], $param['ID'], $param['name']);
         break;
 
-      case classConstant::METHOD_SET_DEVICE_RENAME:
-        $this->setDeviceRename($param['name']);
+      case self::METHOD_SET_DEVICE_RENAME:
+        $this->setDeviceRename($param['name'], (bool)$param['online']);
         break;
 
-      case classConstant::METHOD_LOAD_LIST_DEVICES:
+      case self::METHOD_LOAD_LIST_DEVICES:
         $this->loadListDevices($param['mode']);
         break;
 
-      case classConstant::METHOD_CREATE_GROUP:
+      case self::METHOD_CREATE_GROUP:
         $this->createGroup($param['list'], $param['name']);
         break;
     }
@@ -204,7 +233,7 @@ class lightifyConfigurator extends IPSModule
 
     foreach ($List as $line) {
       $Locations[] = [
-        'class' => $line['class'],
+        'module' => $line['module'],
         'name'  => IPS_GetName(0)."\\".IPS_GetLocation($line['ID']),
         'ID'    => $line['ID']
       ];
@@ -216,24 +245,32 @@ class lightifyConfigurator extends IPSModule
     foreach ($config->actions as $line) {
       if ($line->type == "Configurator" && $line->name == "Lightify") {
         foreach ($line->values as $item) {
-          if ($item->class == "Light" || $item->class == "Plug") {
+          if ($item->module == "Light" || $item->module == "All Devices") {
             $location = $this->getCategoryPath($Locations[0]['ID']);
-          } 
-          elseif ($item->class == "Sensor") {
+          }
+          elseif ($item->module == "Plug") {
             $location = $this->getCategoryPath($Locations[1]['ID']);
           }
-          elseif ($item->class == "Group") {
+          elseif ($item->module == "Sensor") {
             $location = $this->getCategoryPath($Locations[2]['ID']);
           }
-          elseif ($item->class == "Scene") {
+          elseif ($item->module == "Dimmer" || $item->module == "Switch") {
             $location = $this->getCategoryPath($Locations[3]['ID']);
+          }
+          elseif ($item->module == "Group") {
+            $location = $this->getCategoryPath($Locations[4]['ID']);
+          }
+          elseif ($item->module == "Scene") {
+            $location = $this->getCategoryPath($Locations[5]['ID']);
+          } else {
+            $location = vtNoString;
           }
 
           $value = [
             'name'       => $item->name,
             'ID'         => $item->ID,
-            'brand'      => $item->brand,
             'class'      => $item->class,
+            'module'     => $item->module,
             'zigBee'     => $item->zigBee,
             'UUID'       => $item->UUID,
             'label'      => $item->label,
@@ -245,12 +282,12 @@ class lightifyConfigurator extends IPSModule
           if (isset($item->create)) {
             $config = [];
 
-            if ($item->brand == "Group" || $item->brand == "Scene") {
+            if ($item->class == "Group" || $item->class == "Scene") {
               $config['ID'] = $item->create->configuration->ID;
             }
-            $config['class'] = $item->create->configuration->class;
+            $config['module'] = $item->create->configuration->module;
 
-            if ($item->brand == "Device" || $item->brand == "Sensor") {
+            if ($item->class == "Device" || $item->class == "Sensor" || $item->class == "Switch") {
               $config['type']   = $item->create->configuration->type;
               $config['zigBee'] = $item->create->configuration->zigBee;
             }
@@ -297,9 +334,9 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  private function loadGroupConfiguration(int $mode, object $List) : void {
+  private function loadGroupConfiguration(string $mode, object $List) : void {
 
-    if ($mode == classConstant::MODE_CONFIG_INITIAL) {
+    if ($mode == self::MODE_CONFIG_INITIAL) {
       $this->UpdateFormField("newGroup", "enabled", true);
       $this->UpdateFormField("newGroup", "value", $List['name']);
       $this->UpdateFormField("renameGroup", "enabled", true);
@@ -342,7 +379,7 @@ class lightifyConfigurator extends IPSModule
           'name'     => $key->name,
           'online'   => $key->online,
           'value'    => $value,
-          'rowColor' => ($key->online) ? "" : ROW_COLOR_OFFLINE
+          'rowColor' => ($key->online) ? "" : self::ROW_COLOR_OFFLINE
         ];
       }
 
@@ -460,22 +497,28 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  private function setDeviceRename(string $name) : void {
+  private function setDeviceRename(string $name, bool $online) : void {
 
-    //Set fields
-    $this->UpdateFormField("setupMessage", "caption", vtNoString);
+    if ($online) {
+      //Set fields
+      $this->UpdateFormField("setupMessage", "caption", vtNoString);
 
-    $this->UpdateFormField("newDevice", "enabled", true);
-    $this->UpdateFormField("newDevice", "value", $name);
-    $this->UpdateFormField("renameDevice", "enabled", true);
+      $this->UpdateFormField("newDevice", "enabled", true);
+      $this->UpdateFormField("newDevice", "value", $name);
+      $this->UpdateFormField("renameDevice", "enabled", true);
+    } else {
+      $this->UpdateFormField("newDevice", "value", vtNoString);
+      $this->UpdateFormField("newDevice", "enabled", false);
+      $this->UpdateFormField("renameDevice", "enabled", false);
+    }
 
   }
 
 
-  private function renameListItem(int $method, object $List, string $name) : void {
+  private function renameListItem(string $method, object $List, string $name) : void {
 
     if (empty($List['name']) || empty(trim($name))) {
-      if ($method == classConstant::METHOD_RENAME_LIST_GROUP) {
+      if ($method == self::METHOD_RENAME_LIST_GROUP) {
        $caption = "Group name cannot be empty!";
       } else {
        $caption = "Device name cannot be empty!";
@@ -489,13 +532,13 @@ class lightifyConfigurator extends IPSModule
       $this->UpdateFormField("setupProgress", "visible", true);
       $name = str_pad($name, classConstant::DATA_NAME_LENGTH);
 
-      if ($method == classConstant::METHOD_RENAME_LIST_GROUP) {
+      if ($method == self::METHOD_RENAME_LIST_GROUP) {
         //IPS_LogMessage("SymconOSR", "<Configurator|Rename group:data>   ".$List['ID']."|".$List['name']."|".$name);
         $cmd = classCommand::SET_GROUP_NAME;
 
         $param = [
           'flag'  => 2,
-          'args'  => utf8_encode(chr((int)$List['ID']-classConstant::GROUP_ITEM_INDEX).chr(0x00).$name.chr(0x00)),
+          'args'  => utf8_encode(chr((int)$List['ID']-self::GROUP_ITEM_INDEX).chr(0x00).$name.chr(0x00)),
           'value' => vtNoValue
         ];
       } else {
@@ -527,7 +570,7 @@ class lightifyConfigurator extends IPSModule
 
         $this->UpdateFormField("setupProgress", "visible", false);
       } else {
-        $error = ($method == classConstant::METHOD_RENAME_LIST_GROUP) ? "Rename group failed!" : "Rename device failed!";
+        $error = ($method == self::METHOD_RENAME_LIST_GROUP) ? "Rename group failed!" : "Rename device failed!";
 
         $this->UpdateFormField("setupProgress", "visible", false);
         $this->UpdateFormField("setupMessage", "caption", $this->Translate($error));
@@ -540,9 +583,9 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  private function loadListDevices(int $mode) : void {
+  private function loadListDevices(string $mode) : void {
 
-    if ($mode == classConstant::MODE_CONFIG_INITIAL) {
+    if ($mode == self::MODE_CONFIG_INITIAL) {
       $this->UpdateFormField("addGroup", "value", vtNoString);
     }
     $this->UpdateFormField("createMessage", "caption", vtNoString);
@@ -558,7 +601,7 @@ class lightifyConfigurator extends IPSModule
         'name'     => $item->name,
         'online'   => $item->online,
         'value'    => $item->value,
-        'rowColor' => ($item->online) ? "" : ROW_COLOR_OFFLINE
+        'rowColor' => ($item->online) ? "" : self::ROW_COLOR_OFFLINE
       ];
     }
 
@@ -694,78 +737,87 @@ class lightifyConfigurator extends IPSModule
 
     if (is_array($data) && count($data) > 0) {
       foreach ($data as $device) {
-        $type  = $device->type;
-        $class = vtNoString;
-        $label = vtNoString;
-        $model = vtNoString;
-        $known = true;
+        $type   = $device->type;
+        $module = vtNoString;
+        $label  = vtNoString;
+        $model  = vtNoString;
+        $known  = true;
 
         //Decode device info
         switch ($type) {
           case classConstant::TYPE_FIXED_WHITE:
-            $brand = "Device";
-            $label = classConstant::LABEL_FIXED_WHITE;
+            $class = "Device";
+            $label = self::LABEL_FIXED_WHITE;
             break;
 
           case classConstant::TYPE_LIGHT_CCT:
-            $label = classConstant::LABEL_LIGHT_CCT;
+            $label = self::LABEL_LIGHT_CCT;
 
           case classConstant::TYPE_LIGHT_DIMABLE:
-            $brand = "Device";
-            $class = "Light";
+            $class  = "Device";
+            $module = "Light";
 
             if ($label == vtNoString) {
-              $label = classConstant::LABEL_LIGHT_DIMABLE;
+              $label = self::LABEL_LIGHT_DIMABLE;
             }
             break;
 
           case classConstant::TYPE_LIGHT_COLOR:
             if ($label == vtNoString) {
-              $label = classConstant::LABEL_LIGHT_COLOR;
+              $label = self::LABEL_LIGHT_COLOR;
             }
 
           case classConstant::TYPE_LIGHT_EXT_COLOR:
-            $brand = "Device";
-            $class = "Light";
+            $class  = "Device";
+            $module = "Light";
 
             if ($label == vtNoString) {
-              $label = classConstant::LABEL_LIGHT_EXT_COLOR;
+              $label = self::LABEL_LIGHT_EXT_COLOR;
             }
             break;
 
           case classConstant::TYPE_PLUG_ONOFF:
-            $brand = "Device";
-            $class = "Plug";
-            $label = classConstant::LABEL_PLUG_ONOFF;
+            $class  = "Device";
+            $module = "Plug";
+            $label  = self::LABEL_PLUG_ONOFF;
             break;
 
           case classConstant::TYPE_SENSOR_MOTION:
-            $brand = "Sensor";
-            $class = "Sensor";
-            $label = classConstant::LABEL_SENSOR_MOTION;
+            $class  = "Sensor";
+            $module = "Sensor";
+            $label  = self::LABEL_SENSOR_MOTION;
             break;
 
           case classConstant::TYPE_DIMMER_2WAY:
-            $itemClass = "Dimmer";
+            $module = "Dimmer";
+            $label  = self::LABEL_DIMMER_2WAY;
+
+          case classConstant::TYPE_SWITCH_MINI:
+            if ($label == vtNoString) {
+              $label = self::LABEL_SWITCH_MINI;
+            }
 
           case classConstant::TYPE_SWITCH_4WAY:
-          case classConstant::TYPE_SWITCH_MINI:
-            $brand = "Device";
+            $class = "Switch";
 
-            if ($class == vtNoString) {
-              $class = "Switch";
+            if ($module == vtNoString) {
+              $module = "Switch";
+            }
+
+            if ($label == vtNoString) {
+              $label = self::LABEL_SWITCH_4WAY;
             }
            break;
 
           case classConstant::TYPE_ALL_DEVICES:
-            $brand = "Device";
-            $class = "Light";
-            $label = "On|Off";
+            $class  = "Device";
+            $module = "All Devices";
+            $label  = "On|Off";
             break;
 
           default:
             $known = false;
-            IPS_LogMessage("SymconOSR", "<Configurator|devices:local>   Device type <".$classType."> unknown!");
+            IPS_LogMessage("SymconOSR", "<Configurator|devices:local>   Device type <".$moduleType."> unknown!");
         }
 
         if (!$known) {
@@ -800,7 +852,7 @@ class lightifyConfigurator extends IPSModule
                   $model = "CLASSIC A60 W CLEAR";
                 }
                 elseif (substr($model, 0, 4) == "PLUG") {
-                  $model = classConstant::MODEL_PLUG_ONOFF;
+                  $model = self::MODEL_PLUG_ONOFF;
                 }
 
                 break;
@@ -811,9 +863,9 @@ class lightifyConfigurator extends IPSModule
 
         $Devices[] = [
           'parent'   => 1,
-          'ID'       => classConstant::DEVICE_ITEM_INDEX+$device->id,
-          'brand'    => $brand,
+          'ID'       => self::DEVICE_ITEM_INDEX+$device->id,
           'class'    => $class,
+          'module'   => $module,
           'type'     => $type,
           'zigBee'   => $device->zigBee,
           'UUID'     => $device->UUID,
@@ -849,9 +901,9 @@ class lightifyConfigurator extends IPSModule
       foreach ($data as $group) {
         $Groups[] = [
           'parent' => 2,
-          'ID'     => classConstant::GROUP_ITEM_INDEX+$group->id,
-          'brand'  => "Group",
+          'ID'     => self::GROUP_ITEM_INDEX+$group->id,
           'class'  => "Group",
+          'module' => "Group",
           'UUID'   => $group->UUID,
           'name'   => $group->name
         ];
@@ -882,9 +934,9 @@ class lightifyConfigurator extends IPSModule
       foreach ($data as $scene) {
         $Scenes[] = [
           'parent' => 3,
-          'ID'     => classConstant::SCENE_ITEM_INDEX+$scene->id,
-          'brand'  => "Scene",
+          'ID'     => self::SCENE_ITEM_INDEX+$scene->id,
           'class'  => "Scene",
+          'module' => "Scene",
           'UUID'   => $scene->UUID,
           'name'   => $scene->name
         ];
@@ -903,31 +955,39 @@ class lightifyConfigurator extends IPSModule
   private function getDevicesConfigurator(array $buffer): array {
 
     if (count($buffer) > 0) {
-      //$Locations = json_decode($this->ReadPropertyString("listLocations"), true);
-      //IPS_LogMessage("SymconOSR", "<Configurator|Get device configurator:data>   ".$this->ReadPropertyString("listLocations"));
       $Locations = json_decode($this->ReadAttributeString("listLocations"), true);
       //IPS_LogMessage("SymconOSR", "<Configurator|Get device configurator:data>   ".$this->ReadAttributeString("listLocations"));
+      $Devices = [];
 
       if (empty($Locations)) {
         $Locations[0]['ID'] = 0;
         $Locations[1]['ID'] = 0;
+        $Locations[2]['ID'] = 0;
+        $Locations[3]['ID'] = 0;
       }
 
-      $loDevice = $this->getCategoryPath($Locations[0]['ID']);
-      $loSensor = $this->getCategoryPath($Locations[1]['ID']);
-
-      $Devices = [];
-
       foreach ($buffer as $item) {
-        $instanceID = $this->getDeviceInstances(classConstant::MODULE_DEVICE, $item['class'], $item['UUID']);
-        $location   = ($item['class'] == "Sensor") ? $loSensor : $loDevice;
+        $instanceID = $this->getDeviceInstances(classConstant::MODULE_DEVICE, $item['module'], $item['UUID']);
+
+        if ($item['module'] == "Light" || $item['module'] == "All Devices") {
+          $location = $this->getCategoryPath($Locations[0]['ID']);
+        }
+        elseif ($item['module'] == "Plug") {
+          $location = $this->getCategoryPath($Locations[1]['ID']);
+        }
+        elseif ($item['module'] == "Sensor") {
+          $location = $this->getCategoryPath($Locations[2]['ID']);
+        }
+        elseif ($item['module'] == "Dimmer" || $item['module'] == "Switch") {
+          $location = $this->getCategoryPath($Locations[3]['ID']);
+        }
         //IPS_LogMessage("SymconOSR", "<Configurator|Get device configurator:location>   ".$item['itemClass']."|".json_encode($location));
 
         $device = [
           'name'       => $item['name'],
           'ID'         => $item['ID'],
-          'brand'      => $this->translate($item['brand']),
-          'class'      => $this->translate($item['class']),
+          'class'      => $this->Translate($item['class']),
+          'module'     => $this->Translate($item['module']),
           'zigBee'     => $item['zigBee'],
           'UUID'       => $item['UUID'],
           'name'       => $item['name'],
@@ -937,9 +997,9 @@ class lightifyConfigurator extends IPSModule
           'instanceID' => $instanceID
         ];
 
-        if ($item['class'] != "Dimmer" && $item['class'] != "Switch") {
+        //if ($item['module'] != "Dimmer" && $item['module'] != "Switch") {
           $config = [
-            'class'  => $item['class'],
+            'module' => $item['module'],
             'type'   => $item['type'],
             'zigBee' => $item['zigBee'],
             'UUID'   => $item['UUID']
@@ -950,7 +1010,7 @@ class lightifyConfigurator extends IPSModule
             'configuration' => $config,
             'location'      => $location
           ];
-        }
+        //}
 
         $Devices[] = $device;
       }
@@ -966,24 +1026,18 @@ class lightifyConfigurator extends IPSModule
   private function geGroupsConfigurator(array $buffer): array {
 
     if (count($buffer) > 0) {
-      //$Locations = json_decode($this->ReadPropertyString("listLocations"), true);
       $Locations = json_decode($this->ReadAttributeString("listLocations"), true);
-
-      if (empty($Locations)) {
-        $Locations[2]['ID'] = 0;
-      }
-
-      $location   = $this->getCategoryPath($Locations[2]['ID']);
+      $location  = (empty($Locations)) ? 0 : $this->getCategoryPath($Locations[4]['ID']);
       $Groups = [];
 
       foreach ($buffer as $item) {
-        $instanceID = $this->getDeviceInstances(classConstant::MODULE_GROUP, $item['class'], $item['UUID']);
+        $instanceID = $this->getDeviceInstances(classConstant::MODULE_GROUP, $item['module'], $item['UUID']);
 
         $group = [
           'name'       => $item['name'],
           'ID'         => $item['ID'],
-          'brand'      => $this->translate($item['brand']),
-          'class'      => $this->translate($item['class']),
+          'class'      => $this->Translate($item['class']),
+          'module'     => $this->Translate($item['module']),
           'zigBee'     => vtNoString,
           'UUID'       => $item['UUID'],
           'label'      => vtNoString,
@@ -993,9 +1047,9 @@ class lightifyConfigurator extends IPSModule
         ];
 
         $config = [
-          'ID'    => $item['ID']-classConstant::GROUP_ITEM_INDEX,
-          'class' => $item['class'],
-          'UUID'  => $item['UUID']
+          'ID'     => $item['ID']-self::GROUP_ITEM_INDEX,
+          'module' => $item['module'],
+          'UUID'   => $item['UUID']
         ];
 
         $group['create'] = [
@@ -1018,24 +1072,18 @@ class lightifyConfigurator extends IPSModule
   private function getScenesConfigurator(array $buffer): array {
 
     if (count($buffer) > 0) {
-      //$Locations = json_decode($this->ReadPropertyString("listLocations"), true);
       $Locations = json_decode($this->ReadAttributeString("listLocations"), true);
-
-      if (empty($Locations)) {
-        $Locations[3]['ID'] = 0;
-      }
-
-      $location = $this->getCategoryPath($Locations[3]['ID']);
+      $location  = (empty($Locations)) ? 0 : $this->getCategoryPath($Locations[5]['ID']);
       $Scenes = [];
 
       foreach ($buffer as $item) {
-        $instanceID = $this->getDeviceInstances(classConstant::MODULE_SCENE, $item['class'], $item['UUID']);
+        $instanceID = $this->getDeviceInstances(classConstant::MODULE_SCENE, $item['module'], $item['UUID']);
 
         $scene = [
           'name'       => $item['name'],
           'ID'         => $item['ID'],
-          'brand'      => $this->translate($item['brand']),
-          'class'      => $this->translate($item['class']),
+          'class'      => $this->Translate($item['class']),
+          'module'     => $this->Translate($item['module']),
           'zigBee'     => vtNoString,
           'UUID'       => $item['UUID'],
           'label'      => vtNoString,
@@ -1045,9 +1093,9 @@ class lightifyConfigurator extends IPSModule
         ];
 
         $config = [
-          'ID'    => $item['ID']-classConstant::SCENE_ITEM_INDEX,
-          'class' => $item['class'],
-          'UUID'  => $item['UUID']
+          'ID'     => $item['ID']-self::SCENE_ITEM_INDEX,
+          'module' => $item['module'],
+          'UUID'   => $item['UUID']
         ];
 
         $scene['create'] = [
@@ -1086,12 +1134,12 @@ class lightifyConfigurator extends IPSModule
   }
 
 
-  private function getDeviceInstances($moduleID, $class, $UUID) {
+  private function getDeviceInstances($moduleID, $module, $UUID) {
 
     $IDs = IPS_GetInstanceListByModuleID($moduleID);
 
     foreach ($IDs as $id) {
-      if (($class == vtNoString || @IPS_GetProperty($id, "class") == $class) && @IPS_GetProperty($id, "UUID") == $UUID) {
+      if (($module == vtNoString || @IPS_GetProperty($id, "module") == $module) && @IPS_GetProperty($id, "UUID") == $UUID) {
         return $id;
       }
     }

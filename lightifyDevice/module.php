@@ -17,7 +17,7 @@ class lightifyDevice extends IPSModule
     parent::Create();
 
     //Store at runtime
-    $this->RegisterPropertyString("class", vtNoString);
+    $this->RegisterPropertyString("module", vtNoString);
     $this->RegisterPropertyInteger("type", vtNoValue);
     $this->RegisterPropertyString("zigBee", vtNoString);
     $this->RegisterPropertyString("UUID", vtNoString);
@@ -69,19 +69,45 @@ class lightifyDevice extends IPSModule
 
     if ($type != vtNoValue) {
       $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
-      $class = $this->ReadPropertyString("class");
+      $module   = $this->ReadPropertyString("module");
 
-      if ($class == "Sensor" || $class == "Switch" || $type == classConstant::TYPE_ALL_DEVICES) {
+      if ($module == "Light" || $module == "Plug" || $module == "Sensor") {
+        $onlineID = @$this->GetIDForIdent("ONLINE");
+        $stateID  = @$this->GetIDForIdent("STATE");
+
+        if ($onlineID && GetValueBoolean($onlineID)) {
+          $formJSON['actions'][0]['items'][0]['enabled'] = true;
+          $formJSON['actions'][0]['items'][1]['enabled'] = true;
+          $formJSON['actions'][0]['items'][2]['enabled'] = true;
+        } else {
+          $formJSON['actions'][0]['items'][0]['enabled'] = false;
+          $formJSON['actions'][0]['items'][1]['enabled'] = false;
+          $formJSON['actions'][0]['items'][2]['enabled'] = false;
+        }
+
+        if ($module != "Light") {
+          $formJSON['actions'][0]['items'][2]['visible'] = false;
+        }
+      }
+      elseif ($module == "Dimmer" || $module == "Switch") {
+        $stateID = false;
+
+        $formJSON['actions'][0]['items'][0]['visible'] = false;
+        $formJSON['actions'][0]['items'][1]['visible'] = false;
+        $formJSON['actions'][0]['items'][2]['visible'] = false;
+
+        return json_encode($formJSON);
+      }
+
+      if ($type == classConstant::TYPE_ALL_DEVICES) {
         $stateID = @$this->GetIDForIdent("ALL_DEVICES");
         $formJSON['actions'][0]['items'][2]['visible'] = false;
-      } else {
-        $stateID = @$this->GetIDForIdent("STATE");
       }
 
       if ($stateID && GetValueBoolean($stateID)) {
-        $formJSON['elements'][0]['items'][1]['visible'] = true;
+        $formJSON['elements'][2]['items'][1]['visible'] = true;
       } else {
-        $formJSON['elements'][0]['items'][2]['visible'] = true;
+        $formJSON['elements'][2]['items'][2]['visible'] = true;
       }
 
       return json_encode($formJSON);
@@ -113,7 +139,7 @@ class lightifyDevice extends IPSModule
 
     $data  = json_decode($JSONString, true);
     $debug = IPS_GetProperty($data['id'], "debug");
-    //IPS_LogMessage("SymconOSR", "<Device|Receive:data>   ".IPS_GetName($this->InstanceID)."|".count($data)."|".json_encode($data));
+    IPS_LogMessage("SymconOSR", "<Device|Receive:data>   ".IPS_GetName($this->InstanceID)."|".count($data)."|".json_encode($data));
 
     foreach ($data['buffer'] as $device) {
       if ($device['UUID'] == $this->ReadPropertyString("UUID")) {
@@ -144,7 +170,7 @@ class lightifyDevice extends IPSModule
 
   private function setDeviceInfo(array $data) : void {
 
-    //Decode device class
+    //Decode device module
     $light = $plug = $motion = false;
     $type  = $data['type'];
 
@@ -175,6 +201,24 @@ class lightifyDevice extends IPSModule
     $zigBee   = $data['zigBee'];
     $firmware = $data['firmware'];
 
+    if (false === ($onlineID = @$this->GetIDForIdent("ONLINE"))) {
+      //$this->MaintainVariable("ONLINE", $this->Translate("Online"), vtBoolean, "OSR.Switch", 312, true);
+      //$onlineID = $this->GetIDForIdent("ONLINE");
+      $onlineID = $this->RegisterVariableBoolean("ONLINE", $this->Translate("Online"), "OSR.Switch", 312);
+
+      IPS_SetDisabled($onlineID, true);
+      IPS_SetHidden($onlineID, true);
+    }
+
+    if ($onlineID) {
+      $online  = $data['online'];
+      $disable = (bool)!$online;
+
+      if (GetValueBoolean($onlineID) != $online) {
+        SetValueBoolean($onlineID, $online);
+      }
+    }
+
     if ($light || $plug || $motion) {
       $RGB = ($type & 8) ? true: false;
       $CCT = ($type & 2) ? true: false;
@@ -199,24 +243,6 @@ class lightifyDevice extends IPSModule
 
       if ($CCT) {
         $temperature = $data['cct'];
-      }
-
-      if (false === ($onlineID = @$this->GetIDForIdent("ONLINE"))) {
-        //$this->MaintainVariable("ONLINE", $this->Translate("Online"), vtBoolean, "OSR.Switch", 312, true);
-        //$onlineID = $this->GetIDForIdent("ONLINE");
-        $onlineID = $this->RegisterVariableBoolean("ONLINE", $this->Translate("Online"), "OSR.Switch", 312);
-
-        IPS_SetDisabled($onlineID, true);
-        IPS_SetHidden($onlineID, true);
-      }
-
-      if ($onlineID) {
-        $online  = $data['online'];
-        $disable = (bool)!$online;
-
-        if (GetValueBoolean($onlineID) != $online) {
-          SetValueBoolean($onlineID, $online);
-        }
       }
 
       if (false === ($stateID = @$this->GetIDForIdent("STATE"))) {
@@ -364,17 +390,17 @@ class lightifyDevice extends IPSModule
           }
         }
       }
+    }
 
-      //Firmware
-      if (false === ($firmwareID = @$this->GetIDForIdent("FIRMWARE"))) {
-        $firmwareID = $this->RegisterVariableString("FIRMWARE", $this->Translate("Firmware"), "", 324);
-        IPS_SetDisabled($firmwareID, true);
-      }
+    //Firmware
+    if (false === ($firmwareID = @$this->GetIDForIdent("FIRMWARE"))) {
+      $firmwareID = $this->RegisterVariableString("FIRMWARE", $this->Translate("Firmware"), "", 324);
+      IPS_SetDisabled($firmwareID, true);
+    }
 
-      if ($firmwareID) {
-        if (GetValueString($firmwareID) != $firmware) {
-          SetValueString($firmwareID, $firmware);
-        }
+    if ($firmwareID) {
+      if (GetValueString($firmwareID) != $firmware) {
+        SetValueString($firmwareID, $firmware);
       }
     }
 

@@ -5,11 +5,6 @@ declare(strict_types=1);
 require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 
-
-//Instance specific
-define('TIMER_SYNC_LOCAL',     5);
-define('TIMER_SYNC_LOCAL_MIN', 5);
-
 //Cloud connection specific
 define('LIGHITFY_INVALID_CREDENTIALS',    5001);
 define('LIGHITFY_INVALID_SECURITY_TOKEN', 5003);
@@ -19,8 +14,11 @@ define('LIGHITFY_GATEWAY_OFFLINE',        5019);
 class lightifyGateway extends IPSModule
 {
 
+  const CONNECT_LOCAL_ONLY    = 1001;
+  const CONNECT_LOCAL_CLOUD   = 1002;
 
   const GATEWAY_SERIAL_LENGTH = 11;
+  const TIMER_SYNC            = 5;
 
   const OAUTH_AUTHORIZE      = "https://oauth.ipmagic.de/authorize/";
   const OAUTH_FORWARD        = "https://oauth.ipmagic.de/forward/";
@@ -43,6 +41,41 @@ class lightifyGateway extends IPSModule
 
   const LIGHTIFY_MAXREDIRS   = 10;
   const LIGHTIFY_TIMEOUT     = 30;
+
+  const HUE_MIN              = 0;
+  const HUE_MAX              = 360;
+  const COLOR_MIN            = "0000ff";
+  const COLOR_MAX            = "ffffff";
+  const LEVEL_MIN            = 0;
+  const LEVEL_MAX            = 100;
+  const SATURATION_MIN       = 0;
+  const SATURATION_MAX       = 100;
+  const INTENSITY_MIN        = 0;
+  const INTENSITY_MAX        = 100;
+
+  const METHOD_APPLY_CONFIG  = "apply:config";
+  const METHOD_LOAD_LOCAL    = "load:local";
+
+  const BUFFER_HEADER_LENGTH = 8;
+  const BUFFER_REPLY_LENGTH  = 11;
+
+  const DATA_DEVICE_LOADED   = 50;
+  const DATA_DEVICE_LENGTH   = 41;
+  const DATA_GROUP_LENGTH    = 18;
+  const DATA_SCENE_LENGTH    = 20;
+  const DATA_NAME_LENGTH     = 15;
+  const DATA_WIFI_LENGTH     = 97;
+
+  const GET_WIFI_CONFIG      = 0x00;
+  const SET_WIFI_CONFIG      = 0x01;
+  const SCAN_WIFI_CONFIG     = 0x03;
+
+  const WIFI_PROFILE_LENGTH  = 31;
+  const WIFI_SSID_LENGTH     = 32;
+  const WIFI_BSSID_LENGTH    = 5;
+  const WIFI_CHANNEL_LENGTH  = 3;
+
+  const REQUESTID_HIGH       = 4294967295;
 
   protected $lightifyBase;
   protected $oAuthIdent = "osram_lightify";
@@ -72,17 +105,17 @@ class lightifyGateway extends IPSModule
     parent::Create();
 
     //Local gateway
-    $this->RegisterPropertyInteger("connect", classConstant::CONNECT_LOCAL_ONLY);
+    $this->RegisterPropertyInteger("connect", self::CONNECT_LOCAL_ONLY);
     $this->RegisterPropertyString("serialNumber", vtNoString);
     
-    $this->RegisterPropertyInteger("update", TIMER_SYNC_LOCAL);
-    $this->RegisterTimer("timer", TIMER_SYNC_LOCAL*1000, "OSR_GetLightifyData($this->InstanceID, 1203);");
+    $this->RegisterPropertyInteger("update", self::TIMER_SYNC);
+    $this->RegisterTimer("timer", self::TIMER_SYNC*1000, "OSR_GetLightifyData($this->InstanceID, 'load:local');");
 
     //Cloud Access Token
     $this->RegisterAttributeString("osramToken", vtNoString);
 
     //Global settings
-    $this->RegisterPropertyInteger("debug", classConstant::DEBUG_DISABLED);
+    $this->RegisterPropertyInteger("debug", 0);
     $this->SetBuffer("sendStatus", json_encode($this->queue));
 
     $this->RegisterAttributeString("deviceBuffer", vtNoString);
@@ -99,7 +132,7 @@ class lightifyGateway extends IPSModule
       IPS_SetVariableProfileIcon("OSR.Hue", "Shift");
       IPS_SetVariableProfileDigits("OSR.Hue", 0);
       IPS_SetVariableProfileText("OSR.Hue", vtNoString, "°");
-      IPS_SetVariableProfileValues("OSR.Hue", classConstant::HUE_MIN, classConstant::HUE_MAX, 1);
+      IPS_SetVariableProfileValues("OSR.Hue", self::HUE_MIN, self::HUE_MAX, 1);
     }
 
     if (!IPS_VariableProfileExists("OSR.ColorTemp")) {
@@ -107,7 +140,7 @@ class lightifyGateway extends IPSModule
       IPS_SetVariableProfileIcon("OSR.ColorTemp", "Flame");
       IPS_SetVariableProfileDigits("OSR.ColorTemp", 0);
       IPS_SetVariableProfileText("OSR.ColorTemp", vtNoString, "K");
-      IPS_SetVariableProfileValues("OSR.ColorTemp", classConstant::CTEMP_CCT_MIN, classConstant::CTEMP_CCT_MAX, 1);
+      IPS_SetVariableProfileValues("OSR.ColorTemp", self::CTEMP_CCT_MIN, self::CTEMP_CCT_MAX, 1);
     }
 
     if (!IPS_VariableProfileExists("OSR.ColorTempExt")) {
@@ -115,14 +148,14 @@ class lightifyGateway extends IPSModule
       IPS_SetVariableProfileIcon("OSR.ColorTempExt", "Flame");
       IPS_SetVariableProfileDigits("OSR.ColorTempExt", 0);
       IPS_SetVariableProfileText("OSR.ColorTempExt", vtNoString, "K");
-      IPS_SetVariableProfileValues("OSR.ColorTempExt", classConstant::CTEMP_COLOR_MIN, classConstant::CTEMP_COLOR_MAX, 1);
+      IPS_SetVariableProfileValues("OSR.ColorTempExt", self::CTEMP_COLOR_MIN, self::CTEMP_COLOR_MAX, 1);
     }
 
     if (!IPS_VariableProfileExists("OSR.Intensity")) {
       IPS_CreateVariableProfile("OSR.Intensity", vtInteger);
       IPS_SetVariableProfileDigits("OSR.Intensity", 0);
       IPS_SetVariableProfileText("OSR.Intensity", vtNoString, "%");
-      IPS_SetVariableProfileValues("OSR.Intensity", classConstant::INTENSITY_MIN, classConstant::INTENSITY_MAX, 1);
+      IPS_SetVariableProfileValues("OSR.Intensity", self::INTENSITY_MIN, self::INTENSITY_MAX, 1);
     }
 
     if (!IPS_VariableProfileExists("OSR.Switch")) {
@@ -166,12 +199,12 @@ class lightifyGateway extends IPSModule
     //Buffer queue
     $this->SetBuffer("sendStatus", json_encode($this->queue));
 
-    if ($this->ReadPropertyInteger("connect") == classConstant::CONNECT_LOCAL_CLOUD) {
+    if ($this->ReadPropertyInteger("connect") == self::CONNECT_LOCAL_CLOUD) {
       $this->RegisterOAuth($this->oAuthIdent);
     }
 
     //Execute
-    $this->GetLightifyData(classConstant::METHOD_APPLY_CONFIG);
+    $this->GetLightifyData(self::METHOD_APPLY_CONFIG);
     $this->SetTimerInterval("timer", $this->ReadPropertyInteger("update")*1000);
 
   }
@@ -308,13 +341,13 @@ class lightifyGateway extends IPSModule
 
     $data = json_decode($JSONString);
     $data = utf8_decode($data->Buffer);
-    //IPS_LogMessage("SymconOSR", "<Gateway|Receive:data>   ".strlen($data)."|".$this->lightifyBase->decodeData(substr($data, classConstant::BUFFER_HEADER_LENGTH + 1))."|".$this->lightifyBase->decodeData($data));
+    //IPS_LogMessage("SymconOSR", "<Gateway|Receive:data>   ".strlen($data)."|".$this->lightifyBase->decodeData(substr($data, self::BUFFER_HEADER_LENGTH + 1))."|".$this->lightifyBase->decodeData($data));
 
     $cmd  = ord($data{3});
     $code = ord($data{8});
-    $data = substr($data, classConstant::BUFFER_HEADER_LENGTH + 1);
+    $data = substr($data, self::BUFFER_HEADER_LENGTH + 1);
 
-    //if ($code == 0 && strlen($data) >= classConstant::BUFFER_REPLY_LENGTH) {
+    //if ($code == 0 && strlen($data) >= self::BUFFER_REPLY_LENGTH) {
     if ($code == 0) {
       $status = [
         'flag' => true,
@@ -401,7 +434,7 @@ class lightifyGateway extends IPSModule
   public function LightifyRegister() {
 
     //Return everything which will open the browser
-    if ($this->ReadPropertyInteger("connect") == classConstant::CONNECT_LOCAL_CLOUD) {
+    if ($this->ReadPropertyInteger("connect") == self::CONNECT_LOCAL_CLOUD) {
       if (strlen($this->ReadPropertyString("serialNumber")) == self::GATEWAY_SERIAL_LENGTH) {
         self::OAUTH_AUTHORIZE.$this->oAuthIdent."?username=".urlencode(IPS_GetLicensee());
       } else {
@@ -467,7 +500,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  public function GetLightifyData(int $method) : void {
+  public function GetLightifyData(string $method) : void {
 
     if (IPS_GetKernelRunlevel() != KR_READY) {
       return;
@@ -477,7 +510,7 @@ class lightifyGateway extends IPSModule
     $portID = @$this->GetIDForIdent("PORT");
     $ssidID = @$this->GetIDForIdent("SSID");
 
-    if ($method == classConstant::METHOD_APPLY_CONFIG) {
+    if ($method == self::METHOD_APPLY_CONFIG) {
       if (!$ssidID) {
         if (false !== ($ssidID = $this->RegisterVariableString("SSID", "SSID", vtNoString, 301))) {
           SetValueString($ssidID, vtNoString);
@@ -502,7 +535,7 @@ class lightifyGateway extends IPSModule
 
     //Get Lightify infos
     if (empty(GetValueString($ssidID)) || empty(GetValueString($firmwareID))) {
-      $this->sendRaw(classCommand::GET_GATEWAY_WIFI, chr(classConstant::SCAN_WIFI_CONFIG));
+      $this->sendRaw(classCommand::GET_GATEWAY_WIFI, chr(self::SCAN_WIFI_CONFIG));
       return;
     }
 
@@ -696,7 +729,7 @@ class lightifyGateway extends IPSModule
 
   private function getGatewayWiFi(string $data) : void {
 
-    if (strlen($data) >= (2+classConstant::DATA_WIFI_LENGTH)) {
+    if (strlen($data) >= (2+self::DATA_WIFI_LENGTH)) {
 
       if (!empty($gatewayIP = $this->getGatewayIP())) {
         $ncount = ord($data{0});
@@ -704,10 +737,10 @@ class lightifyGateway extends IPSModule
         $result = false;
 
         for ($i = 1; $i <= $ncount; $i++) {
-          $profile = trim(substr($data, 0, classConstant::WIFI_PROFILE_LENGTH-1));
-          $SSID    = trim(substr($data, 32, classConstant::WIFI_SSID_LENGTH));
-          $BSSID   = trim(substr($data, 65, classConstant::WIFI_BSSID_LENGTH));
-          $channel = trim(substr($data, 71, classConstant::WIFI_CHANNEL_LENGTH));
+          $profile = trim(substr($data, 0, self::WIFI_PROFILE_LENGTH-1));
+          $SSID    = trim(substr($data, 32, self::WIFI_SSID_LENGTH));
+          $BSSID   = trim(substr($data, 65, self::WIFI_BSSID_LENGTH));
+          $channel = trim(substr($data, 71, self::WIFI_CHANNEL_LENGTH));
 
           $ip      = ord($data{77}).".".ord($data{78}).".".ord($data{79}).".".ord($data{80});
           $gateway = ord($data{81}).".".ord($data{82}).".".ord($data{83}).".".ord($data{84});
@@ -720,8 +753,8 @@ class lightifyGateway extends IPSModule
             break;
           }
 
-          if (($length = strlen($data)) > classConstant::DATA_WIFI_LENGTH) {
-            $length = classConstant::DATA_WIFI_LENGTH;
+          if (($length = strlen($data)) > self::DATA_WIFI_LENGTH) {
+            $length = self::DATA_WIFI_LENGTH;
           }
 
           $data = substr($data, $length);
@@ -756,7 +789,7 @@ class lightifyGateway extends IPSModule
 
   private function getGatewayDevices(int $connect, string $data) : string {
 
-    if (strlen($data) >= (2 + classConstant::DATA_DEVICE_LENGTH)) {
+    if (strlen($data) >= (2 + self::DATA_DEVICE_LENGTH)) {
       $Devices  = [];
       $Groups   = [];
       $allState = 0;
@@ -768,13 +801,13 @@ class lightifyGateway extends IPSModule
         $type = ord($data{10});
 
         $zigBee = dechex(ord($data{0})).dechex(ord($data{1}));
-        $UUID   = $this->lightifyBase->chrToUUID(substr($data, 2, classConstant::UUID_DEVICE_LENGTH));
+        $UUID   = $this->lightifyBase->chrToUUID(substr($data, 2, classConstant::UUID_OSRAM_LENGTH));
 
-        $name = trim(substr($data, 26, classConstant::DATA_NAME_LENGTH));
+        $name = trim(substr($data, 26, self::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
         $firmware = sprintf("%02X%02X%02X%02X", ord($data{11}), ord($data{12}), ord($data{13}), ord($data{14}));
 
-        $online = (ord($data{15}) == classConstant::STATE_ONLINE) ? 1 : 0; //Online: 2 - Offline: 0 - Unknown: 1
+        $online = (ord($data{15}) == 2) ? 1 : 0; //Online: 2 - Offline: 0 - Unknown: 1
         $state  = ($online == 1) ? ord($data{18}) : 0;
 
         if ($state == 1 && $allState == 0) {
@@ -806,7 +839,7 @@ class lightifyGateway extends IPSModule
           'white'    => $white
         ];
 
-        //Decode device class
+        //Decode device module
         $decode = $this->lightifyBase->decodeGroup(ord($data{16}), ord($data{17}));
 
         switch ($type) {
@@ -823,8 +856,8 @@ class lightifyGateway extends IPSModule
             ];
         }
 
-        if (($length = strlen($data)) > classConstant::DATA_DEVICE_LOADED) {
-          $length = classConstant::DATA_DEVICE_LOADED;
+        if (($length = strlen($data)) > self::DATA_DEVICE_LOADED) {
+          $length = self::DATA_DEVICE_LOADED;
         }
 
         $data = substr($data, $length);
@@ -837,7 +870,7 @@ class lightifyGateway extends IPSModule
         $this->SendDebug("<Gateway|Gateway devices:data>", json_encode($Devices), 0);
       }
 
-      if ($connect == classConstant::CONNECT_LOCAL_CLOUD && !empty($this->ReadAttributeString("osramToken"))) {
+      if ($connect == self::CONNECT_LOCAL_CLOUD && !empty($this->ReadAttributeString("osramToken"))) {
         $cloudDevices = $this->cloudGET(self::RESSOURCE_DEVICES);
         $this->WriteAttributeString("cloudDevices", $cloudDevices);
 
@@ -873,7 +906,7 @@ class lightifyGateway extends IPSModule
 
   private function getGatewayGroups(int $connect, string $data) : string {
 
-    if (strlen($data) >= (2 + classConstant::DATA_GROUP_LENGTH)) {
+    if (strlen($data) >= (2 + self::DATA_GROUP_LENGTH)) {
       $buffer = $this->GetBuffer("deviceGroups");
 
       if (!empty($buffer)) {
@@ -889,7 +922,7 @@ class lightifyGateway extends IPSModule
       for ($i = 1; $i <= $ncount; $i++) {
         $UUID = $this->lightifyBase->chrToUUID($data{0}.$data{1}.chr(classConstant::TYPE_DEVICE_GROUP).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
 
-        $name = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
+        $name = trim(substr($data, 2, self::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
 
         $Groups[] = [
@@ -927,8 +960,8 @@ class lightifyGateway extends IPSModule
           ];
         }
 
-        if (($length = strlen($data)) > classConstant::DATA_GROUP_LENGTH) {
-          $length = classConstant::DATA_GROUP_LENGTH;
+        if (($length = strlen($data)) > self::DATA_GROUP_LENGTH) {
+          $length = self::DATA_GROUP_LENGTH;
         }
 
         $data = substr($data, $length);
@@ -941,7 +974,7 @@ class lightifyGateway extends IPSModule
         $this->SendDebug("<Gateway|Gateway groups:data>", json_encode($Groups), 0);
       }
 
-      if ($connect == classConstant::CONNECT_LOCAL_CLOUD && !empty($this->ReadAttributeString("osramToken"))) {
+      if ($connect == self::CONNECT_LOCAL_CLOUD && !empty($this->ReadAttributeString("osramToken"))) {
         $cloudGroups = $this->cloudGET(self::RESSOURCE_GROUPS);
         $this->WriteAttributeString("cloudGroups", $cloudGroups);
 
@@ -961,7 +994,7 @@ class lightifyGateway extends IPSModule
 
   private function getGatewayScenes(int $connect, string $data) : string {
 
-    if (strlen($data) >= (2 + classConstant::DATA_DEVICE_LENGTH)) {
+    if (strlen($data) >= (2 + self::DATA_DEVICE_LENGTH)) {
       $Scenes = [];
       $ncount = ord($data{0})+ord($data{1});
       $data   = substr($data, 2);
@@ -969,7 +1002,7 @@ class lightifyGateway extends IPSModule
       for ($i = 1; $i <= $ncount; $i++) {
         $UUID  = $this->lightifyBase->chrToUUID($data{0}.chr(0x00).chr(classConstant::TYPE_GROUP_SCENE).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
 
-        $name = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
+        $name = trim(substr($data, 2, self::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
 
         $Scenes[] = [
@@ -979,8 +1012,8 @@ class lightifyGateway extends IPSModule
           'name' => $name
         ];
 
-        if (($length = strlen($data)) > classConstant::DATA_SCENE_LENGTH) {
-          $length = classConstant::DATA_SCENE_LENGTH;
+        if (($length = strlen($data)) > self::DATA_SCENE_LENGTH) {
+          $length = self::DATA_SCENE_LENGTH;
         }
 
         $data = substr($data, $length);
@@ -990,7 +1023,7 @@ class lightifyGateway extends IPSModule
         $this->SendDebug("<Gateway|Gateway scenes:data>", json_encode($Scenes), 0);
       }
 
-      if ($connect == classConstant::CONNECT_LOCAL_CLOUD && !empty($this->ReadAttributeString("osramToken"))) {
+      if ($connect == self::CONNECT_LOCAL_CLOUD && !empty($this->ReadAttributeString("osramToken"))) {
         $cloudScenes = $this->cloudGET(self::RESSOURCE_SCENES);
         $this->WriteAttributeString("cloudScenes", $cloudScenes);
 

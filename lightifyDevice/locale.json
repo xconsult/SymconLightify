@@ -2,7 +2,7 @@
   "translations": {
     "de": {
       "Device [id]"                       : "Geräte [id]",
-      "Class"                             : "Klasse",
+      "Module"                            : "Modul",
       "On"                                : "An",
       "Off"                               : "Aus",
       "Save"                              : "Speichern",

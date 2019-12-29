@@ -2,7 +2,7 @@
   "translations": {
     "de": {
       "Scene [id]"                       : "Szenen [id]",
-      "Class"                            : "Klasse",
+      "Module"                           : "Modul",
       "Scene"                            : "Szene",
       "Apply"                            : "Anwenden",
       "Scene is active"                  : "Szene ist aktiv",

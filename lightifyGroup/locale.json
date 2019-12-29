@@ -2,7 +2,7 @@
   "translations": {
     "de": {
       "Group [id]"                       : "Gruppen [id]",
-      "Class"                            : "Klasse",
+      "Module"                           : "Modul",
       "Group"                            : "Gruppe",
       "Device list"                      : "Geräte Liste",
       "Devices"                          : "Geräte",

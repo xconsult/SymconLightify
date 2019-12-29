@@ -26,9 +26,9 @@
       "items": [
         {
           "type": "ValidationTextBox",
-          "name": "class",
-          "enabled": false,
-          "caption": "Class"
+          "caption": "Module",
+          "name": "module",
+          "enabled": false
         },
         {
           "type": "Image",
@@ -95,8 +95,8 @@
               "visible": false
             },
             {
-              "caption": "Class",
-              "name": "class",
+              "caption": "Module",
+              "name": "module",
               "width": "95px"
             },
             {

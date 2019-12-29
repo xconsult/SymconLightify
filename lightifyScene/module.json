@@ -3,7 +3,7 @@
 	"name": "lightifyScene",
 	"type": 3,
 	"vendor": "OSRAM",
-	"aliases": ["OSRAM Lightify Szene"],
+	"aliases": ["OSRAM Lightify Scene"],
 	"parentRequirements": ["{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}"],
 	"childRequirements": [],
 	"implemented": ["{1C913701-904E-4EAD-9A70-702597567A0F}"],

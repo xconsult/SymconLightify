@@ -22,7 +22,7 @@
     {
       "type": "Configurator",
       "name": "Lightify",
-      "caption": "Lightify Devices, Groups and Scenes",
+      "caption": "Lightify Modules",
       "delete": true,
       "rowCount": 10,
       "sort": {
@@ -33,12 +33,13 @@
         {
           "caption": "[id]",
           "name": "ID",
-          "width":  "60px"
+          "width":  "60px",
+          "visible": false
         },
         {
-          "caption": "Class",
-          "name": "class",
-          "width":  "95px"
+          "caption": "Module",
+          "name": "module",
+          "width":  "100px"
         },
         {
           "caption": "ZLL",
@@ -89,13 +90,13 @@
                 "type": "List",
                 "name": "listLocations",
                 "caption": "Location selection",
-                "rowCount": 4,
-                "onEdit": "OSR_LigthifyConfigurator($id, ['method' => 1801, 'list' => $listLocations]);",
+                "rowCount": 6,
+                "onEdit": "OSR_LigthifyConfigurator($id, ['method' => 'set:locations', 'list' => $listLocations]);",
                 "columns": [
                   {
-                    "caption": "Type",
-                    "name": "class",
-                    "width": "80px"
+                    "caption": "Module",
+                    "name": "module",
+                    "width": "100px"
                   },
                   {
                     "caption": "Location",
@@ -105,7 +106,7 @@
                   {
                     "caption": "[id]",
                     "name": "ID",
-                    "width": "50px",
+                    "width": "0px",
                     "visible": false,
                     "edit": {
                       "type": "SelectCategory"
@@ -121,7 +122,7 @@
           "name": "SetupGroup",
           "caption": "Group setup",
           "width": "155px",
-          "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1802]);",
+          "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:list:groups']);",
           "popup": {
             "caption": "Group setup",
             "items": [
@@ -134,7 +135,7 @@
                     "width": "170px",
                     "enabled": false,
                     "value": "",
-                    "caption": "Rename group"
+                    "caption": "Group name"
                   },
                   {
                     "type": "Button",
@@ -142,7 +143,7 @@
                     "width": "115px",
                     "enabled": false,
                     "caption": "Rename",
-                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1803, 'list' => $listGroups, 'name' => $newGroup]);"
+                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'rename:list:group', 'list' => $listGroups, 'name' => $newGroup]);"
                   },
                   {
                     "type": "ValidationTextBox",
@@ -150,7 +151,7 @@
                     "width": "170px",
                     "enabled": false,
                     "value": "",
-                    "caption": "Rename device"
+                    "caption": "Device name"
                   },
                   {
                     "type": "Button",
@@ -158,7 +159,7 @@
                     "width": "115px",
                     "enabled": false,
                     "caption": "Rename",
-                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1804, 'list' => $listDevices, 'name' => $newDevice]);"
+                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'rename:list:device', 'list' => $listDevices, 'name' => $newDevice]);"
                   }
                 ]
               },
@@ -186,7 +187,7 @@
                         "caption": "Name",
                         "name": "name",
                         "width": "215px",
-                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1805, 'mode' => 1901, 'list' => $listGroups]);"
+                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:group:config', 'mode' => 'config:initial', 'list' => $listGroups]);"
                       }
                     ],
                     "values": []
@@ -196,7 +197,7 @@
                     "name": "listDevices",
                     "caption": "Device list",
                     "rowCount": 10,
-                    "onEdit": "OSR_LigthifyConfigurator($id, ['method' => 1806, 'list' => $listDevices, 'ID' => $listGroups['ID'], 'name' => $listGroups['name']]);",
+                    "onEdit": "OSR_LigthifyConfigurator($id, ['method' => 'set:group:config', 'list' => $listDevices, 'ID' => $listGroups['ID'], 'name' => $listGroups['name']]);",
                     "columns": [
                       {
                         "caption": "UUID",
@@ -208,7 +209,7 @@
                         "caption": "Name",
                         "name": "name",
                         "width": "202px",
-                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1807, 'name' => $listDevices['name']]);"
+                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'set:device:rename', 'name' => $listDevices['name'], 'online' => $listDevices['online']]);"
                       },
                       { 
                         "caption": "",
@@ -275,7 +276,7 @@
                     "width": "126px",
                     "enabled": true,
                     "caption": "Refresh",
-                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1805, 'mode' => 1902, 'list' => $listGroups]);"
+                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:group:config', 'mode' => 'config:refresh', 'list' => $listGroups]);"
                   }
                 ]
               }
@@ -287,7 +288,7 @@
           "name": "CreateGroup",
           "caption": "Create group",
           "width": "155px",
-          "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1808, 'mode' => 1901]);",
+          "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:list:devices', 'mode' => 'config:refresh']);",
           "popup": {
             "caption": "Create group",
             "items": [
@@ -308,7 +309,7 @@
                     "width": "94px",
                     "enabled": true,
                     "caption": "Create",
-                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1808, 'list' => $addDevices, 'name' => $addGroup]);"
+                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:list:devices', 'list' => $addDevices, 'name' => $addGroup]);"
                   }
                 ]
               },
@@ -363,7 +364,7 @@
                     "width": "126px",
                     "enabled": true,
                     "caption": "Refresh",
-                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 1808, ''mode' => 1902]);"
+                    "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:list:devices', ''mode' => 'config:refresh']);"
                   }
                 ]
               }

@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 
 
 class lightifyDiscovery extends IPSModule
 {
 
-
-  const MODULE_DNSSD = "{780B2D48-916C-4D59-AD35-5A429B2355A5}";
+  const MODULE_CONFIGURATOR = "{5552DA2D-B613-4291-8E57-61B0535B8047}";
+  const MODULE_DNSSD        = "{780B2D48-916C-4D59-AD35-5A429B2355A5}";
 
 
   public function Create() {
@@ -52,7 +51,7 @@ class lightifyDiscovery extends IPSModule
 
       $value['create'] = [
         [
-          'moduleID'      => classConstant::MODULE_CONFIGURATOR,
+          'moduleID'      => self::MODULE_CONFIGURATOR,
           'configuration' => new stdClass()
         ],
         [
@@ -76,21 +75,6 @@ class lightifyDiscovery extends IPSModule
 
     $formJSON['actions'][0]['values'] = $Values;
     return json_encode($formJSON);
-
-  }
-
-
-  private function getGatewayInstances($serialNumber) : int {
-
-    $IDs = IPS_GetInstanceListByModuleID(classConstant::MODULE_GATEWAY);
-
-    foreach ($IDs as $id) {
-      if (IPS_GetProperty($id, "serialNumber") == $serialNumber) {
-        return $id;
-      }
-    }
-
-    return 0;
 
   }
 
@@ -127,6 +111,21 @@ class lightifyDiscovery extends IPSModule
     }
 
     return $Gateways;
+
+  }
+
+
+  private function getGatewayInstances($serialNumber) : int {
+
+    $IDs = IPS_GetInstanceListByModuleID(classConstant::MODULE_GATEWAY);
+
+    foreach ($IDs as $id) {
+      if (IPS_GetProperty($id, "serialNumber") == $serialNumber) {
+        return $id;
+      }
+    }
+
+    return 0;
 
   }
 

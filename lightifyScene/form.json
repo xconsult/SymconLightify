@@ -23,9 +23,9 @@
     },
     {
       "type": "ValidationTextBox",
-      "name": "class",
-      "enabled": false,
-      "caption": "Class"
+      "caption": "Module",
+      "name": "module",
+      "enabled": false
     },
     { "type": "RowLayout",
       "items": [
@@ -46,15 +46,10 @@
   ],
   "actions": [
     {
-      "type": "RowLayout",
-      "items": [
-        {
-          "type": "Button",
-          "caption": "Apply",
-          "width": "110px",
-          "onClick": "OSR_WriteValue($id, 'SCENE', $itemID);"
-        }
-      ]
+      "type": "Button",
+      "caption": "Apply",
+      "width": "110px",
+      "onClick": ""
     }
   ],
   "status": [

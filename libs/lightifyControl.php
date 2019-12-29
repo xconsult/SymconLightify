@@ -9,7 +9,6 @@ require_once __DIR__.'/../libs/lightifyClass.php';
 trait LightifyControl
 {
 
-
   protected $lightifyBase;
   protected $fade = 0;
 
@@ -103,17 +102,12 @@ trait LightifyControl
     //Get UUID
     $UUID = $this->ReadPropertyString("UUID");
 
-    //Get class
-    $class  = $this->ReadPropertyString("class");
-    $Light  = ($class == "Light") ? true : false;
-    $Plug   = ($class == "Plug") ? true : false;
-    $Motion = ($class == "Sensor") ? true : false;
-    $Group  = ($class == "Group") ? true : false;
-
-    $type = $this->ReadPropertyInteger("type");
-    $RGB  = ($type & 8) ? true: false;
-    $CCT  = ($type & 2) ? true: false;
-    $CLR  = ($type & 4) ? true: false;
+    //Get module
+    $module = $this->ReadPropertyString("module");
+    $Light  = ($module == "Light") ? true : false;
+    $Plug   = ($module == "Plug") ? true : false;
+    $Motion = ($module == "Sensor") ? true : false;
+    $Group  = ($module == "Group") ? true : false;
 
     if ($Light || $Plug || $Motion) {
       $flag = 0;
@@ -123,7 +117,7 @@ trait LightifyControl
       $online   = ($onlineID) ? GetValueBoolean($onlineID) : false;
     } else {
       $flag = 2;
-      $UUID   = str_pad(chr($this->ReadPropertyInteger("ID")-classConstant::GROUP_ITEM_INDEX), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
+      $UUID   = str_pad(chr($this->ReadPropertyInteger("ID")), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
       $online = true;
     }
 
@@ -132,6 +126,12 @@ trait LightifyControl
     $this->fade = classConstant::TIME_MIN;
 
     if ($Light) {
+      $type = $this->ReadPropertyInteger("type");
+
+      $RGB  = ($type & 8) ? true: false;
+      $CCT  = ($type & 2) ? true: false;
+      $CLR  = ($type & 4) ? true: false;
+
       if (!$this->fade) {
         //$this->fade = IPS_GetProperty($this->InstanceID, "transition")*10;
         //$this->fade = $this->ReadPropertyFloat("transition")*10;
@@ -392,15 +392,15 @@ trait LightifyControl
       return false;
     }
 
-    $class = $this->ReadPropertyString("class");
+    $module = $this->ReadPropertyString("module");
     $name = substr(trim($name), 0, classConstant::DATA_NAME_LENGTH);
 
-    if ($class == "Light" || $class == "Plug" || $class == "Sensor") {
+    if ($module == "Light" || $module == "Plug" || $module == "Sensor") {
       $cmd = classCommand::SET_DEVICE_NAME;
       $flag = chr(0x00);
       $UUID = utf8_encode($this->lightifyBase->UUIDtoChr($this->ReadPropertyString("UUID")));
     }
-    elseif ($class == "Group") {
+    elseif ($module == "Group") {
       $cmd = classCommand::SET_GROUP_NAME;
       $flag = chr(0x02);
       $UUID = utf8_encode(chr($this->ReadPropertyInteger("ID")-classConstant::GROUP_ITEM_INDEX).chr(0x00));

@@ -24,7 +24,7 @@ class lightifyGroup extends IPSModule
 
     //Store at runtime
     $this->RegisterPropertyInteger("ID", vtNoValue);
-    $this->RegisterPropertyString("class", vtNoString);
+    $this->RegisterPropertyString("module", vtNoString);
     $this->RegisterPropertyString("UUID", vtNoString);
 
     $this->RegisterAttributeString("Devices", vtNoString);
@@ -73,9 +73,9 @@ class lightifyGroup extends IPSModule
 
       if ($stateID = @$this->GetIDForIdent("STATE")) {
         if (GetValueBoolean($stateID)) {
-          $formJSON['elements'][0]['items'][1]['visible'] = true;
+          $formJSON['elements'][2]['items'][1]['visible'] = true;
         } else {
-          $formJSON['elements'][0]['items'][2]['visible'] = true;
+          $formJSON['elements'][2]['items'][2]['visible'] = true;
         }
       }
 
@@ -153,7 +153,7 @@ class lightifyGroup extends IPSModule
                 $stateID = @IPS_GetObjectIDByIdent("STATE", $instanceID);
                 $state   = ($stateID) ? GetValueBoolean($stateID) : false;
 
-                $class  = @IPS_GetProperty($instanceID, "class");
+                $module = @IPS_GetProperty($instanceID, "module");
                 $zigBee = @IPS_GetProperty($instanceID, "zigBee");
 
                 $hueID         = @IPS_GetObjectIDByIdent("HUE", $instanceID);
@@ -171,7 +171,7 @@ class lightifyGroup extends IPSModule
                 $firmware    = ($firmwareID) ? GetValueString($firmwareID) : vtNoString;
 
                 if ($state) {
-                  if ($class == $this->Translate("Plug")) {
+                  if ($module == $this->Translate("Plug")) {
                     $rowColor = ROW_COLOR_PLUG_ON;
                   } else {
                     $rowColor = ($color != vtNoString) ? "#".$color : ROW_COLOR_CCT_ON;
@@ -183,7 +183,7 @@ class lightifyGroup extends IPSModule
 
               $Devices[] = [
                 'InstanceID'  => $instanceID,
-                'class'       => $this->translate($class),
+                'module'      => $this->translate($module),
                 'zigBee'      => $zigBee,
                 'name'        => IPS_GetName($instanceID),
                 'hue'         => $hue,
