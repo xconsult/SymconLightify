@@ -238,6 +238,7 @@ class lightifyConfigurator extends IPSModule
         'ID'    => $line['ID']
       ];
     }
+    //IPS_LogMessage("SymconOSR", "<Configurator|Set Locations:info>   ".json_encode($Locations));
 
     //Read and update
     $config = json_decode(IPS_GetConfigurationForm($this->InstanceID));
@@ -245,22 +246,24 @@ class lightifyConfigurator extends IPSModule
     foreach ($config->actions as $line) {
       if ($line->type == "Configurator" && $line->name == "Lightify") {
         foreach ($line->values as $item) {
-          if ($item->module == "Light" || $item->module == "All Devices") {
+          $module = $item->create->configuration->module;
+
+          if ($module == "Light" || $module == "All Devices") {
             $location = $this->getCategoryPath($Locations[0]['ID']);
           }
-          elseif ($item->module == "Plug") {
+          elseif ($module == "Plug") {
             $location = $this->getCategoryPath($Locations[1]['ID']);
           }
-          elseif ($item->module == "Sensor") {
+          elseif ($module == "Sensor") {
             $location = $this->getCategoryPath($Locations[2]['ID']);
           }
-          elseif ($item->module == "Dimmer" || $item->module == "Switch") {
+          elseif ($module == "Dimmer" || $module == "Switch") {
             $location = $this->getCategoryPath($Locations[3]['ID']);
           }
-          elseif ($item->module == "Group") {
+          elseif ($module == "Group") {
             $location = $this->getCategoryPath($Locations[4]['ID']);
           }
-          elseif ($item->module == "Scene") {
+          elseif ($module == "Scene") {
             $location = $this->getCategoryPath($Locations[5]['ID']);
           } else {
             $location = 0;
