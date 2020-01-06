@@ -1,25 +1,26 @@
 {
   "translations": {
     "de": {
-      "Group [id]"                       : "Gruppen [id]",
-      "Module"                           : "Modul",
-      "Group"                            : "Gruppe",
-      "Device list"                      : "Geräte Liste",
-      "Devices"                          : "Geräte",
-      "State"                            : "Status",
-      "Hue"                              : "Hue",
-      "Color"                            : "Farbe",
-      "Temperature"                      : "Temperatur",
-      "Level"                            : "Helligkeit",
-      "Saturation"                       : "Sättigung",
-      "time"                             : "Zeit",
-      "Light"                            : "Lampe",
-      "Plug"                             : "Steckdose",
-      "On"                               : "An",
-      "Off"                              : "Aus",
-      "Group is active"                  : "Gruppe ist aktiv",
-      "Group is inactive"                : "Gruppe ist inaktiv",
-      "Lightify socket is not connected" : "Lightify Socket ist nicht verbunden"
+      "Group can only be configured over the Configurator Instance!" : "Gruppe kann nur über die Konfigurator Instanz erstellt werden!",
+      "Extended informations"                                        : "Erweiterte Informationen",
+      "Module"                                                       : "Modul",
+      "Group"                                                        : "Gruppe",
+      "Device list"                                                  : "Geräte Liste",
+      "Devices"                                                      : "Geräte",
+      "State"                                                        : "Status",
+      "Hue"                                                          : "Hue",
+      "Color"                                                        : "Farbe",
+      "Temperature"                                                  : "Temperatur",
+      "Level"                                                        : "Helligkeit",
+      "Saturation"                                                   : "Sättigung",
+      "time"                                                         : "Zeit",
+      "Light"                                                        : "Lampe",
+      "Plug"                                                         : "Steckdose",
+      "On"                                                           : "An",
+      "Off"                                                          : "Aus"
+    },
+    "en": {
+      "Extended informations"                                        : "Erweiterte Informationen"
     }
   }
 }

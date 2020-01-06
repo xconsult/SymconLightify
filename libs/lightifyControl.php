@@ -35,7 +35,7 @@ trait LightifyControl
       'buffer' => json_encode($param)])
     );
 
-    //IPS_LogMessage("SymconOSR", "<Devices|Send data:result>   ".IPS_GetName($this->InstanceID)."|".$result);
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", IPS_GetName($this->InstanceID)."|".$result);
     return (bool)$result;
 
   }
@@ -43,8 +43,8 @@ trait LightifyControl
 
   public function RequestAction($Ident, $Value) {
 
-    $key   = (string)$Ident;
     $value = (int)$Value;
+    $key   = (string)$Ident;
 
     switch ($Ident) {
       case "ALL_DEVICES":
@@ -84,7 +84,8 @@ trait LightifyControl
               'args'  => utf8_encode(str_repeat(chr(0xff), 8).chr($value)),
               'value' => $value
             ];
-            IPS_LogMessage("SymconOSR", "<Control|Write value:buffer>   ".json_encode($param));
+
+            //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($param));
             return $this->sendData(classConstant::SET_ALL_DEVICES, $param);
           }
         }

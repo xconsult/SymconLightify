@@ -5,15 +5,13 @@ declare(strict_types=1);
 require_once __DIR__.'/../libs/lightifyControl.php';
 
 
-define('ROW_COLOR_LIGHT_ON',  "#fffde7");
-define('ROW_COLOR_CCT_ON',    "#ffffff");
-define('ROW_COLOR_PLUG_ON',   "#cdfcc6");
-define('ROW_COLOR_STATE_OFF', "#f6c3c2");
-
-
-class lightifyGroup extends IPSModule
+class LightifyGroup extends IPSModule
 {
 
+  const ROW_COLOR_LIGHT_ON  = "#fffde7";
+  const ROW_COLOR_CCT_ON    = "#ffffff";
+  const ROW_COLOR_PLUG_ON   = "#cdfcc6";
+  const ROW_COLOR_STATE_OFF = "#f6c3c2";
 
   use LightifyControl;
 
@@ -25,9 +23,7 @@ class lightifyGroup extends IPSModule
     //Store at runtime
     $this->RegisterPropertyInteger("ID", vtNoValue);
     $this->RegisterPropertyString("module", vtNoString);
-    $this->RegisterPropertyString("UUID", vtNoString);
 
-    $this->RegisterAttributeString("Devices", vtNoString);
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
 
   }
@@ -41,10 +37,6 @@ class lightifyGroup extends IPSModule
     if (IPS_GetKernelRunlevel() != KR_READY) {
       return;
     }
-
-    //Apply filter
-    $filter = ".*".preg_quote(trim(json_encode($this->ReadPropertyString("UUID")), '"')).".*";
-    $this->SetReceiveDataFilter($filter);
 
   }
 
@@ -62,45 +54,33 @@ class lightifyGroup extends IPSModule
 
   public function GetConfigurationForm() {
 
-    if (!$this->HasActiveParent()) {
-      $this->SetStatus(201);
-      return vtNoForm;
-    }
-
     //Validate
-    if ($this->ReadPropertyInteger("ID") != vtNoValue) {
+    $ID = $this->ReadPropertyInteger("ID");
+
+    if ($ID != vtNoValue) {
       $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
+      $formJSON['elements'][0]['items'][1]['value'] = $this->Translate($this->ReadPropertyString("module"));
 
       if ($stateID = @$this->GetIDForIdent("STATE")) {
         if (GetValueBoolean($stateID)) {
-          $formJSON['elements'][2]['items'][1]['visible'] = true;
+          $formJSON['actions'][0]['items'][0]['visible'] = true;
         } else {
-          $formJSON['elements'][2]['items'][2]['visible'] = true;
+          $formJSON['actions'][0]['items'][1]['visible'] = true;
         }
       }
 
       //Expansion Panel
-      $formJSON['actions'][1]['items'][0]['values'] = $this->PanelGroupDevices();
+      $formJSON['elements'][1]['items'][0]['values'] = $this->PanelGroupDevices();
       return json_encode($formJSON);
     }
 
-    $elements[] = [
-      'type'    => "Label",
-      'caption' => "Group can only be configured over the Lightify Discovery Instance!"
-    ];
-
-    $status[] = [
-      'code'    => 104,
-      'icon'    => "inactive",
-      'caption' => "Group is inactive"
-    ];
-
     $formJSON = [
-      'elements' => $elements,
-      'status'   => $status
+      'elements' => [
+        'type'    => "Label",
+        'caption' => "Group can only be configured over the Configurator Instance!"
+      ]
     ];
 
-    $this->SetStatus(104);
     return json_encode($formJSON);
 
   }
@@ -108,22 +88,16 @@ class lightifyGroup extends IPSModule
 
   public function ReceiveData($JSONString) {
 
-    $data    = json_decode($JSONString, true);
-    $debug   = IPS_GetProperty($data['id'], "debug");
-    $Devices = [];
-
-    //IPS_LogMessage("SymconOSR", "<Group|Gateway Group devices:data>   ".json_encode($data['buffer']));
+    //Decode data
+    $data = json_decode($JSONString, true);
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($data['buffer']));
 
     foreach($data['buffer'] as $item) {
-      $UUID = $this->ReadPropertyString("UUID");
-      //IPS_LogMessage("SymconOSR", "<Group|Gateway Group devices:data>   ".$group['id']."|".$id."|".IPS_GetName($this->InstanceID)."|".json_encode($group['UUID']));
+      $ID = $this->ReadPropertyInteger("ID");
 
-      if ($item['Group'] == $UUID) {
-        $Devices = $item['Devices'];
-
-        $this->setGroupInfo($Devices);
-        $this->WriteAttributeString("Devices", json_encode($Devices));
-
+      if ($item['ID'] == $ID) {
+        $UUID = $item['UUID'];
+        $this->setGroupInfo($UUID);
         break;
       }
     }
@@ -138,24 +112,23 @@ class lightifyGroup extends IPSModule
         'DataID' => classConstant::TX_GATEWAY,
         'method' => classConstant::GET_GROUP_DEVICES])
       );
-      //IPS_LogMessage("SymconOSR", "<Configurator|Get Group configuration:data>   ".$data);
+      //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $data);
 
       $data = json_decode($data);
       $Devices = [];
 
       if (is_array($data) && count($data) > 0) {
         foreach ($data as $item) {
-          if ($item->Group == $this->ReadPropertyString("UUID")) {
-            foreach ($item->Devices as $UUID) {
+          if ($item->ID == $this->ReadPropertyInteger("ID")) {
+            foreach ($item->UUID as $UUID) {
               $instanceID = $this->getDeviceInstances(classConstant::MODULE_DEVICE, $UUID);
 
               if ($instanceID) {
                 $stateID = @IPS_GetObjectIDByIdent("STATE", $instanceID);
                 $state   = ($stateID) ? GetValueBoolean($stateID) : false;
+                $module  = @IPS_GetProperty($instanceID, "module");
 
-                $module = @IPS_GetProperty($instanceID, "module");
-                $zigBee = @IPS_GetProperty($instanceID, "zigBee");
-
+                $zigBeeID      = @IPS_GetObjectIDByIdent("ZLL", $instanceID);
                 $hueID         = @IPS_GetObjectIDByIdent("HUE", $instanceID);
                 $colorID       = @IPS_GetObjectIDByIdent("COLOR", $instanceID);
                 $temperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $instanceID);
@@ -163,6 +136,7 @@ class lightifyGroup extends IPSModule
                 $saturationID  = @IPS_GetObjectIDByIdent("SATURATION", $instanceID);
                 $firmwareID    = @IPS_GetObjectIDByIdent("FIRMWARE", $instanceID);
 
+                $zigBee      = ($zigBeeID) ? GetValueString($zigBeeID) : vtNoString;
                 $hue         = ($hueID) ?  GetValueformatted($hueID) : vtNoString;
                 $color       = ($colorID) ? strtolower(GetValueformatted($colorID)) : vtNoString;
                 $temperature = ($temperatureID) ? GetValueformatted($temperatureID) : vtNoString;
@@ -172,39 +146,37 @@ class lightifyGroup extends IPSModule
 
                 if ($state) {
                   if ($module == $this->Translate("Plug")) {
-                    $rowColor = ROW_COLOR_PLUG_ON;
+                    $rowColor = self::ROW_COLOR_PLUG_ON;
                   } else {
-                    $rowColor = ($color != vtNoString) ? "#".$color : ROW_COLOR_CCT_ON;
+                    $rowColor = ($color != vtNoString) ? self::ROW_COLOR_LIGHT_ON : self::ROW_COLOR_CCT_ON;
                   }
                 } else {
-                  $rowColor = ROW_COLOR_STATE_OFF;
+                  $rowColor = self::ROW_COLOR_STATE_OFF;
                 }
-              }
 
-              $Devices[] = [
-                'InstanceID'  => $instanceID,
-                'module'      => $this->translate($module),
-                'zigBee'      => $zigBee,
-                'name'        => IPS_GetName($instanceID),
-                'hue'         => $hue,
-                'color'       => ($color != vtNoString) ? "#".$color : vtNoString,
-                'temperature' => $temperature,
-                'level'       => $level,
-                'saturation'  => $saturation,
-                'transition'  => vtNoString,
-                'firmware'    => $firmware,
-                'rowColor'    => $rowColor
-              ];
+                $Devices[] = [
+                  'InstanceID'  => $instanceID,
+                  'module'      => $this->translate($module),
+                  'zigBee'      => $zigBee,
+                  'name'        => IPS_GetName($instanceID),
+                  'hue'         => $hue,
+                  'color'       => ($color != vtNoString) ? self::ROW_COLOR_LIGHT_ON : vtNoString,
+                  'temperature' => $temperature,
+                  'level'       => $level,
+                  'saturation'  => $saturation,
+                  'transition'  => vtNoString,
+                  'firmware'    => $firmware,
+                  'rowColor'    => $rowColor
+                ];
+              }
             }
-            //IPS_LogMessage("SymconOSR", "<Configurator|Group devices:list>   ".json_encode($Devices));
+            //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Devices));
             break;
           }
         }
       }
 
-      //Load list
       return $Devices;
-      $this->UpdateFormField("listDevices", "values", json_encode($Devices));
 
   }
 
@@ -212,7 +184,9 @@ class lightifyGroup extends IPSModule
   private function setGroupInfo(array $UUID) : void {
 
     //Get Device instances
-    $ID = $this->lightifyBase->getInstancesByUUID(classConstant::MODULE_DEVICE, $UUID);
+    foreach ($UUID as $item) {
+      $ID[] = $this->lightifyBase->getInstanceByUUID(classConstant::MODULE_DEVICE, $item);
+    }
 
     //Set group/zone state
     $online    = $state = false;

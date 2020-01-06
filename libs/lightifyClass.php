@@ -69,15 +69,20 @@ class classConstant
   const TX_SCENE       = "{1C913701-904E-4EAD-9A70-702597567A0F}";
 
   const GATEWAY_PORT           = 4000;
+  const TIMER_SYNC             = 5;
+  const GATEWAY_SERIAL_LENGTH  = 11;
+
   const UUID_OSRAM_LENGTH      = 8;
+  const DATA_NAME_LENGTH       = 15;
 
   const GET_DEVICES_LOCAL      = 1001;
   const GET_DEVICES_CLOUD      = 1002;
-  const GET_GROUPS_LOCAL       = 1003;
-  const GET_GROUPS_CLOUD       = 1004;
-  const GET_GROUP_DEVICES      = 1005;
-  const GET_SCENES_LOCAL       = 1006;
-  const GET_SCENES_CLOUD       = 1007;
+  const GET_DEVICE_GROUPS      = 1003;
+  const GET_GROUPS_LOCAL       = 1004;
+  const GET_GROUPS_CLOUD       = 1005;
+  const GET_GROUP_DEVICES      = 1006;
+  const GET_SCENES_LOCAL       = 1007;
+  const GET_SCENES_CLOUD       = 1008;
 
   const SET_ALL_DEVICES        = 1010;
   const SET_GROUP_STATE        = 1011;
@@ -119,8 +124,8 @@ class classConstant
   const TIME_MIN               = 0;    //0.0 sec
   const TIME_MAX               = 8000; //8.0 sec
 
-  const WRITE_KEY_VALUES       = "ALL_DEVICES,NAME,SAVE,SCENE,SOFT_ON,SOFT_OFF,FADE,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION";
-  const LIST_KEY_IDENTS        = "HUE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION,MOTION,SCENE,ZIGBEE,FIRMWARE";
+  const WRITE_KEY_VALUES       = "ALL_DEVICES,NAME,SAVE,SCENE,MOOD,SOFT_ON,SOFT_OFF,FADE,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION";
+  const LIST_KEY_IDENTS        = "HUE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION,MOTION,SCENE,MOOD,ZIGBEE,FIRMWARE";
 
 }
 
@@ -374,21 +379,34 @@ class lightifyBase
   }
 
 
-  public function getInstancesByUUID(string $moduleID, array $UUID = [], array $class = []) : array {
+  public function getInstanceByUUID(string $moduleID, string $UUID) : int {
 
+    //Get Instances
     $List = IPS_GetInstanceListByModuleID($moduleID);
-    $ID = [];
 
     foreach ($List as $id) {
-      $a = (empty($UUID)) ? true : in_array(IPS_GetProperty($id, "UUID"), $UUID);
-      $b = (empty($class)) ? true : in_array(IPS_GetProperty($id, "itemClass"), $class);
-
-      if ($a && $b) {
-        $ID[] = $id;
+      if (@IPS_GetProperty($id, "UUID") == $UUID) {
+        return $id;
       }
     }
 
-    return $ID;
+    return 0;
+
+  }
+
+
+  public function getInstanceByID(string $moduleID, int $ID) : int {
+
+    //Get Instances
+    $List = IPS_GetInstanceListByModuleID($moduleID);
+
+    foreach ($List as $id) {
+      if (@IPS_GetProperty($id, "ID") == $ID) {
+        return $id;
+      }
+    }
+
+    return 0;
 
   }
 

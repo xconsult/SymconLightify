@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once __DIR__.'/../libs/lightifyClass.php';
 
 
-class lightifyDiscovery extends IPSModule
+class LightifyDiscovery extends IPSModule
 {
 
   const MODULE_CONFIGURATOR = "{5552DA2D-B613-4291-8E57-61B0535B8047}";
@@ -38,34 +38,37 @@ class lightifyDiscovery extends IPSModule
     foreach ($Gateways as $gateway) {
       $gatewayIP    = $gateway['IP'];
       $serialNumber = $gateway['serial'];
-      $instanceID   = $this->getGatewayInstances($serialNumber);
+      $instanceID   = $this->getConfiguratorInstance();
 
       $value = [
         'name'         => "OSRAM Lightify Configurator",
         'gatewayIP'    => $gatewayIP,
         'gatewayName'  => $gateway['name'],
         'serialNumber' => $serialNumber,
-        'instanceName' => ($instanceID) ? IPS_GetName($instanceID) : "OSRAM Lightify Gateway",
-        'instanceID'   => $instanceID,
+        'instanceName' => ($instanceID) ? IPS_GetName($instanceID) : "OSRAM Lightify Configurator"
       ];
 
       $value['create'] = [
         [
-          'moduleID'      => self::MODULE_CONFIGURATOR,
-          'configuration' => new stdClass()
+          'moduleID' => self::MODULE_CONFIGURATOR,
+          'configuration' => [
+            'OSRAM' => true
+          ]
         ],
         [
-          'moduleID'      => classConstant::MODULE_GATEWAY,
+          'moduleID' => classConstant::MODULE_GATEWAY,
           'configuration' => [
+            'cloudAPI'     => false,
+            'update'       => classConstant::TIMER_SYNC,
             'serialNumber' => $serialNumber
           ]
         ],
         [
-          'moduleID'      => classConstant::CLIENT_SOCKET,
+          'moduleID' => classConstant::CLIENT_SOCKET,
           'configuration' => [
+            'Open' => true,
             'Host' => $gatewayIP,
-            'Port' => classConstant::GATEWAY_PORT,
-            'Open' => true
+            'Port' => classConstant::GATEWAY_PORT
           ]
         ]
       ];
@@ -88,14 +91,14 @@ class lightifyDiscovery extends IPSModule
       //$mType = ZC_QueryServiceTypes($moduleID);
       $mDNS  = ZC_QueryServiceType($moduleID, "_http._tcp", "");
       //$query = ZC_QueryService($moduleID, "Lightify-017c3b28", "_http._tcp", "local.");
-      //IPS_LogMessage("SymconOSR", "<Discovery|mDNS query:info>   ".$moduleID."|".json_encode($query));
+      //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $moduleID."|".json_encode($query));
 
       foreach ($mDNS as $item) {
         $name = $item['Name'];
 
         if (stripos($name, "Lightify-") !== false) {
           $query = ZC_QueryService($moduleID, $name, $item['Type'],"local.");
-          //IPS_LogMessage("SymconOSR", "<Discovery|Service query:info>   ".$moduleID."|".json_encode($query));
+          //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $moduleID."|".json_encode($query));
 
           foreach ($query as $device) {
             if (array_key_exists("IPv4", $device)) {
@@ -115,12 +118,12 @@ class lightifyDiscovery extends IPSModule
   }
 
 
-  private function getGatewayInstances($serialNumber) : int {
+  private function getConfiguratorInstance() : int {
 
-    $IDs = IPS_GetInstanceListByModuleID(classConstant::MODULE_GATEWAY);
+    $IDs = IPS_GetInstanceListByModuleID(self::MODULE_CONFIGURATOR);
 
     foreach ($IDs as $id) {
-      if (IPS_GetProperty($id, "serialNumber") == $serialNumber) {
+      if (IPS_GetProperty($id, "OSRAM")) {
         return $id;
       }
     }
@@ -128,6 +131,7 @@ class lightifyDiscovery extends IPSModule
     return 0;
 
   }
+
 
 
 }

@@ -1,23 +1,21 @@
 {
   "translations": {
     "de": {
-      "Device [id]"                       : "Geräte [id]",
-      "Module"                            : "Modul",
-      "On"                                : "An",
-      "Off"                               : "Aus",
-      "Save"                              : "Speichern",
-      "Device is active"                  : "Gerät ist aktiv",
-      "Device is inactive"                : "Gerät ist inaktiv",
-      "Lightify scoker is not connected"  : "Lightify Socket ist nicht verbunden",
-      "Unknown error"                     : "Unbekannter Fehler",
-      "Online"                            : "Verbunden",
-      "State"                             : "Status",
-      "Hue"                               : "Hue",
-      "Color"                             : "Farbe",
-      "Color Temperature"                 : "Farbtemperatur",
-      "Level"                             : "Helligkeit",
-      "Saturation"                        : "Sättigung",
-      "Motion"                            : "Bewegung"
+      "Device can only be configured over the Configurator Instance!" : "Gerät kann nur über die Konfigurator Instanz erstellt werden!",
+      "Device [id]"                                                   : "Geräte [id]",
+      "Module"                                                        : "Modul",
+      "Module ["                                                      : "Modul [",
+      "On"                                                            : "An",
+      "Off"                                                           : "Aus",
+      "Save"                                                          : "Speichern",
+      "Online"                                                        : "Verbunden",
+      "State"                                                         : "Status",
+      "Hue"                                                           : "Hue",
+      "Color"                                                         : "Farbe",
+      "Color Temperature"                                             : "Farbtemperatur",
+      "Level"                                                         : "Helligkeit",
+      "Saturation"                                                    : "Sättigung",
+      "Motion"                                                        : "Bewegung"
     }
   }
 }

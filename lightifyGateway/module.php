@@ -1,5 +1,7 @@
 <?php
 
+//https://oauth.ipmagic.de/authorize/osram_lightify?username=xconsult@me.com
+
 declare(strict_types=1);
 
 require_once __DIR__.'/../libs/mainClass.php';
@@ -11,14 +13,8 @@ define('LIGHITFY_INVALID_SECURITY_TOKEN', 5003);
 define('LIGHITFY_GATEWAY_OFFLINE',        5019);
 
 
-class lightifyGateway extends IPSModule
+class LightifyGateway extends IPSModule
 {
-
-  const CONNECT_LOCAL_ONLY    = 1001;
-  const CONNECT_LOCAL_CLOUD   = 1002;
-
-  const GATEWAY_SERIAL_LENGTH = 11;
-  const TIMER_SYNC            = 5;
 
   const OAUTH_AUTHORIZE      = "https://oauth.ipmagic.de/authorize/";
   const OAUTH_FORWARD        = "https://oauth.ipmagic.de/forward/";
@@ -63,7 +59,6 @@ class lightifyGateway extends IPSModule
   const DATA_DEVICE_LENGTH   = 41;
   const DATA_GROUP_LENGTH    = 18;
   const DATA_SCENE_LENGTH    = 20;
-  const DATA_NAME_LENGTH     = 15;
   const DATA_WIFI_LENGTH     = 97;
 
   const GET_WIFI_CONFIG      = 0x00;
@@ -105,17 +100,16 @@ class lightifyGateway extends IPSModule
     parent::Create();
 
     //Local gateway
-    $this->RegisterPropertyInteger("connect", self::CONNECT_LOCAL_ONLY);
+    $this->RegisterPropertyBoolean("cloudAPI", false);
     $this->RegisterPropertyString("serialNumber", vtNoString);
-    
-    $this->RegisterPropertyInteger("update", self::TIMER_SYNC);
-    $this->RegisterTimer("timer", self::TIMER_SYNC*1000, "OSR_GetLightifyData($this->InstanceID, 'load:local');");
+
+    $this->RegisterPropertyInteger("update", classConstant::TIMER_SYNC);
+    $this->RegisterTimer("timer", classConstant::TIMER_SYNC*1000, "OSR_GetLightifyData($this->InstanceID, 'load:local');");
 
     //Cloud Access Token
     $this->RegisterAttributeString("osramToken", vtNoString);
 
     //Global settings
-    $this->RegisterPropertyInteger("debug", 0);
     $this->SetBuffer("sendStatus", json_encode($this->queue));
 
     $this->RegisterAttributeString("deviceBuffer", vtNoString);
@@ -188,9 +182,13 @@ class lightifyGateway extends IPSModule
 
   public function ApplyChanges() {
 
-    $this->RegisterMessage(0, IPS_KERNELSTARTED);
     //Never delete this line!
     parent::ApplyChanges();
+    $parentID = IPS_GetInstance($this->InstanceID)['ConnectionID'];
+
+    $this->RegisterMessage($parentID, IM_CHANGESTATUS);
+    $this->RegisterMessage($parentID, IM_CHANGESETTINGS);
+    $this->RegisterMessage(0, IPS_KERNELSTARTED);
 
     if (IPS_GetKernelRunlevel() != KR_READY) {
       return;
@@ -199,7 +197,7 @@ class lightifyGateway extends IPSModule
     //Buffer queue
     $this->SetBuffer("sendStatus", json_encode($this->queue));
 
-    if ($this->ReadPropertyInteger("connect") == self::CONNECT_LOCAL_CLOUD) {
+    if ($this->ReadPropertyBoolean("cloudAPI")) {
       $this->RegisterOAuth($this->oAuthIdent);
     }
 
@@ -216,7 +214,30 @@ class lightifyGateway extends IPSModule
       case IPS_KERNELSTARTED:
         $this->ApplyChanges();
         break;
+
+      case IM_CHANGESETTINGS:
+        $config = json_decode($Data[1]);
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $Message."|".(int)$config->Open);
+        //$this->UpdateFormField("open", "enabled", (bool)$config->Open);
+        break;
     }
+
+  }
+
+
+  public function GetConfigurationForm() {
+
+    //Load form
+    $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
+    $formJSON['elements'][0]['items'][0]['objectID'] = IPS_GetInstance($this->InstanceID)['ConnectionID'];
+
+    if ($this->ReadPropertyBoolean("cloudAPI") && strlen($this->ReadPropertyString("serialNumber")) == classConstant::GATEWAY_SERIAL_LENGTH) {
+      $formJSON['actions'][0]['enabled'] = true;
+    } else {
+      $formJSON['actions'][0]['enabled'] = false;
+    }
+
+    return json_encode($formJSON);
 
   }
 
@@ -260,6 +281,9 @@ class lightifyGateway extends IPSModule
 
       case classConstant::GET_DEVICES_CLOUD:
         return $this->ReadAttributeString("cloudDevices");
+
+      case classConstant::GET_DEVICE_GROUPS:
+        return $this->GetBuffer("deviceGroups");
 
       case classConstant::GET_GROUPS_LOCAL:
         return $this->ReadAttributeString("groupBuffer");
@@ -335,13 +359,12 @@ class lightifyGateway extends IPSModule
 
   public function ReceiveData($JSONString) {
 
-    $connect = $this->ReadPropertyInteger("connect");
-    $this->debug = $this->ReadPropertyInteger("debug");
-    //IPS_LogMessage("SymconOSR", "<Gateway|Receive:data>   ".$this->lightifyBase->decodeData($JSONString));
+    $cloudAPI = $this->ReadPropertyBoolean("cloudAPI");
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $this->lightifyBase->decodeData($JSONString));
 
     $data = json_decode($JSONString);
     $data = utf8_decode($data->Buffer);
-    //IPS_LogMessage("SymconOSR", "<Gateway|Receive:data>   ".strlen($data)."|".$this->lightifyBase->decodeData(substr($data, self::BUFFER_HEADER_LENGTH + 1))."|".$this->lightifyBase->decodeData($data));
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", strlen($data)."|".$this->lightifyBase->decodeData(substr($data, self::BUFFER_HEADER_LENGTH + 1))."|".$this->lightifyBase->decodeData($data));
 
     $cmd  = ord($data{3});
     $code = ord($data{8});
@@ -373,7 +396,7 @@ class lightifyGateway extends IPSModule
         //Gateway devices
         case classCommand::GET_DEVICE_LIST:
           //Update device informations
-          $result = $this->getGatewayDevices($connect, $data);
+          $result = $this->getGatewayDevices($cloudAPI, $data);
           $this->WriteAttributeString("deviceBuffer", $result);
           $Devices = json_decode($result);
 
@@ -392,7 +415,7 @@ class lightifyGateway extends IPSModule
         //Gateway groups
         case classCommand::GET_GROUP_LIST:
           //Update group informations
-          $result = $this->getGatewayGroups($connect, $data);
+          $result = $this->getGatewayGroups($cloudAPI, $data);
           $this->WriteAttributeString("groupDevices", $result);
           $List = json_decode($result);
 
@@ -410,7 +433,7 @@ class lightifyGateway extends IPSModule
 
         case classCommand::GET_SCENE_LIST:
           //Get gateway scenes
-          $result = $this->getGatewayScenes($connect, $data);
+          $result = $this->getGatewayScenes($cloudAPI, $data);
           $this->WriteAttributeString("sceneBuffer", $result);
           $Scenes = json_decode($result);
 
@@ -424,8 +447,8 @@ class lightifyGateway extends IPSModule
           break;
       }
     } else {
-      $this->SendDebug("<Gateway|Receive data:error>", $code, 0);
-      IPS_LogMessage("SymconOSR", "<Gateway|Receive data:error>   ".$cmd."|".$code."|".strlen($data));
+      $this->SendDebug("<".__FUNCTION__.">", $code, 0);
+      IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $cmd."|".$code."|".strlen($data));
     }
 
   }
@@ -434,8 +457,10 @@ class lightifyGateway extends IPSModule
   public function LightifyRegister() {
 
     //Return everything which will open the browser
-    if ($this->ReadPropertyInteger("connect") == self::CONNECT_LOCAL_CLOUD) {
-      if (strlen($this->ReadPropertyString("serialNumber")) == self::GATEWAY_SERIAL_LENGTH) {
+    if ($this->ReadPropertyBoolean("cloudAPI")) {
+      if (strlen($this->ReadPropertyString("serialNumber")) == classConstant::GATEWAY_SERIAL_LENGTH) {
+        //echo urlencode(IPS_GetLicensee())."\n";
+
         self::OAUTH_AUTHORIZE.$this->oAuthIdent."?username=".urlencode(IPS_GetLicensee());
       } else {
         echo $this->Translate("Lightify Gateway serial must have 11 digits!")."\n";
@@ -454,8 +479,7 @@ class lightifyGateway extends IPSModule
       if (isset($_GET['code'])) {
         return $this->getAccessToken($_GET['code']);
       } else {
-        $error = $this->Translate("Authorization code expected!");
-        $this->SendDebug("<Gateway|Process OAuth data:error>", $error, 0);
+        $this->SendDebug("<".__FUNCTION__.">", $this->Translate("Authorization code expected!"), 0);
       }
     }
 
@@ -472,9 +496,8 @@ class lightifyGateway extends IPSModule
 
     //$this->requestID = ($this->requestID == classConstant::REQUESTID_HIGH) ? 1 : $this->requestID+1;
     //$data = $flag.chr($command).$this->lightifyBase->getRequestID($this->requestID);
-    $this->SetBuffer("sendStatus", json_encode($this->queue));
 
-    $debug  = $this->ReadPropertyInteger("debug");
+    $this->SetBuffer("sendStatus", json_encode($this->queue));
     $buffer = $flag.chr($cmd).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
 
     if (!empty($args)) {
@@ -484,10 +507,9 @@ class lightifyGateway extends IPSModule
     $buffer = utf8_encode(chr(strlen($buffer)).chr(0x00).$buffer);
     $length = strlen($buffer);
 
-    if ($debug % 4) {
-      $info = strtoupper(dechex($cmd))."|".hexdec($flag)."|".$length."|".$this->lightifyBase->decodeData($buffer);
-      $this->SendDebug("<Gateway|Send request:write>", $info, 0);
-    }
+    //Debug info
+    $info = strtoupper(dechex($cmd))."|".hexdec($flag)."|".$length."|".$this->lightifyBase->decodeData($buffer);
+    $this->SendDebug("<".__FUNCTION__.">", $info, 0);
 
     $data = json_encode([
       'DataID' => classConstant::TX_VIRTUAL,
@@ -548,8 +570,7 @@ class lightifyGateway extends IPSModule
 
   private function getAccessToken(string $code) : bool {
 
-    $debug = $this->ReadPropertyInteger("debug");
-    //IPS_LogMessage("SymconOSR", "<Gateway|getAccessToken:code>   ".$code);
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $code);
 
     //Exchange our Authentication Code for a permanent Refresh Token and a temporary Access Token
     $cURL    = curl_init();
@@ -573,18 +594,10 @@ class lightifyGateway extends IPSModule
     $data   = json_decode($result);
     curl_close($cURL);
 
-    if ($debug % 2) {
-      $this->SendDebug("<Gateway|Get access token:result>", $result, 0);
-    }
-
     if (isset($data->token_type) && $data->token_type == self::AUTHENTICATION_TYPE) {
-      $this->SetBuffer("applyMode", 0);
-
-      if ($debug % 2) {
-        $this->SendDebug("<Gateway|Get access token:access>", $data->access_token, 0);
-        $this->SendDebug("<Gateway|Get access token:expires>", date("Y-m-d H:i:s", time() + $data->expires_in), 0);
-        $this->SendDebug("<Gateway|Get access token:refresh>", $data->refresh_token, 0);
-      }
+      $this->SendDebug("<".__FUNCTION__.">", $data->access_token, 0);
+      $this->SendDebug("<".__FUNCTION__.">", date("Y-m-d H:i:s", time() + $data->expires_in), 0);
+      $this->SendDebug("<".__FUNCTION__.">", $data->refresh_token, 0);
 
       $buffer = [
         'access_token'  => $data->access_token,
@@ -596,7 +609,7 @@ class lightifyGateway extends IPSModule
       return true;
     }
 
-    $this->SendDebug("<Gateway|Get access token:error>", $result, 0);
+    $this->SendDebug("<".__FUNCTION__.">", $result, 0);
     return false;
 
   }
@@ -605,20 +618,15 @@ class lightifyGateway extends IPSModule
   private function getRefreshToken() : string {
 
     $osramToken = $this->ReadAttributeString("osramToken");
-
-    if ($this->debug % 2) {
-      $this->SendDebug("<Gateway|Get refresh token:token>", $osramToken, 0);
-    }
+    $this->SendDebug("<".__FUNCTION__.">", $osramToken, 0);
 
     //Exchange our refresh token for a temporary access token
     $data = json_decode($osramToken);
 
     if (!empty($data) && time() < $data->expires_in) {
-      if ($this->debug % 2) {
-        $this->SendDebug("<Gateway|Get refresh token:access>", $data->access_token, 0);
-        //$this->SendDebug("<Gateway|Get refresh token:expires>", date("Y-m-d H:i:s", (int)time()+$data->expires_in), 0);
-        $this->SendDebug("<Gateway|Get refresh token:refresh>", $data->refresh_token, 0);
-      }
+      $this->SendDebug("<".__FUNCTION__.">", $data->access_token, 0);
+      //$this->SendDebug("<".__FUNCTION__.">", date("Y-m-d H:i:s", (int)time()+$data->expires_in), 0);
+      $this->SendDebug("<".__FUNCTION__.">", $data->refresh_token, 0);
 
       return $data->access_token;
     }
@@ -644,19 +652,11 @@ class lightifyGateway extends IPSModule
     $data   = json_decode($result);
     curl_close($cURL);
 
-    if ($this->debug % 2) {
-      $this->SendDebug("<Gateway|Get refresh token:result>", $result, 0);
-    }
-
     if (isset($data->token_type) && $data->token_type == self::AUTHENTICATION_TYPE) {
       //Update parameters to properly cache them in the next step
-      $this->SetBuffer("applyMode", 0);
-
-      if ($this->debug % 2) {
-        $this->SendDebug("<Gateway|Get refresh token:access>", $data->access_token, 0);
-        $this->SendDebug("<Gateway|Get refresh token:expires>", date("Y-m-d H:i:s", time() + $data->expires_in), 0);
-        $this->SendDebug("<Gateway|Get refresh token:refresh>", $data->refresh_token, 0);
-      }
+      $this->SendDebug("<".__FUNCTION__.">", $data->access_token, 0);
+      $this->SendDebug("<".__FUNCTION__.">", date("Y-m-d H:i:s", time() + $data->expires_in), 0);
+      $this->SendDebug("<".__FUNCTION__.">", $data->refresh_token, 0);
 
       $buffer = json_encode([
         'access_token'  => $data->access_token,
@@ -667,7 +667,7 @@ class lightifyGateway extends IPSModule
       $this->WriteAttributeString("osramToken", $buffer);
       return $data->access_token;
     } else {
-      $this->SendDebug("<Gateway|Get refresh token:error>", $result, 0);
+      $this->SendDebug("<".__FUNCTION__.">", $result, 0);
       return vtNoString;
     }
 
@@ -714,14 +714,11 @@ class lightifyGateway extends IPSModule
     curl_close($cURL);
 
     if (!$result || $error) {
-      $this->SendDebug("<Gateway|Cloud request:error>", $error, 0);
+      $this->SendDebug("<".__FUNCTION__.">", $error, 0);
       return vtNoString;
     }
 
-    if ($this->debug % 2) {
-      $this->SendDebug("<Gateway|Cloud request:result>", $result, 0);
-    }
-
+    $this->SendDebug("<".__FUNCTION__.">", $result, 0);
     return $result;
 
   }
@@ -761,7 +758,7 @@ class lightifyGateway extends IPSModule
         }
 
         if ($result) {
-          //IPS_LogMessage("SymconOSR", "<Gateway|ReceiveData:result>   ".$result);
+          //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
 
           if ($this->GetValue("SSID") != $SSID) {
             $this->SetValue("SSID", (string)$SSID);
@@ -777,7 +774,7 @@ class lightifyGateway extends IPSModule
 
     if (@$this->GetIDForIdent("FIRMWARE")) {
       $firmware = ord($data{0}).".".ord($data{1}).".".ord($data{2}).".".ord($data{3});
-      //IPS_LogMessage("SymconOSR", "<Gateway|ReceiveData:$firmware>   ".$firmware);
+      //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $firmware);
 
       if ($this->GetValue("FIRMWARE") != $firmware) {
         $this->SetValue("FIRMWARE", (string)$firmware);
@@ -787,7 +784,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function getGatewayDevices(int $connect, string $data) : string {
+  private function getGatewayDevices(bool $cloudAPI, string $data) : string {
 
     if (strlen($data) >= (2 + self::DATA_DEVICE_LENGTH)) {
       $Devices  = [];
@@ -803,7 +800,7 @@ class lightifyGateway extends IPSModule
         $zigBee = dechex(ord($data{0})).dechex(ord($data{1}));
         $UUID   = $this->lightifyBase->chrToUUID(substr($data, 2, classConstant::UUID_OSRAM_LENGTH));
 
-        $name = trim(substr($data, 26, self::DATA_NAME_LENGTH));
+        $name = trim(substr($data, 26, classConstant::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
         $firmware = sprintf("%02X%02X%02X%02X", ord($data{11}), ord($data{12}), ord($data{13}), ord($data{14}));
 
@@ -825,7 +822,7 @@ class lightifyGateway extends IPSModule
         ];
 
         $Devices[] = [
-          'id'       => $i,
+          'ID'       => $i,
           'type'     => $type,
           'zigBee'   => $zigBee,
           'UUID'     => $UUID,
@@ -852,7 +849,7 @@ class lightifyGateway extends IPSModule
           default:
             $Groups[] = [
               'UUID' => $UUID,
-              'id'   => $decode
+              'ID'   => $decode
             ];
         }
 
@@ -866,28 +863,22 @@ class lightifyGateway extends IPSModule
       //Store
       $this->SetBuffer("deviceGroups", json_encode($Groups));
 
-      if ($this->debug % 2) {
-        $this->SendDebug("<Gateway|Gateway devices:data>", json_encode($Devices), 0);
-      }
-
-      if ($connect == self::CONNECT_LOCAL_CLOUD && !empty($this->ReadAttributeString("osramToken"))) {
+      if ($cloudAPI && !empty($this->ReadAttributeString("osramToken"))) {
         $cloudDevices = $this->cloudGET(self::RESSOURCE_DEVICES);
         $this->WriteAttributeString("cloudDevices", $cloudDevices);
 
-        if ($this->debug % 2) {
-          $this->SendDebug("<Gateway|Cloud devices:data>", $cloudDevices, 0);
-        }
+        $this->SendDebug("<".__FUNCTION__.">", $cloudDevices, 0);
       }
 
       if (!empty($Devices)) {
         array_unshift($Devices, [
-          'id'       => 0,
+          'ID'       => 0,
           'type'     => classConstant::TYPE_ALL_DEVICES,
           'zigBee'   => vtNoString,
-          'UUID'     => $this->lightifyBase->chrToUUID(chr(0xff).chr(0x00).chr(0xff).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84)),
+          'UUID'     => vtNoString,
           'name'     => "All Devices",
           'firmware' => vtNoString,
-          'online'   => vtNoString,
+          'online'   => vtNoValue,
           'state'    => $allState,
           'level'    => vtNoString,
           'cct'      => vtNoString,
@@ -896,6 +887,7 @@ class lightifyGateway extends IPSModule
         ]);
       }
 
+      $this->SendDebug("<".__FUNCTION__.">", json_encode($Devices), 0);
       return json_encode($Devices);
     }
 
@@ -904,7 +896,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function getGatewayGroups(int $connect, string $data) : string {
+  private function getGatewayGroups(bool $cloudAPI, string $data) : string {
 
     if (strlen($data) >= (2 + self::DATA_GROUP_LENGTH)) {
       $buffer = $this->GetBuffer("deviceGroups");
@@ -922,26 +914,23 @@ class lightifyGateway extends IPSModule
       for ($i = 1; $i <= $ncount; $i++) {
         $UUID = $this->lightifyBase->chrToUUID($data{0}.$data{1}.chr(classConstant::TYPE_DEVICE_GROUP).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
 
-        $name = trim(substr($data, 2, self::DATA_NAME_LENGTH));
+        $name = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
 
         $Groups[] = [
-          'id'   => ord($data{0}),
+          'ID'   => ord($data{0}),
           'type' => classConstant::TYPE_DEVICE_GROUP,
-          'UUID' => $UUID,
           'name' => $name
         ];
 
         //Get Group devices
         if (!empty($buffer)) {
           $Items = $buffer;
-
-          $id = ord($data{0});
           $Devices = [];
 
           foreach ($Items as $group) {
-            foreach ($group->id as $index) {
-              if ($id == $index) {
+            foreach ($group->ID as $id) {
+              if (ord($data{0}) == $id) {
                 $Devices[] = $group->UUID;
                 break;
               }
@@ -955,8 +944,8 @@ class lightifyGateway extends IPSModule
           }
 */
           $List[] = [
-            'Group'   => $UUID,
-            'Devices' => $Devices
+            'ID'   => ord($data{0}),
+            'UUID' => $Devices
           ];
         }
 
@@ -969,21 +958,16 @@ class lightifyGateway extends IPSModule
 
       //Store
       $this->WriteAttributeString("groupBuffer", json_encode($Groups));
+      $this->SendDebug("<".__FUNCTION__.">", json_encode($Groups), 0);
 
-      if ($this->debug % 2) {
-        $this->SendDebug("<Gateway|Gateway groups:data>", json_encode($Groups), 0);
-      }
-
-      if ($connect == self::CONNECT_LOCAL_CLOUD && !empty($this->ReadAttributeString("osramToken"))) {
+      if ($cloudAPI && !empty($this->ReadAttributeString("osramToken"))) {
         $cloudGroups = $this->cloudGET(self::RESSOURCE_GROUPS);
         $this->WriteAttributeString("cloudGroups", $cloudGroups);
 
-        if ($this->debug % 2) {
-          $this->SendDebug("<Gateway|Cloud groups:data>", $cloudGroups, 0);
-        }
+        $this->SendDebug("<".__FUNCTION__.">", $cloudGroups, 0);
       }
 
-      //IPS_LogMessage("SymconOSR", "<<Gateway|Get groups:list>   ".json_encode($List));
+      //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($List));
       return json_encode($List);
     }
 
@@ -992,7 +976,7 @@ class lightifyGateway extends IPSModule
   }
 
 
-  private function getGatewayScenes(int $connect, string $data) : string {
+  private function getGatewayScenes(bool $cloudAPI, string $data) : string {
 
     if (strlen($data) >= (2 + self::DATA_DEVICE_LENGTH)) {
       $Scenes = [];
@@ -1002,14 +986,15 @@ class lightifyGateway extends IPSModule
       for ($i = 1; $i <= $ncount; $i++) {
         $UUID  = $this->lightifyBase->chrToUUID($data{0}.chr(0x00).chr(classConstant::TYPE_GROUP_SCENE).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
 
-        $name = trim(substr($data, 2, self::DATA_NAME_LENGTH));
+        $name = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $i."|".$name."|".ord($data{18})." ".ord($data{19}));
 
         $Scenes[] = [
-          'id'   => ord($data{0}),
-          'type' => classConstant::TYPE_GROUP_SCENE,
-          'UUID' => $UUID,
-          'name' => $name
+          'ID'    => ord($data{0}),
+          'type'  => classConstant::TYPE_GROUP_SCENE,
+          'name'  => $name,
+          'group' => ord($data{18})
         ];
 
         if (($length = strlen($data)) > self::DATA_SCENE_LENGTH) {
@@ -1018,18 +1003,13 @@ class lightifyGateway extends IPSModule
 
         $data = substr($data, $length);
       }
+      $this->SendDebug("<".__FUNCTION__.">", json_encode($Scenes), 0);
 
-      if ($this->debug % 2) {
-        $this->SendDebug("<Gateway|Gateway scenes:data>", json_encode($Scenes), 0);
-      }
-
-      if ($connect == self::CONNECT_LOCAL_CLOUD && !empty($this->ReadAttributeString("osramToken"))) {
+      if ($cloudAPI && !empty($this->ReadAttributeString("osramToken"))) {
         $cloudScenes = $this->cloudGET(self::RESSOURCE_SCENES);
         $this->WriteAttributeString("cloudScenes", $cloudScenes);
 
-        if ($this->debug % 2) {
-          $this->SendDebug("<Gateway|Cloud scenes:data>", $cloudScenes, 0);
-        }
+        $this->SendDebug("<".__FUNCTION__.">", $cloudScenes, 0);
       }
 
       return json_encode($Scenes);
@@ -1066,10 +1046,7 @@ class lightifyGateway extends IPSModule
 
     //Store
     $this->WriteAttributeString("allDevices", json_encode($allDevices));
-
-    if ($this->debug % 2) {
-      $this->SendDebug("<Gateway|Gateway allDevices:data>", json_encode($allDevices), 0);
-    }
+    $this->SendDebug("<".__FUNCTION__.">", json_encode($allDevices), 0);
   }
 
 

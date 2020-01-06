@@ -1,13 +1,15 @@
 {
   "translations": {
     "de": {
-      "Scene [id]"                       : "Szenen [id]",
-      "Module"                           : "Modul",
-      "Scene"                            : "Szene",
-      "Apply"                            : "Anwenden",
-      "Scene is active"                  : "Szene ist aktiv",
-      "Scene is inactive"                : "Szene ist inaktiv",
-      "Lightify socket is not connected" : "Lightify Socket ist nicht verbunden"
+      "Scene can only be configured over the Configurator Instance!" : "Scene kann nur über die Konfigurator Instanz erstellt werden!",
+      "Extended informations"                                        : "Erweiterte Informationen",
+      "Scene is connected to group"                                  : "Szene ist verbunden mit Gruppe",
+      "Scene [id]"                                                   : "Szene [id]",
+      "Scene"                                                        : "Szene",
+      "Module"                                                       : "Modul",
+      "Group"                                                        : "Gruppe",
+      "#Error"                                                       : "#Fehler",
+      "Apply"                                                        : "Anwenden"
     }
   }
 }

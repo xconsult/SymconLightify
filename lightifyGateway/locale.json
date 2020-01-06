@@ -1,25 +1,12 @@
 {
   "translations": {
     "de": {
-      "On"                                                                 : "An",
-      "Off"                                                                : "Aus",
-      " Active"                                                            : " Aktiv",
-      "Connection"                                                         : "Verbindung",
-      "Local only"                                                         : "Nur Lokal",
-      "Local and Cloud"                                                    : "Lokal und Cloud",
-      "Update interval [s]"                                                : "Aktualisierung [s]",
+      "Advanced settings"                                                  : "Erweiterte Einstellungen",
+      "Update interval"                                                    : "Aktualisierungsintervall",
+      "seconds"                                                            : "Sekunden",
       "Serial number"                                                      : "Seriennummer",
-      "Disabled"                                                           : "Inaktiv",
-      "Send buffer"                                                        : "Sende Buffer",
-      "Receive buffer"                                                     : "Empfangs Buffer",
-      "Send/Receive buffer"                                                : "Sende/Empfangs Buffer",
-      "Detailed error log"                                                 : "Detaillierte Meldungen",
-      " Messages"                                                          : "Meldungen",
-      "OSRAM Lightify public API "                                         : "OSRAM Lightify offene API ",
       "Register"                                                           : "Registrieren",
-      "Invalid IP address!"                                                : "Ungültige IP Addresse!",
       "Update interval < 5s"                                               : "Aktualisierungs Interval < 5s",
-      "Firmware"                                                           : "Firmware",
       "Lightify API registration available in cloud connection mode only!" : "Lightify API Registrierung ist nur mit einer Cloud Verbindung verfügbar!",
       "Authorization code expected!"                                       : "Authorisierungs Code erwartet!"
     }

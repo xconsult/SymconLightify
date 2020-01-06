@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once __DIR__.'/../libs/lightifyControl.php';
 
 
-class lightifyScene extends IPSModule
+class LightifyScene extends IPSModule
 {
 
 
@@ -19,7 +19,7 @@ class lightifyScene extends IPSModule
     //Store at runtime
     $this->RegisterPropertyInteger("ID", vtNoValue);
     $this->RegisterPropertyString("module", vtNoString);
-    $this->RegisterPropertyString("UUID", vtNoString);
+    $this->RegisterAttributeInteger("group", vtNoValue);
 
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
 
@@ -34,10 +34,6 @@ class lightifyScene extends IPSModule
     if (IPS_GetKernelRunlevel() != KR_READY) {
       return;
     }
-
-    //Apply filter
-    //$filter = ".*".preg_quote(trim(json_encode($this->ReadPropertyString("UUID")), '"')).".*";
-    //$this->SetReceiveDataFilter($filter);
 
   }
 
@@ -55,34 +51,35 @@ class lightifyScene extends IPSModule
 
   public function GetConfigurationForm() {
 
-    if (!$this->HasActiveParent()) {
-      $this->SetStatus(201);
-      return vtNoForm;
-    }
-
     //Validate
-    if ($this->ReadPropertyInteger("ID") != vtNoValue) {
+    $ID = $this->ReadPropertyInteger("ID");
+
+    if ($ID != vtNoValue) {
       $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
-      $formJSON['actions'][0]['onClick'] = "OSR_WriteValue(\$id, 'SCENE', ".$this->ReadPropertyInteger("ID").");";
+      $formJSON['elements'][0]['items'][1]['value'] = $this->Translate($this->ReadPropertyString("module"));
+
+      $group = $this->ReadAttributeInteger("group");
+      $id = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
+
+      if ($id) {
+        $formJSON['elements'][1]['items'][1]['caption']  = "#".$group;
+        $formJSON['elements'][1]['items'][1]['objectID'] = $id;
+      } else {
+        $formJSON['elements'][1]['items'][1]['caption'] = "#Error";
+        $formJSON['elements'][1]['items'][1]['enabled'] = false;
+      }
+      $formJSON['actions'][0]['onClick'] = "OSR_WriteValue(\$id, 'SCENE', ".$ID.");";
 
       return json_encode($formJSON);
     }
 
-    $elements[] = [
-      'type'    => "Label",
-      'caption' => "Scene can only be configured over the Lightify Discovery Instance!"
-    ];
-    $status[] = [
-      'code'    => 104,
-      'icon'    => "inactive",
-      'caption' => "Scene is inactive"
-    ];
     $formJSON = [
-      'elements' => $elements,
-      'status'   => $status
+      'elements' => [
+        'type'    => "Label",
+        'caption' => "Scene can only be configured over the Configurator Instance!"
+      ],
     ];
 
-    $this->SetStatus(104);
     return json_encode($formJSON);
 
   }
@@ -90,17 +87,16 @@ class lightifyScene extends IPSModule
 
   public function ReceiveData($JSONString) {
 
-    $data  = json_decode($JSONString, true);
-    $debug = IPS_GetProperty($data['id'], "debug");
+    //Decode data
+    $data = json_decode($JSONString, true);
 
     foreach ($data['buffer'] as $scene) {
-      if ($scene['UUID'] == $this->ReadPropertyString("UUID")) {
+      if ($scene['ID'] == $this->ReadPropertyInteger("ID")) {
+        $this->WriteAttributeInteger("group", $scene['group']);
         $this->setSceneInfo();
         break;
       }
     }
-
-    //$this->setSceneInfo();
 
   }
 
