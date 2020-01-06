@@ -434,7 +434,7 @@ class LightifyConfigurator extends IPSModule
     $value  = $List[1]['value'];
 
     $group  = $List[0]['name'];
-    $device = $List[0]['name'];
+    $device = $List[1]['name'];
 
     if (!$online) {
       $mode = ($value) ? " added to " : " removed from ";
