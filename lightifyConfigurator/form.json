@@ -364,7 +364,7 @@
           {
             "type": "Label",
             "name": "alertMessage",
-            "width": "500px",
+            "width": "520px",
             "caption": ""
           }
         ]

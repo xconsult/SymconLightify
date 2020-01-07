@@ -208,7 +208,8 @@ class LightifyConfigurator extends IPSModule
         break;
 
       case self::METHOD_LOAD_LIST_GROUPS:
-        $this->loadListGroups();
+        $List = $this->GetBuffer("listGroups");
+        $this->loadListGroups($List);
         break;
 
       case self::METHOD_RENAME_LIST_GROUP:
@@ -361,10 +362,10 @@ class LightifyConfigurator extends IPSModule
   }
 
 
-  private function loadListGroups() : void {
+  private function loadListGroups(string $List) : void {
 
     //Load list
-    if (empty($this->GetBuffer("listGroups"))){
+    if (empty($List)){
       $List = $this->getListGroups();
       $this->SetBuffer("listGroups", $List);
 
@@ -460,7 +461,7 @@ class LightifyConfigurator extends IPSModule
 
         $param = [
           'flag'  => 2,
-          'args'  => utf8_encode(chr($ID).chr(0x00).$this->lightifyBase->UUIDtoChr($UUID).chr(strlen($name)).$name),
+          'args'  => utf8_encode(chr($ID).chr(0x00).$this->lightifyBase->UUIDtoChr($UUID).chr(strlen($group)).$group),
           'value' => vtNoValue
         ];
       } else {
@@ -475,7 +476,7 @@ class LightifyConfigurator extends IPSModule
 
       $result = $this->sendData($cmd, $param);
       $status = json_decode($result);
-      IPS_Sleep(750);
+      usleep(750000);
 
       if ($status->flag || $status->code == 0) {
         if ($cmd == classCommand::RENOVE_DEVICE_FROM_GROUP) {
@@ -565,7 +566,10 @@ class LightifyConfigurator extends IPSModule
     }
 
     if ($newName != $name) {
+      $this->UpdateFormField("setupRefresh", "visible", false);
       $this->UpdateFormField("setupProgress", "visible", true);
+
+      //Strip to max. length
       $newName = str_pad($newName, classConstant::DATA_NAME_LENGTH);
 
       if ($method == self::METHOD_RENAME_LIST_GROUP) {
@@ -590,11 +594,26 @@ class LightifyConfigurator extends IPSModule
 
       $result = $this->sendData($cmd, $param);
       $status = json_decode($result);
-      IPS_Sleep(750);
+      usleep(750000);
 
       if ($status->flag && $status->code == 0) {
-        $this->loadGroupConfiguration(self::MODE_CONFIG_LOADED, $List[0]);
         $this->UpdateFormField("setupProgress", "visible", false);
+        $this->UpdateFormField("setupRefresh", "visible", true);
+
+        if ($method == self::METHOD_RENAME_LIST_GROUP) {
+          $this->UpdateFormField("newGroup", "value", vtNoString);
+          $this->UpdateFormField("newGroup", "enabled", false);
+          $this->UpdateFormField("renameGroup", "enabled", false);
+
+          $this->UpdateFormField("newDevice", "value", vtNoString);
+          $this->UpdateFormField("newDevice", "enabled", false);
+          $this->UpdateFormField("renameDevice", "enabled", false);
+
+          $this->loadListGroups(vtNoString);
+          $this->UpdateFormField("listDevices", "values", json_encode([]));
+        } else {
+          $this->loadGroupConfiguration(self::MODE_CONFIG_LOADED, $List[0]);
+        }
       } else {
         $this->UpdateFormField("setupProgress", "visible", false);
         $caption = ($method == self::METHOD_RENAME_LIST_GROUP) ? "Rename of group"." [".$newName."] failed!" : "Rename of device"." [".$newName."] failed!";
@@ -682,7 +701,7 @@ class LightifyConfigurator extends IPSModule
           $success = true;
         }
 
-        IPS_Sleep(750);
+        usleep(750000);
       }
     }
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $ID);
@@ -708,8 +727,7 @@ class LightifyConfigurator extends IPSModule
     $value  = $List['value'];
 
     if (!$online) {
-      $mode = " added to ";
-      $caption = $this->Translate("Device")." [".$name."] ".$this->Translate("is offline and cannot be").$this->Translate($mode).$this->Translate("a group!");
+      $caption = $this->Translate("Device")." [".$name."] ".$this->Translate("is offline and cannot be").$this->Translate(" added to a group!");
 
       $this->UpdateFormField("alertMessage", "caption", $caption);
       $this->UpdateFormField("popupAlert", "visible", true);

@@ -51,7 +51,7 @@
       "Rename of group"                              : "Umbennen der Gruppe",
       "] failed!"                                    : "] ist fehlgeschlagen!",
       "Rename of device"                             : "Umbennen des Gerätes",
-      "a group!"                                     : "zu einer Gruppe hinzugefügt werden!",
+      " added to a group!"                           : " zu einer Gruppe hinzugefügt werden!",
       "Maximum number [16] of groups is exceeded!"   : "Die maaximale Anzahl [16] von Gruppen ist überschritten!"
     }
   }
