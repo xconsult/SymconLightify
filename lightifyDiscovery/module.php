@@ -45,7 +45,8 @@ class LightifyDiscovery extends IPSModule
         'gatewayIP'    => $gatewayIP,
         'gatewayName'  => $gateway['name'],
         'serialNumber' => $serialNumber,
-        'instanceName' => ($instanceID) ? IPS_GetName($instanceID) : "OSRAM Lightify Configurator"
+        'instanceName' => ($instanceID) ? IPS_GetName($instanceID) : "OSRAM Lightify Configurator",
+        'instanceID'   => $instanceID
       ];
 
       $value['create'] = [

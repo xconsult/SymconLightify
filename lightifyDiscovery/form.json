@@ -21,9 +21,9 @@
   "actions": [
     {
       "type": "Configurator",
-      "name": "Configurator",
+      "name": "discoverGateway",
       "caption": "Lightify Gateways",
-      "delete": false,
+      "delete": true,
       "rowCount": 10,
       "sort": {
         "column": "gatewayIP",
