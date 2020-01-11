@@ -97,6 +97,7 @@
               "name": "Locations",
               "caption": "Categories",
               "width": "115px",
+              "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:locations']);",
               "popup": {
                 "caption": "Categories",
                 "items": [
@@ -128,6 +129,23 @@
                       }
                     ],
                     "values": []
+                  },
+                  {
+                    "type": "RowLayout",
+                    "items": [
+                      {
+                        "type": "Label",
+                        "width": "470px"
+                      },
+                      {
+                        "type": "Button",
+                        "name": "applyCategory",
+                        "width": "115px",
+                        "enabled": false,
+                        "caption": "Apply",
+                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'set:configuration']);"
+                      }
+                    ]
                   }
                 ]
               }
@@ -364,7 +382,7 @@
           {
             "type": "Label",
             "name": "alertMessage",
-            "width": "520px",
+            "width": "560px",
             "caption": ""
           }
         ]

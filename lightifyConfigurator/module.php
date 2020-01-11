@@ -14,7 +14,9 @@ class LightifyConfigurator extends IPSModule
   const SCENE_ITEM_INDEX          = 3000;
 
   const METHOD_API_REGISTER       = "api:register";
+  const METHOD_LOAD_LOCATIONS     = "load:locations";
   const METHOD_SET_LOCATIONS      = "set:locations";
+  const METHOD_SET_CONFIGURATION  = "set:configuration";
   const METHOD_LOAD_LIST_GROUPS   = "load:list:groups";
   const METHOD_RENAME_LIST_GROUP  = "rename:list:group";
   const METHOD_RENAME_LIST_DEVICE = "rename:list:device";
@@ -203,8 +205,16 @@ class LightifyConfigurator extends IPSModule
         echo OSR_LightifyRegister($parentID);
         break;
 
+      case self::METHOD_LOAD_LOCATIONS:
+        $this->loadLocations();
+        break;
+
       case self::METHOD_SET_LOCATIONS:
         $this->setLocations($param['list']);
+        break;
+
+      case self::METHOD_SET_CONFIGURATION:
+        $this->setConfiguration();
         break;
 
       case self::METHOD_LOAD_LIST_GROUPS:
@@ -245,6 +255,13 @@ class LightifyConfigurator extends IPSModule
   }
 
 
+  private function loadLocations() : void {
+
+    $this->UpdateFormField("applyCategory", "enabled", false);
+
+  }
+
+
   private function setLocations(object $List) : void {
 
     //Iterate through
@@ -259,8 +276,22 @@ class LightifyConfigurator extends IPSModule
     }
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Locations));
 
+    $Locations = json_encode($Locations);
+    $this->UpdateFormField("listLocations", "values", $Locations);
+    $this->WriteAttributeString("listLocations", $Locations);
+
+    $this->UpdateFormField("applyCategory", "enabled", true);
+
+  }
+
+
+  private function setConfiguration() : void {
+
     //Read and update
-    $formJSON = json_decode(IPS_GetConfigurationForm($this->InstanceID));
+    $formJSON  = json_decode(IPS_GetConfigurationForm($this->InstanceID));
+    $Locations = json_decode($this->ReadAttributeString("listLocations"), true);
+
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Locations));
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($formJSON));
 
     foreach ($formJSON->actions as $line) {
@@ -350,14 +381,16 @@ class LightifyConfigurator extends IPSModule
           $Values[] = $value;
         }
 
-        IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Values));
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Values));
         $this->UpdateFormField("configModules", "values", json_encode($Values));
       }
     }
 
-    $Locations = json_encode($Locations);
-    $this->UpdateFormField("listLocations", "values", $Locations);
-    $this->WriteAttributeString("listLocations", $Locations);
+    $this->loadLocations();
+
+    $caption = $this->Translate("Categories were successfully applied to the configuration.");
+    $this->UpdateFormField("alertMessage", "caption", $caption);
+    $this->UpdateFormField("popupAlert", "visible", true);
 
   }
 
@@ -438,8 +471,13 @@ class LightifyConfigurator extends IPSModule
     $device = $List[1]['name'];
 
     if (!$online) {
-      $mode = ($value) ? " added to " : " removed from ";
-      $caption = $this->Translate("Device")." [".$device."] ".$this->Translate("is offline and cannot be").$this->Translate($mode).$this->Translate("group")." [".$group."]";
+      $caption = $this->Translate("Device")." [".$device."] ";
+
+      if ($value) {
+        $caption .= $this->Translate("is offline and cannot be added to group ")."[".$group.$this->Translate("]!");
+      } else {
+        $caption .= $this->Translate("is offline and cannot be removed from group ")."[".$group."]".$this->Translate("!");
+      }
 
       $this->UpdateFormField("alertMessage", "caption", $caption);
       $this->UpdateFormField("popupAlert", "visible", true);
@@ -456,7 +494,7 @@ class LightifyConfigurator extends IPSModule
       $this->UpdateFormField("setupRefresh", "visible", false);
       $this->UpdateFormField("setupProgress", "visible", true);
 
-      if ($List[1]['value']) {
+      if ($value) {
         $cmd = classCommand::ADD_DEVICE_TO_GROUP;
 
         $param = [
@@ -727,7 +765,7 @@ class LightifyConfigurator extends IPSModule
     $value  = $List['value'];
 
     if (!$online) {
-      $caption = $this->Translate("Device")." [".$name."] ".$this->Translate("is offline and cannot be").$this->Translate(" added to a group!");
+      $caption = $this->Translate("Device")." [".$name."] ".$this->Translate("is offline and cannot be added to a group!");
 
       $this->UpdateFormField("alertMessage", "caption", $caption);
       $this->UpdateFormField("popupAlert", "visible", true);
