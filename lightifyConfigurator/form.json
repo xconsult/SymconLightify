@@ -134,6 +134,14 @@
                     "type": "RowLayout",
                     "items": [
                       {
+                        "type": "ProgressBar",
+                        "name": "locateProgress",
+                        "width": "586px",
+                        "visible": false,
+                        "indeterminate": true,
+                        "caption": "Synchronisation in progress, please wait ..."
+                      },
+                      {
                         "type": "Label",
                         "width": "470px"
                       },

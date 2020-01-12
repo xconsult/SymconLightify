@@ -257,7 +257,9 @@ class LightifyConfigurator extends IPSModule
 
   private function loadLocations() : void {
 
+    $this->UpdateFormField("locateProgress", "visible", false);
     $this->UpdateFormField("applyCategory", "enabled", false);
+    $this->UpdateFormField("applyCategory", "visible", true);
 
   }
 
@@ -286,6 +288,9 @@ class LightifyConfigurator extends IPSModule
 
 
   private function setConfiguration() : void {
+
+    $this->UpdateFormField("applyCategory", "visible", false);
+    $this->UpdateFormField("locateProgress", "visible", true);
 
     //Read and update
     $formJSON  = json_decode(IPS_GetConfigurationForm($this->InstanceID));
@@ -388,10 +393,11 @@ class LightifyConfigurator extends IPSModule
 
     $this->loadLocations();
 
+    /*
     $caption = $this->Translate("Categories were successfully applied to the configuration.");
     $this->UpdateFormField("alertMessage", "caption", $caption);
     $this->UpdateFormField("popupAlert", "visible", true);
-
+    */
   }
 
 

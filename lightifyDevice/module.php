@@ -74,21 +74,22 @@ class LightifyDevice extends IPSModule
         $i = 0;
 
         foreach ($this->getDeviceGroups() as $group) {
-          $id = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
+          $instanceID = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
+          $name = IPS_GetName($instanceID);
 
           $formJSON['elements'][2]['items'][1]['items'][$i]['type']     = "OpenObjectButton";
           $formJSON['elements'][2]['items'][1]['items'][$i]['enabled']  = true;
-          $formJSON['elements'][2]['items'][1]['items'][$i]['caption']  = "#".$group;
-          $formJSON['elements'][2]['items'][1]['items'][$i]['objectID'] = $id;
-          $formJSON['elements'][2]['items'][1]['items'][$i]['width']    = "20px";
+          $formJSON['elements'][2]['items'][1]['items'][$i]['caption']  = $name;
+          $formJSON['elements'][2]['items'][1]['items'][$i]['objectID'] = $instanceID;
+          $formJSON['elements'][2]['items'][1]['items'][$i]['width']    = "auto";
 
           $i++;
         }
 
-        $caption = $this->Translate("Module")." [".$value."] ".$this->Translate("is connected to the following group(s)")." ";
+        $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is connected to the following group(s)")." ";
         $formJSON['elements'][2]['items'][0]['caption'] = $caption;
       } else {
-        $caption = $this->Translate("Module")." [".$value."] ".$this->Translate("is not connected to a group");
+        $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is not connected to a group");
         $formJSON['elements'][2]['items'][0]['caption'] = $caption;
       }
 
@@ -434,20 +435,20 @@ class LightifyDevice extends IPSModule
       'method' => classConstant::GET_DEVICE_GROUPS])
     );
 
-    $data = json_decode($data);
-    $info = vtNoString;
+    $data   = json_decode($data);
+    $groups = [];
 
     if (is_array($data) && count($data) > 0) {
       foreach ($data as $device) {
         if ($device->UUID == $this->ReadPropertyString("UUID")) {
-          $info = $device->ID;
+          $groups = $device->ID;
           break;
         }
       }
     }
 
-    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($info));
-    return $info;
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($groups));
+    return $groups;
   }
 
 
