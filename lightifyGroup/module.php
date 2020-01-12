@@ -128,20 +128,20 @@ class LightifyGroup extends IPSModule
                 $state   = ($stateID) ? GetValueBoolean($stateID) : false;
                 $module  = @IPS_GetProperty($instanceID, "module");
 
-                $zigBeeID      = @IPS_GetObjectIDByIdent("ZLL", $instanceID);
                 $hueID         = @IPS_GetObjectIDByIdent("HUE", $instanceID);
                 $colorID       = @IPS_GetObjectIDByIdent("COLOR", $instanceID);
                 $temperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $instanceID);
                 $levelID       = @IPS_GetObjectIDByIdent("LEVEL", $instanceID);
                 $saturationID  = @IPS_GetObjectIDByIdent("SATURATION", $instanceID);
+                $zigBeeID      = @IPS_GetObjectIDByIdent("ZLL", $instanceID);
                 $firmwareID    = @IPS_GetObjectIDByIdent("FIRMWARE", $instanceID);
 
-                $zigBee      = ($zigBeeID) ? GetValueString($zigBeeID) : vtNoString;
                 $hue         = ($hueID) ?  GetValueformatted($hueID) : vtNoString;
                 $color       = ($colorID) ? strtolower(GetValueformatted($colorID)) : vtNoString;
                 $temperature = ($temperatureID) ? GetValueformatted($temperatureID) : vtNoString;
                 $level       = ($levelID) ? preg_replace('/\s+/', '', GetValueformatted($levelID)) : vtNoString;
                 $saturation  = ($saturationID) ? preg_replace('/\s+/', '', GetValueformatted($saturationID)) : vtNoString;
+                $zigBee      = ($zigBeeID) ? GetValueString($zigBeeID) : vtNoString;
                 $firmware    = ($firmwareID) ? GetValueString($firmwareID) : vtNoString;
 
                 if ($state) {
@@ -157,7 +157,6 @@ class LightifyGroup extends IPSModule
                 $Devices[] = [
                   'InstanceID'  => $instanceID,
                   'module'      => $this->translate($module),
-                  'zigBee'      => $zigBee,
                   'name'        => IPS_GetName($instanceID),
                   'hue'         => $hue,
                   'color'       => ($color != vtNoString) ? self::ROW_COLOR_LIGHT_ON : vtNoString,
@@ -165,6 +164,7 @@ class LightifyGroup extends IPSModule
                   'level'       => $level,
                   'saturation'  => $saturation,
                   'transition'  => vtNoString,
+                  'zigBee'      => $zigBee,
                   'firmware'    => $firmware,
                   'rowColor'    => $rowColor
                 ];

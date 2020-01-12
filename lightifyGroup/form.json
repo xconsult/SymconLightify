@@ -68,11 +68,6 @@
               "width": "100px"
             },
             {
-              "caption": "ZLL",
-              "name": "zigBee",
-              "width": "60px"
-            },
-            {
               "caption": "Name",
               "name": "name",
               "width": "200px"
@@ -105,6 +100,11 @@
             {
               "caption": "T [ms]",
               "name": "transition",
+              "width": "60px"
+            },
+            {
+              "caption": "ZLL",
+              "name": "zigBee",
               "width": "60px"
             },
             {
