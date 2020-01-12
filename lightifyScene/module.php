@@ -59,13 +59,15 @@ class LightifyScene extends IPSModule
       $formJSON['elements'][0]['items'][1]['value'] = $this->Translate($this->ReadPropertyString("module"));
 
       $group = $this->ReadAttributeInteger("group");
-      $id = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
+      $instanceID = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
 
-      if ($id) {
-        $formJSON['elements'][1]['items'][1]['caption']  = "#".$group;
-        $formJSON['elements'][1]['items'][1]['objectID'] = $id;
+      if ($instanceID) {
+        $name = IPS_GetName($instanceID);
+
+        $formJSON['elements'][1]['items'][1]['caption']  = $name;
+        $formJSON['elements'][1]['items'][1]['objectID'] = $instanceID;
       } else {
-        $formJSON['elements'][1]['items'][1]['caption'] = "#Error";
+        $formJSON['elements'][1]['items'][1]['caption'] = "- Unknown -";
         $formJSON['elements'][1]['items'][1]['enabled'] = false;
       }
       $formJSON['actions'][0]['onClick'] = "OSR_WriteValue(\$id, 'SCENE', ".$ID.");";

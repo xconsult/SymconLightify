@@ -48,7 +48,7 @@
           "enabled": true,
           "caption": "",
           "objectID": "",
-          "width": "20px"
+          "width": "auto"
         }
       ],
       "expanded": true

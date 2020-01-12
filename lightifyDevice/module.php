@@ -71,19 +71,18 @@ class LightifyDevice extends IPSModule
       $formJSON['elements'][0]['items'][0]['value'] = $value;
 
       if ($module == "Light" || $module == "Plug") {
-        $i = 0;
-
         foreach ($this->getDeviceGroups() as $group) {
           $instanceID = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
-          $name = IPS_GetName($instanceID);
 
-          $formJSON['elements'][2]['items'][1]['items'][$i]['type']     = "OpenObjectButton";
-          $formJSON['elements'][2]['items'][1]['items'][$i]['enabled']  = true;
-          $formJSON['elements'][2]['items'][1]['items'][$i]['caption']  = $name;
-          $formJSON['elements'][2]['items'][1]['items'][$i]['objectID'] = $instanceID;
-          $formJSON['elements'][2]['items'][1]['items'][$i]['width']    = "auto";
+          if ($instanceID) {
+            $name = IPS_GetName($instanceID);
 
-          $i++;
+            $formJSON['elements'][2]['items'][1]['items'][$i]['type']     = "OpenObjectButton";
+            $formJSON['elements'][2]['items'][1]['items'][$i]['enabled']  = true;
+            $formJSON['elements'][2]['items'][1]['items'][$i]['caption']  = $name;
+            $formJSON['elements'][2]['items'][1]['items'][$i]['objectID'] = $instanceID;
+            $formJSON['elements'][2]['items'][1]['items'][$i]['width']    = "auto";
+          }
         }
 
         $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is connected to the following group(s)")." ";
