@@ -97,7 +97,7 @@
               "name": "Locations",
               "caption": "Categories",
               "width": "115px",
-              "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:locations']);",
+              "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:locations', 'mode' => 'config:initial']);",
               "popup": {
                 "caption": "Categories",
                 "items": [

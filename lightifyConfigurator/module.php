@@ -115,6 +115,7 @@ class LightifyConfigurator extends IPSModule
     $parentID = IPS_GetInstance($this->InstanceID)['ConnectionID'];
     $formJSON['elements'][0]['items'][0]['objectID'] = $parentID;
 
+    $this->SetBuffer("listLocations", vtNoString);
     $this->SetBuffer("listGroups", vtNoString);
     $Values = [];
 
@@ -138,25 +139,6 @@ class LightifyConfigurator extends IPSModule
 
       $formJSON['actions'][1]['items'][0]['items'][0]['popup']['items'][0]['values'] = $Locations;
       $this->WriteAttributeString("listLocations", json_encode($Locations));
-    } else {
-      //Annotate existing elements
-      foreach ($Locations as $index => $row) {
-        //We only need to add annotations. Remaining data is merged from persistance automatically.
-        //Order is determinted by the order of array elements
-        if ($row['ID'] && IPS_ObjectExists($row['ID'])) {
-          $formJSON['actions'][1]['items'][0]['items'][0]['popup']['items'][0]['values'][$index] = [
-            'module' => $this->Translate($Modules[$index]),
-            'name'   => IPS_GetLocation($row['ID']),
-            'ID'     => $row['ID']
-          ];
-        } else {
-          $formJSON['actions'][1]['items'][0]['items'][0]['popup']['items'][0]['values'][$index] = [
-            'module' => $this->Translate($Modules[$index]),
-            'name'   => IPS_GetName(0),
-            'ID'     => 0
-          ];
-        }
-      }
     }
 
     $Devices = $this->getDevicesConfigurator($this->getGatewayDevices($parentID));
@@ -206,7 +188,7 @@ class LightifyConfigurator extends IPSModule
         break;
 
       case self::METHOD_LOAD_LOCATIONS:
-        $this->loadLocations();
+        $this->loadLocations($param['mode']);
         break;
 
       case self::METHOD_SET_LOCATIONS:
@@ -255,11 +237,15 @@ class LightifyConfigurator extends IPSModule
   }
 
 
-  private function loadLocations() : void {
+  private function loadLocations(string $mode) : void {
 
     $this->UpdateFormField("locateProgress", "visible", false);
     $this->UpdateFormField("applyCategory", "enabled", false);
     $this->UpdateFormField("applyCategory", "visible", true);
+
+    if ($mode == self::MODE_CONFIG_INITIAL) {
+      $this->UpdateFormField("listLocations", "values", $this->ReadAttributeString("listLocations"));
+    }
 
   }
 
@@ -280,7 +266,7 @@ class LightifyConfigurator extends IPSModule
 
     $Locations = json_encode($Locations);
     $this->UpdateFormField("listLocations", "values", $Locations);
-    $this->WriteAttributeString("listLocations", $Locations);
+    $this->SetBuffer("listLocations", $Locations);
 
     $this->UpdateFormField("applyCategory", "enabled", true);
 
@@ -288,6 +274,9 @@ class LightifyConfigurator extends IPSModule
 
 
   private function setConfiguration() : void {
+
+    //Store data
+    $this->WriteAttributeString("listLocations", $this->GetBuffer("listLocations"));
 
     $this->UpdateFormField("applyCategory", "visible", false);
     $this->UpdateFormField("locateProgress", "visible", true);
@@ -391,13 +380,9 @@ class LightifyConfigurator extends IPSModule
       }
     }
 
-    $this->loadLocations();
+    //Update
+    $this->loadLocations(self::MODE_CONFIG_LOADED);
 
-    /*
-    $caption = $this->Translate("Categories were successfully applied to the configuration.");
-    $this->UpdateFormField("alertMessage", "caption", $caption);
-    $this->UpdateFormField("popupAlert", "visible", true);
-    */
   }
 
 
