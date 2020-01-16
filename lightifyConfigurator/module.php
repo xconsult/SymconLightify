@@ -390,10 +390,10 @@ class LightifyConfigurator extends IPSModule
 
     //Load list
     if (empty($List)){
-      $List = $this->getListGroups();
-      $this->SetBuffer("listGroups", $List);
+      $Groups = json_encode($this->getListGroups());
+      $this->SetBuffer("listGroups", $Groups);
 
-      $this->UpdateFormField("listGroups", "values", $List);
+      $this->UpdateFormField("listGroups", "values", $Groups);
     }
 
   }
@@ -412,43 +412,23 @@ class LightifyConfigurator extends IPSModule
     $this->UpdateFormField("newDevice", "enabled", false);
     $this->UpdateFormField("renameDevice", "enabled", false);
 
-    //Get data
-    $data = $this->SendDataToParent(json_encode([
-      'DataID' => classConstant::TX_GATEWAY,
-      'method' => classConstant::GET_GROUP_DEVICES])
-    );
-    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $data);
-
-    $data = json_decode($data);
+    $buffer  = $this->getListDevices();
     $Devices = [];
 
-    if (is_array($data) && count($data) > 0) {
-      $buffer = json_decode($this->getListDevices());
+    foreach ($buffer as $item) {
+      $value = (in_array($List['ID'], $item['Groups'])) ? true : false;
+      $color = ($item['online']) ? vtNoString : self::ROW_COLOR_OFFLINE;
 
-      foreach ($buffer as $key) {
-        $value = false;
-        $color = ($key->online) ? "" : self::ROW_COLOR_OFFLINE;
-
-        foreach ($data as $item) {
-          if ($item->ID == $List['ID']) {
-            if (in_array($key->UUID, $item->UUID)) {
-              $value = true;
-              break;
-            }
-          }
-        }
-
-        $Devices[] = [
-          'UUID'     => $key->UUID,
-          'name'     => $key->name,
-          'online'   => $key->online,
-          'value'    => $value,
-          'rowColor' => $color
-        ];
-      }
-
-      $this->UpdateFormField("listDevices", "values", json_encode($Devices));
+      $Devices[] = [
+        'UUID'     => $item['UUID'],
+        'name'     => $item['name'],
+        'online'   => $item['online'],
+        'value'    => $value,
+        'rowColor' => $color
+      ];
     }
+
+    $this->UpdateFormField("listDevices", "values", json_encode($Devices));
 
   }
 
@@ -526,7 +506,7 @@ class LightifyConfigurator extends IPSModule
             $this->UpdateFormField("newDevice", "enabled", false);
             $this->UpdateFormField("renameDevice", "enabled", false);
 
-            $this->UpdateFormField("listGroups", "values", $this->getListGroups());
+            $this->UpdateFormField("listGroups", "values", json_encode($this->getListGroups()));
             $this->UpdateFormField("listDevices", "values", json_encode([]));
 
             $this->UpdateFormField("setupRefresh", "enabled", false);
@@ -661,7 +641,7 @@ class LightifyConfigurator extends IPSModule
   private function loadListDevices(string $mode) : void {
 
     if ($mode == self::MODE_CONFIG_INITIAL) {
-      $Groups = json_decode($this->getListGroups());
+      $Groups = $this->getListGroups();
 
       $ID = count($Groups)+1;
       $this->SetBuffer("groupID", $ID);
@@ -672,17 +652,17 @@ class LightifyConfigurator extends IPSModule
     }
     $this->UpdateFormField("createMessage", "caption", vtNoString);
 
-    $buffer  = json_decode($this->getListDevices());
+    $buffer  = $this->getListDevices();
     $Devices = [];
 
     foreach ($buffer as $item) {
-      $color = ($item->online) ? "" : self::ROW_COLOR_OFFLINE;
+      $color = ($item['online']) ? vtNoString : self::ROW_COLOR_OFFLINE;
 
       $Devices[] = [
-        'UUID'     => $item->UUID,
-        'name'     => $item->name,
-        'online'   => $item->online,
-        'value'    => $item->value,
+        'UUID'     => $item['UUID'],
+        'name'     => $item['name'],
+        'online'   => $item['online'],
+        'value'    => $item['value'],
         'rowColor' => $color
       ];
     }
@@ -694,7 +674,7 @@ class LightifyConfigurator extends IPSModule
 
   private function createGroup(object $List, string $name) : void {
 
-    $Groups  = json_decode($this->getListGroups());
+    //Default
     $success = false;
 
     $ID = (int)$this->GetBuffer("groupID");
@@ -780,7 +760,7 @@ class LightifyConfigurator extends IPSModule
   }
 
 
-  protected function getListDevices() : string {
+  protected function getListDevices() : array {
     $data = $this->SendDataToParent(json_encode([
       'DataID' => classConstant::TX_GATEWAY,
       'method' => classConstant::GET_DEVICES_LOCAL])
@@ -800,21 +780,22 @@ class LightifyConfigurator extends IPSModule
           case classConstant::TYPE_LIGHT_EXT_COLOR:
           case classConstant::TYPE_PLUG_ONOFF:
             $List[] = [
-              'UUID'     => $device->UUID,
-              'name'     => $device->name,
-              'online'   => $device->online,
-              'value'    => false
+              'UUID'   => $device->UUID,
+              'name'   => $device->name,
+              'online' => $device->online,
+              'value'  => false,
+              'Groups' => $device->Groups
             ];
             break;
         }
       }
     }
 
-    return json_encode($List);
+    return $List;
   }
 
 
-  protected function getListGroups() : string {
+  protected function getListGroups() : array {
     $data = $this->SendDataToParent(json_encode([
       'DataID' => classConstant::TX_GATEWAY,
       'method' => classConstant::GET_GROUPS_LOCAL])
@@ -833,7 +814,7 @@ class LightifyConfigurator extends IPSModule
       }
     }
 
-    return json_encode($List);
+    return $List;
   }
 
 

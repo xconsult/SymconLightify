@@ -282,17 +282,11 @@ class LightifyGateway extends IPSModule
       case classConstant::GET_DEVICES_CLOUD:
         return $this->ReadAttributeString("cloudDevices");
 
-      case classConstant::GET_DEVICE_GROUPS:
-        return $this->GetBuffer("deviceGroups");
-
       case classConstant::GET_GROUPS_LOCAL:
         return $this->ReadAttributeString("groupBuffer");
 
       case classConstant::GET_GROUPS_CLOUD:
         return $this->ReadAttributeString("cloudGroups");
-
-      case classConstant::GET_GROUP_DEVICES:
-        return $this->ReadAttributeString("groupDevices");
 
       case classConstant::GET_SCENES_LOCAL:
         return $this->ReadAttributeString("sceneBuffer");
@@ -396,9 +390,8 @@ class LightifyGateway extends IPSModule
         //Gateway devices
         case classCommand::GET_DEVICE_LIST:
           //Update device informations
-          $result = $this->getGatewayDevices($cloudAPI, $data);
-          $this->WriteAttributeString("deviceBuffer", $result);
-          $Devices = json_decode($result);
+          $Devices = $this->getGatewayDevices($cloudAPI, $data);
+          $this->WriteAttributeString("deviceBuffer", json_encode($Devices));
 
           if (!empty($Devices)) {
             $this->SendDataToChildren(json_encode([
@@ -415,15 +408,14 @@ class LightifyGateway extends IPSModule
         //Gateway groups
         case classCommand::GET_GROUP_LIST:
           //Update group informations
-          $result = $this->getGatewayGroups($cloudAPI, $data);
-          $this->WriteAttributeString("groupDevices", $result);
-          $List = json_decode($result);
+          $Groups = $this->getGatewayGroups($cloudAPI, $data);
+          $this->WriteAttributeString("groupBuffer", json_encode($Groups));
 
-          if (!empty($List)) {
+          if (!empty($Groups)) {
             $this->SendDataToChildren(json_encode([
               'DataID' => classConstant::TX_GROUP,
               'id'     => $this->InstanceID,
-              'buffer' => $List])
+              'buffer' => $Groups])
             );
           }
 
@@ -433,9 +425,8 @@ class LightifyGateway extends IPSModule
 
         case classCommand::GET_SCENE_LIST:
           //Get gateway scenes
-          $result = $this->getGatewayScenes($cloudAPI, $data);
-          $this->WriteAttributeString("sceneBuffer", $result);
-          $Scenes = json_decode($result);
+          $Scenes = $this->getGatewayScenes($cloudAPI, $data);
+          $this->WriteAttributeString("sceneBuffer", json_encode($Scenes));
 
           if (!empty($Scenes)) {
             $this->SendDataToChildren(json_encode([
@@ -784,11 +775,11 @@ class LightifyGateway extends IPSModule
   }
 
 
-  private function getGatewayDevices(bool $cloudAPI, string $data) : string {
+  private function getGatewayDevices(bool $cloudAPI, string $data) : array {
 
     if (strlen($data) >= (2 + self::DATA_DEVICE_LENGTH)) {
       $Devices  = [];
-      $Groups   = [];
+      $buffer   = [];
       $allState = 0;
 
       $ncount = ord($data{0})+ord($data{1});
@@ -821,6 +812,19 @@ class LightifyGateway extends IPSModule
           'b' => ord($data{24})
         ];
 
+        switch ($type) {
+          case classConstant::TYPE_SENSOR_MOTION:
+          case classConstant::TYPE_DIMMER_2WAY:
+          case classConstant::TYPE_SWITCH_4WAY:
+          case classConstant::TYPE_SWITCH_MINI:
+            $decode = [];
+            break;
+
+          default:
+            //Decode device module
+            $decode = $this->lightifyBase->decodeGroup(ord($data{16}), ord($data{17}));
+        }
+
         $Devices[] = [
           'ID'       => $i,
           'type'     => $type,
@@ -833,25 +837,10 @@ class LightifyGateway extends IPSModule
           'level'    => $level,
           'cct'      => $cct,
           'rgb'      => $rgb,
-          'white'    => $white
+          'white'    => $white,
+          'Groups'   => $decode
         ];
 
-        //Decode device module
-        $decode = $this->lightifyBase->decodeGroup(ord($data{16}), ord($data{17}));
-
-        switch ($type) {
-          case classConstant::TYPE_SENSOR_MOTION:
-          case classConstant::TYPE_DIMMER_2WAY:
-          case classConstant::TYPE_SWITCH_4WAY:
-          case classConstant::TYPE_SWITCH_MINI:
-            break;
-
-          default:
-            $Groups[] = [
-              'UUID' => $UUID,
-              'ID'   => $decode
-            ];
-        }
 
         if (($length = strlen($data)) > self::DATA_DEVICE_LOADED) {
           $length = self::DATA_DEVICE_LOADED;
@@ -859,9 +848,6 @@ class LightifyGateway extends IPSModule
 
         $data = substr($data, $length);
       }
-
-      //Store
-      $this->SetBuffer("deviceGroups", json_encode($Groups));
 
       if ($cloudAPI && !empty($this->ReadAttributeString("osramToken"))) {
         $cloudDevices = $this->cloudGET(self::RESSOURCE_DEVICES);
@@ -883,71 +869,55 @@ class LightifyGateway extends IPSModule
           'level'    => vtNoString,
           'cct'      => vtNoString,
           'rgb'      => vtNoString,
-          'white'    => vtNoString
+          'white'    => vtNoString,
+          'Groups'   => []
         ]);
       }
 
       $this->SendDebug("<".__FUNCTION__.">", json_encode($Devices), 0);
-      return json_encode($Devices);
+      return $Devices;
     }
 
-    return vtNoString;
+    return [];
 
   }
 
 
-  private function getGatewayGroups(bool $cloudAPI, string $data) : string {
+  private function getGatewayGroups(bool $cloudAPI, string $data) : array {
 
     if (strlen($data) >= (2 + self::DATA_GROUP_LENGTH)) {
-      $buffer = $this->GetBuffer("deviceGroups");
-
-      if (!empty($buffer)) {
-        $buffer = json_decode($buffer);
-      }
-
-      $Groups = [];
-      $List   = [];
+      $Devices = json_decode($this->ReadAttributeString("deviceBuffer"));
+      $Groups  = [];
+      $List    = [];
 
       $ncount = ord($data{0})+ord($data{1});
       $data   = substr($data, 2);
 
       for ($i = 1; $i <= $ncount; $i++) {
-        $UUID = $this->lightifyBase->chrToUUID($data{0}.$data{1}.chr(classConstant::TYPE_DEVICE_GROUP).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
+        $buffer = [];
 
+        $UUID = $this->lightifyBase->chrToUUID($data{0}.$data{1}.chr(classConstant::TYPE_DEVICE_GROUP).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
         $name = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
 
-        $Groups[] = [
-          'ID'   => ord($data{0}),
-          'type' => classConstant::TYPE_DEVICE_GROUP,
-          'name' => $name
-        ];
-
         //Get Group devices
-        if (!empty($buffer)) {
-          $Items = $buffer;
-          $Devices = [];
-
-          foreach ($Items as $group) {
-            foreach ($group->ID as $id) {
+        if (!empty($Devices)) {
+          foreach ($Devices as $device) {
+            foreach ($device->Groups as $id) {
               if (ord($data{0}) == $id) {
-                $Devices[] = $group->UUID;
+                $buffer[] = $device;
                 break;
               }
             }
           }
-
-/*
-          //Add All Lights
-          if (!empty($Devices)) {
-            array_unshift($Devices, $this->lightifyBase->chrToUUID(chr(0xff).chr(0x00).chr(0xff).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84)));
-          }
-*/
-          $List[] = [
-            'ID'   => ord($data{0}),
-            'UUID' => $Devices
-          ];
         }
+
+        $Groups[] = [
+          'ID'      => ord($data{0}),
+          'type'    => classConstant::TYPE_DEVICE_GROUP,
+          'name'    => $name,
+          'Devices' => $buffer
+        ];
 
         if (($length = strlen($data)) > self::DATA_GROUP_LENGTH) {
           $length = self::DATA_GROUP_LENGTH;
@@ -956,10 +926,6 @@ class LightifyGateway extends IPSModule
         $data = substr($data, $length);
       }
 
-      //Store
-      $this->WriteAttributeString("groupBuffer", json_encode($Groups));
-      $this->SendDebug("<".__FUNCTION__.">", json_encode($Groups), 0);
-
       if ($cloudAPI && !empty($this->ReadAttributeString("osramToken"))) {
         $cloudGroups = $this->cloudGET(self::RESSOURCE_GROUPS);
         $this->WriteAttributeString("cloudGroups", $cloudGroups);
@@ -967,16 +933,16 @@ class LightifyGateway extends IPSModule
         $this->SendDebug("<".__FUNCTION__.">", $cloudGroups, 0);
       }
 
-      //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($List));
-      return json_encode($List);
+      $this->SendDebug("<".__FUNCTION__.">", json_encode($Groups), 0);
+      return $Groups;
     }
 
-    return vtNoString;
+    return [];
 
   }
 
 
-  private function getGatewayScenes(bool $cloudAPI, string $data) : string {
+  private function getGatewayScenes(bool $cloudAPI, string $data) : array {
 
     if (strlen($data) >= (2 + self::DATA_DEVICE_LENGTH)) {
       $Scenes = [];
@@ -1012,10 +978,10 @@ class LightifyGateway extends IPSModule
         $this->SendDebug("<".__FUNCTION__.">", $cloudScenes, 0);
       }
 
-      return json_encode($Scenes);
+      return $Scenes;
     }
 
-    return vtNoString;
+    return [];
 
   }
 

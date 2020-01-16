@@ -100,9 +100,6 @@ trait LightifyControl
         return $this->sendData(classCommand::ACTIVATE_GROUP_SCENE, $param);
     }
 
-    //Get UUID
-    $UUID = $this->ReadPropertyString("UUID");
-
     //Get module
     $module = $this->ReadPropertyString("module");
     $Light  = ($module == "Light") ? true : false;

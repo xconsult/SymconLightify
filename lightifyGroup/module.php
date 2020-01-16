@@ -70,7 +70,7 @@ class LightifyGroup extends IPSModule
       }
 
       //Expansion Panel
-      $formJSON['elements'][1]['items'][0]['values'] = $this->PanelGroupDevices();
+      $formJSON['elements'][1]['items'][0]['values'] = $this->getGroupDevices();
       return json_encode($formJSON);
     }
 
@@ -92,12 +92,11 @@ class LightifyGroup extends IPSModule
     $data = json_decode($JSONString, true);
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($data['buffer']));
 
-    foreach($data['buffer'] as $item) {
-      $ID = $this->ReadPropertyInteger("ID");
-
-      if ($item['ID'] == $ID) {
-        $UUID = $item['UUID'];
-        $this->setGroupInfo($UUID);
+    foreach($data['buffer'] as $group) {
+      if ($group['ID'] == $this->ReadPropertyInteger("ID")) {
+        $List = $this->getListDevices($group['Devices']);
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($List));
+        $this->setGroupInfo($List);
         break;
       }
     }
@@ -105,90 +104,37 @@ class LightifyGroup extends IPSModule
   }
 
 
-  public function PanelGroupDevices() : array {
+  private function getGroupDevices() : array {
 
-      //Get data
-      $data = $this->SendDataToParent(json_encode([
-        'DataID' => classConstant::TX_GATEWAY,
-        'method' => classConstant::GET_GROUP_DEVICES])
-      );
-      //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $data);
+    //Get data
+    $data = $this->SendDataToParent(json_encode([
+      'DataID' => classConstant::TX_GATEWAY,
+      'method' => classConstant::GET_GROUPS_LOCAL])
+    );
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $data);
 
-      $data = json_decode($data);
-      $Devices = [];
+    //Decode
+    $data = json_decode($data, true);
+    $List = [];
 
-      if (is_array($data) && count($data) > 0) {
-        foreach ($data as $item) {
-          if ($item->ID == $this->ReadPropertyInteger("ID")) {
-            foreach ($item->UUID as $UUID) {
-              $instanceID = $this->getDeviceInstances(classConstant::MODULE_DEVICE, $UUID);
-
-              if ($instanceID) {
-                $stateID = @IPS_GetObjectIDByIdent("STATE", $instanceID);
-                $state   = ($stateID) ? GetValueBoolean($stateID) : false;
-                $module  = @IPS_GetProperty($instanceID, "module");
-
-                $hueID         = @IPS_GetObjectIDByIdent("HUE", $instanceID);
-                $colorID       = @IPS_GetObjectIDByIdent("COLOR", $instanceID);
-                $temperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $instanceID);
-                $levelID       = @IPS_GetObjectIDByIdent("LEVEL", $instanceID);
-                $saturationID  = @IPS_GetObjectIDByIdent("SATURATION", $instanceID);
-                $zigBeeID      = @IPS_GetObjectIDByIdent("ZLL", $instanceID);
-                $firmwareID    = @IPS_GetObjectIDByIdent("FIRMWARE", $instanceID);
-
-                $hue         = ($hueID) ?  GetValueformatted($hueID) : vtNoString;
-                $color       = ($colorID) ? strtolower(GetValueformatted($colorID)) : vtNoString;
-                $temperature = ($temperatureID) ? GetValueformatted($temperatureID) : vtNoString;
-                $level       = ($levelID) ? preg_replace('/\s+/', '', GetValueformatted($levelID)) : vtNoString;
-                $saturation  = ($saturationID) ? preg_replace('/\s+/', '', GetValueformatted($saturationID)) : vtNoString;
-                $zigBee      = ($zigBeeID) ? GetValueString($zigBeeID) : vtNoString;
-                $firmware    = ($firmwareID) ? GetValueString($firmwareID) : vtNoString;
-
-                if ($state) {
-                  if ($module == $this->Translate("Plug")) {
-                    $rowColor = self::ROW_COLOR_PLUG_ON;
-                  } else {
-                    $rowColor = ($color != vtNoString) ? self::ROW_COLOR_LIGHT_ON : self::ROW_COLOR_CCT_ON;
-                  }
-                } else {
-                  $rowColor = self::ROW_COLOR_STATE_OFF;
-                }
-
-                $Devices[] = [
-                  'InstanceID'  => $instanceID,
-                  'module'      => $this->translate($module),
-                  'name'        => IPS_GetName($instanceID),
-                  'hue'         => $hue,
-                  'color'       => ($color != vtNoString) ? self::ROW_COLOR_LIGHT_ON : vtNoString,
-                  'temperature' => $temperature,
-                  'level'       => $level,
-                  'saturation'  => $saturation,
-                  'transition'  => vtNoString,
-                  'zigBee'      => $zigBee,
-                  'firmware'    => $firmware,
-                  'rowColor'    => $rowColor
-                ];
-              }
-            }
-            //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Devices));
-            break;
-          }
+    if (is_array($data) && count($data) > 0) {
+      foreach ($data as $group) {
+        if ($group['ID'] == $this->ReadPropertyInteger("ID")) {
+          $List = $this->getListDevices($group['Devices']);
+          //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($List));
+          break;
         }
       }
+    }
 
-      return $Devices;
+    return $List;
 
   }
 
 
-  private function setGroupInfo(array $UUID) : void {
+  private function setGroupInfo(array $List) : void {
 
-    //Get Device instances
-    foreach ($UUID as $item) {
-      $ID[] = $this->lightifyBase->getInstanceByUUID(classConstant::MODULE_DEVICE, $item);
-    }
-
-    //Set group/zone state
+    //Set group state
     $online    = $state = false;
     $newOnline = $online;
     $newState  = $state;
@@ -196,47 +142,29 @@ class LightifyGroup extends IPSModule
     $hue = $color = $level      = vtNoValue;
     $temperature  = $saturation = vtNoValue;
 
-    $deviceHue         = $deviceColor = $deviceLevel = vtNoValue;
-    $deviceTemperature = $deviceSaturation           = vtNoValue;
-
-    foreach ($ID as $id) {
-      $deviceStateID = @IPS_GetObjectIDByIdent("STATE", $id);
-      $deviceState   = ($deviceStateID) ? GetValueBoolean($deviceStateID) : false;
-
-      $deviceHueID         = @IPS_GetObjectIDByIdent("HUE", $id);
-      $deviceColorID       = @IPS_GetObjectIDByIdent("COLOR", $id);
-      $deviceTemperatureID = @IPS_GetObjectIDByIdent("COLOR_TEMPERATURE", $id);
-      $deviceLevelID       = @IPS_GetObjectIDByIdent("LEVEL", $id);
-      $deviceSaturationID  = @IPS_GetObjectIDByIdent("SATURATION", $id);
-
-      $deviceHue           = ($deviceHueID) ?  GetValueInteger($deviceHueID) : vtNoValue;
-      $deviceColor         = ($deviceColorID) ? GetValueInteger($deviceColorID) : vtNoValue;
-      $deviceTemperature   = ($deviceTemperatureID) ? GetValueInteger($deviceTemperatureID) : vtNoValue;
-      $deviceLevel         = ($deviceLevelID) ? GetValueInteger($deviceLevelID) : vtNoValue;
-      $deviceSaturation    = ($deviceSaturationID) ? GetValueInteger($deviceSaturationID) : vtNoValue;
-
-      if (!$newState && $deviceState) {
+    foreach ($List as $device) {
+      if (!$newState && (bool)$device['state']) {
         $newState = true;
       }
 
-      if ($newState && $hue == vtNoValue && $deviceHue != vtNoValue) {
-        $hue = $deviceHue;
+      if ($newState && $hue == vtNoValue && $device['hue'] != vtNoString) {
+        $hue = (int)$device['hue'];
       }
 
-      if ($newState && $color == vtNoValue && $deviceColor != vtNoValue) {
-        $color = $deviceColor;
+      if ($newState && $color == vtNoValue && $device['color'] != vtNoString) {
+        $color = (int)$device['color'];
       }
 
-      if ($newState && $level == vtNoValue && $deviceLevel != vtNoValue) {
-        $level = $deviceLevel;
+      if ($newState && $level == vtNoValue && $device['level'] != vtNoString) {
+        $level = (int)$device['level'];
       }
 
-      if ($newState && $temperature == vtNoValue && $deviceTemperature != vtNoValue) {
-        $temperature = $deviceTemperature;
+      if ($newState && $temperature == vtNoValue && $device['temperature'] != vtNoString) {
+        $temperature = (int)$device['temperature'];
       }
 
-      if ($newState && $saturation == vtNoValue && $deviceSaturation != vtNoValue) {
-        $saturation = $deviceSaturation;
+      if ($newState && $saturation == vtNoValue && $device['saturation'] != vtNoString) {
+        $saturation = (int)$device['saturation'];
       }
     }
 
@@ -349,17 +277,83 @@ class LightifyGroup extends IPSModule
   }
 
 
-  private function getDeviceInstances($moduleID, $UUID) {
+  private function getListDevices(array $Devices) : array {
 
-    $IDs = IPS_GetInstanceListByModuleID($moduleID);
+    //Initialize
+    $List = [];
 
-    foreach ($IDs as $id) {
-      if (@IPS_GetProperty($id, "UUID") == $UUID) {
-        return $id;
+    foreach ($Devices as $device) {
+      $type  = $device['type'];
+      $state = $device['state'];
+
+      $hue    = $color = $level      = vtNoString;
+      $temperature     = $saturation = vtNoString;
+
+      //Decode device info
+      switch ($type) {
+        case classConstant::TYPE_FIXED_WHITE:
+        case classConstant::TYPE_LIGHT_CCT:
+        case classConstant::TYPE_LIGHT_DIMABLE:
+        case classConstant::TYPE_LIGHT_COLOR:
+        case classConstant::TYPE_LIGHT_EXT_COLOR:
+          $module = "Light";
+
+          $RGB = ($type & 8) ? true: false;
+          $CCT = ($type & 2) ? true: false;
+          $CLR = ($type & 4) ? true: false;
+
+          $level = $device['level'];
+          $white = $device['white'];
+          $rgb   = $device['rgb'];
+          $hex   = $this->lightifyBase->RGB2HEX($rgb);
+          $hsv   = $this->lightifyBase->HEX2HSV($hex);
+
+          if ($RGB) {
+            $hue        = $hsv['h'];
+            $color      = hexdec($hex);
+            $saturation = $hsv['s'];
+          }
+
+          if ($CCT) {
+            $temperature = $device['cct'];
+          }
+          break;
+
+        case classConstant::TYPE_PLUG_ONOFF:
+          $module = "Plug";
+          break;
+
+        default:
+          continue 2;
       }
+
+      if ($state) {
+        if ($module == "Plug") {
+          $rowColor = self::ROW_COLOR_PLUG_ON;
+        } else {
+          $rowColor = ($color != vtNoString) ? self::ROW_COLOR_LIGHT_ON : self::ROW_COLOR_CCT_ON;
+        }
+      } else {
+        $rowColor = self::ROW_COLOR_STATE_OFF;
+      }
+
+      $List[] = [
+        'module'      => $this->translate($module),
+        'name'        => $device['name'],
+        'state'       => $state,
+        'hue'         => $hue,
+        'color'       => $color,
+        'temperature' => $temperature,
+        'level'       => $level,
+        'saturation'  => $saturation,
+        'transition'  => vtNoString,
+        'zigBee'      => $device['zigBee'],
+        'firmware'    => $device['firmware'],
+        'rowColor'    => $rowColor
+      ];
     }
 
-    return 0;
+    return $List;
 
   }
 

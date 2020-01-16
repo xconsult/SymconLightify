@@ -30,7 +30,7 @@ class classCommand
   const GET_SCENE_LIST           = 0x1F;
   const ADD_DEVICE_TO_GROUP      = 0x20;
   const RENOVE_DEVICE_FROM_GROUP = 0x21;
-  const GET_GROUP_DETAIL_INFO    = 0x26;
+  const GET_GROUP_INFO           = 0x26;
   const SET_GROUP_NAME           = 0x27;
   const SET_DEVICE_NAME          = 0x28;
   const SET_LIGHT_LEVEL          = 0x31;
@@ -40,7 +40,7 @@ class classCommand
   const SET_LIGHT_SATURATION     = 0x36;
   const SAVE_LIGHT_STATE         = 0x38;
   const ACTIVATE_GROUP_SCENE     = 0x52;
-  const GET_DEVICE_DETAIL_INFO   = 0x68;
+  const GET_DEVICE_INFO          = 0x68;
   const GET_GATEWAY_FIRMWARE     = 0x6F;
   const CYCLE_LIGHT_COLOR        = 0xD5;
   const SET_LIGHT_SOFT_ON        = 0xDB;
@@ -77,12 +77,10 @@ class classConstant
 
   const GET_DEVICES_LOCAL      = 1001;
   const GET_DEVICES_CLOUD      = 1002;
-  const GET_DEVICE_GROUPS      = 1003;
-  const GET_GROUPS_LOCAL       = 1004;
-  const GET_GROUPS_CLOUD       = 1005;
-  const GET_GROUP_DEVICES      = 1006;
-  const GET_SCENES_LOCAL       = 1007;
-  const GET_SCENES_CLOUD       = 1008;
+  const GET_GROUPS_LOCAL       = 1003;
+  const GET_GROUPS_CLOUD       = 1004;
+  const GET_SCENES_LOCAL       = 1005;
+  const GET_SCENES_CLOUD       = 1006;
 
   const SET_ALL_DEVICES        = 1010;
   const SET_GROUP_STATE        = 1011;

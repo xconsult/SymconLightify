@@ -36,10 +36,6 @@ class LightifyDevice extends IPSModule
       return;
     }
 
-    //Apply filter
-    //$filter = ".*".preg_quote(trim(json_encode($this->ReadPropertyString("UUID")), '"')).".*";
-    //$this->SetReceiveDataFilter($filter);
-
     $this->WriteAttributeInteger("transition", classConstant::TIME_MIN);
 
   }
@@ -71,6 +67,8 @@ class LightifyDevice extends IPSModule
       $formJSON['elements'][0]['items'][0]['value'] = $value;
 
       if ($module == "Light" || $module == "Plug") {
+        $i = 0;
+
         foreach ($this->getDeviceGroups() as $group) {
           $instanceID = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
 
@@ -83,6 +81,8 @@ class LightifyDevice extends IPSModule
             $formJSON['elements'][2]['items'][1]['items'][$i]['objectID'] = $instanceID;
             $formJSON['elements'][2]['items'][1]['items'][$i]['width']    = "auto";
           }
+
+          $i++;
         }
 
         $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is connected to the following group(s)")." ";
@@ -99,10 +99,10 @@ class LightifyDevice extends IPSModule
           $formJSON['actions'][0]['items'][0]['enabled'] = true;
           $formJSON['actions'][0]['items'][1]['enabled'] = true;
 
-          if ($module == "Sensor") {
-            $formJSON['actions'][0]['items'][2]['enabled'] = false;
-          } else {
+          if ($module == "Light") {
             $formJSON['actions'][0]['items'][2]['enabled'] = true;
+          } else {
+            $formJSON['actions'][0]['items'][2]['enabled'] = false;
           }
         } else {
           $formJSON['actions'][0]['items'][0]['enabled'] = false;
@@ -431,23 +431,23 @@ class LightifyDevice extends IPSModule
   protected function getDeviceGroups() : array {
     $data = $this->SendDataToParent(json_encode([
       'DataID' => classConstant::TX_GATEWAY,
-      'method' => classConstant::GET_DEVICE_GROUPS])
+      'method' => classConstant::GET_DEVICES_LOCAL])
     );
 
     $data   = json_decode($data);
-    $groups = [];
+    $Groups = [];
 
     if (is_array($data) && count($data) > 0) {
       foreach ($data as $device) {
         if ($device->UUID == $this->ReadPropertyString("UUID")) {
-          $groups = $device->ID;
+          $Groups = $device->Groups;
           break;
         }
       }
     }
 
-    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($groups));
-    return $groups;
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Groups));
+    return $Groups;
   }
 
 
