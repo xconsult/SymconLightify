@@ -5,17 +5,20 @@ declare(strict_types=1);
 require_once __DIR__.'/../libs/lightifyClass.php';
 
 
-class LightifyDiscovery extends IPSModule
-{
+class LightifyDiscovery extends IPSModule {
 
   const MODULE_CONFIGURATOR = "{5552DA2D-B613-4291-8E57-61B0535B8047}";
   const MODULE_DNSSD        = "{780B2D48-916C-4D59-AD35-5A429B2355A5}";
+
+  const METHOD_SET_TIMEOUT  = "set:timeout";
+  const DNSSD_TIMEOUT       = 300;
 
 
   public function Create() {
 
     //Never delete this line!
     parent::Create();
+    $this->RegisterAttributeInteger("timeout", self::DNSSD_TIMEOUT);
 
   }
 
@@ -32,7 +35,7 @@ class LightifyDiscovery extends IPSModule
 
     $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
 
-    $Gateways = $this->DiscoverGateway();
+    $Gateways = $this->DiscoverGateways();
     $Values = [];
 
     foreach ($Gateways as $gateway) {
@@ -77,28 +80,56 @@ class LightifyDiscovery extends IPSModule
       $Values[] = $value;
     }
 
-    $formJSON['actions'][0]['values'] = $Values;
+    $timeout = $this->ReadAttributeInteger("timeout");
+    $caption = "Time-out [".(string)$timeout."ms]";
+
+    $formJSON['actions'][0]['caption'] = $caption;
+    $formJSON['actions'][0]['value'] = $timeout;
+
+    $formJSON['actions'][1]['values'] = $Values;
     return json_encode($formJSON);
 
   }
 
 
-  public function DiscoverGateway() : array {
+  public function GlobalDiscovery(array $param) : void {
 
+    if ($param['method'] == self::METHOD_SET_TIMEOUT) {
+      $value   = $param['value'];
+      $caption = "Time-out [".$value."ms]";
+
+      $this->UpdateFormField("timeSlider", "caption", $caption);
+      $this->WriteAttributeInteger("timeout", (int)$value);
+    }
+
+  }
+
+
+  public function DiscoverGateways() : array {
+
+    $timeout  = $this->ReadAttributeInteger("timeout");
     $Gateways = [];
 
     if (IPS_ModuleExists(self::MODULE_DNSSD)) {
+      $version  = IPS_GetKernelVersion();
       $moduleID = IPS_GetInstanceListByModuleID(self::MODULE_DNSSD)[0];
-      //$mType = ZC_QueryServiceTypes($moduleID);
-      $mDNS  = ZC_QueryServiceType($moduleID, "_http._tcp", "");
-      //$query = ZC_QueryService($moduleID, "Lightify-017c3b28", "_http._tcp", "local.");
-      //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $moduleID."|".json_encode($query));
+
+      if ($version >= 5.4) {
+        $mDNS  = ZC_QueryServiceTypeEx($moduleID, "_http._tcp", "", $timeout);
+      } else {
+        $mDNS  = ZC_QueryServiceType($moduleID, "_http._tcp", "");
+      }
+      //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $moduleID."|".json_encode($mDNS));
 
       foreach ($mDNS as $item) {
         $name = $item['Name'];
 
         if (stripos($name, "Lightify-") !== false) {
-          $query = ZC_QueryService($moduleID, $name, $item['Type'],"local.");
+          if ($version >= 5.4) {
+            $query = ZC_QueryServiceEx($moduleID, $name, $item['Type'], "local.", $timeout);
+          } else {
+            $query = ZC_QueryService($moduleID, $name, $item['Type'], "local.");
+          }
           //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $moduleID."|".json_encode($query));
 
           foreach ($query as $device) {
@@ -132,7 +163,6 @@ class LightifyDiscovery extends IPSModule
     return 0;
 
   }
-
 
 
 }

@@ -13,8 +13,7 @@ define('LIGHITFY_INVALID_SECURITY_TOKEN', 5003);
 define('LIGHITFY_GATEWAY_OFFLINE',        5019);
 
 
-class LightifyGateway extends IPSModule
-{
+class LightifyGateway extends IPSModule {
 
   const OAUTH_AUTHORIZE      = "https://oauth.ipmagic.de/authorize/";
   const OAUTH_FORWARD        = "https://oauth.ipmagic.de/forward/";

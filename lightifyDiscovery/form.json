@@ -20,6 +20,16 @@
   ],
   "actions": [
     {
+      "type": "HorizontalSlider",
+      "name": "timeSlider",
+      "caption": "Time-out [0000 ms]",
+      "minimum": 0,
+      "maximum": 500,
+      "onChange": "OSR_GlobalDiscovery($id, ['method' => 'set:timeout', 'value' => $timeSlider]);",
+      "value": 0,
+      "width": "150px"
+    },
+    {
       "type": "Configurator",
       "name": "discoverGateway",
       "caption": "Lightify Gateways",

@@ -3,8 +3,7 @@
 declare(strict_types=1);
 
 //Commands
-class classCommand
-{
+class classCommand {
 
   # 13 List paired devices (broadcast)
   # 1E List configured groups/zones (broadcast)
@@ -51,8 +50,7 @@ class classCommand
 
 
 //Constants
-class classConstant
-{
+class classConstant {
 
   const CLIENT_SOCKET  = "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}";
   const RX_VIRTUAL     = "{018EF6B5-AB94-40C6-AA53-46943E824ACF}";

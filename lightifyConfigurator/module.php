@@ -6,8 +6,9 @@ require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 
 
-class LightifyConfigurator extends IPSModule
-{
+class LightifyConfigurator extends IPSModule {
+
+  const ROW_COLOR_OFFLINE         = "#f6c3c2";
 
   const DEVICE_ITEM_INDEX         = 1000;
   const GROUP_ITEM_INDEX          = 2000;
@@ -50,8 +51,6 @@ class LightifyConfigurator extends IPSModule
   const LABEL_SCENE_APPLY         = "Apply";
   const LABEL_NO_CAPABILITY       = "-";
   const LABEL_UNKNOWN             = "-Unknown-";
-
-  const ROW_COLOR_OFFLINE         = "#f6c3c2";
 
   protected $lightifyBase;
 
@@ -175,7 +174,7 @@ class LightifyConfigurator extends IPSModule
   }
 
 
-  public function LigthifyConfigurator(array $param) : void {
+  public function GlobalConfigurator(array $param) : void {
 
     switch ($param['method']) {
       case self::METHOD_API_REGISTER:

@@ -195,8 +195,7 @@ if (!defined('vtNoValue')) {
 }
 
 
-trait DebugHelper
-{
+trait DebugHelper {
 
 
   /**
@@ -248,8 +247,7 @@ trait DebugHelper
 }
 
 
-trait ParentInstance
-{
+trait ParentInstance {
 
 
   private function getParentInfo(int $id) : int {
@@ -281,8 +279,7 @@ trait ParentInstance
   }
 
 
-  private function getParentStatus(int $id) : int
-  {
+  private function getParentStatus(int $id) : int {
 
     $instanceID = IPS_GetInstance($id);
     return $instanceID['InstanceStatus'];
@@ -293,8 +290,7 @@ trait ParentInstance
 }
 
 
-trait WebOAuth
-{
+trait WebOAuth {
 
 
   private function RegisterOAuth($webOAuth) {
@@ -334,8 +330,7 @@ trait WebOAuth
 }
 
 
-trait InstanceHelper
-{
+trait InstanceHelper {
 
 
   private function getObjectByProperty($moduleID, $property, $value) : int {
@@ -359,8 +354,8 @@ trait InstanceHelper
 /**
  * Trait mit Hilfsfunktionen für den Datenaustausch.
  */
-trait InstanceStatus
-{
+trait InstanceStatus {
+
 
   /**
   * Interne Funktion des SDK.
@@ -450,8 +445,7 @@ trait InstanceStatus
 }
 
 
-trait BufferHelper
-{
+trait BufferHelper {
 
 
   /**

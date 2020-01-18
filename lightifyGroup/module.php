@@ -5,8 +5,7 @@ declare(strict_types=1);
 require_once __DIR__.'/../libs/lightifyControl.php';
 
 
-class LightifyGroup extends IPSModule
-{
+class LightifyGroup extends IPSModule {
 
   const ROW_COLOR_LIGHT_ON  = "#fffde7";
   const ROW_COLOR_CCT_ON    = "#ffffff";

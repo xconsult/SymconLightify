@@ -5,9 +5,7 @@ declare(strict_types=1);
 require_once __DIR__.'/../libs/lightifyControl.php';
 
 
-class LightifyScene extends IPSModule
-{
-
+class LightifyScene extends IPSModule {
 
   use LightifyControl;
 

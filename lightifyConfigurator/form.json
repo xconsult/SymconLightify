@@ -97,7 +97,7 @@
               "name": "Locations",
               "caption": "Categories",
               "width": "115px",
-              "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:locations', 'mode' => 'config:initial']);",
+              "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:locations', 'mode' => 'config:initial']);",
               "popup": {
                 "caption": "Categories",
                 "items": [
@@ -106,7 +106,7 @@
                     "name": "listLocations",
                     "caption": "Category selection",
                     "rowCount": 6,
-                    "onEdit": "OSR_LigthifyConfigurator($id, ['method' => 'set:locations', 'list' => $listLocations]);",
+                    "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'set:locations', 'list' => $listLocations]);",
                     "columns": [
                       {
                         "caption": "Module",
@@ -151,7 +151,7 @@
                         "width": "115px",
                         "enabled": false,
                         "caption": "Apply",
-                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'set:configuration']);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'set:configuration']);"
                       }
                     ]
                   }
@@ -163,7 +163,7 @@
               "name": "setupGroup",
               "caption": "Group setup",
               "width": "155px",
-              "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:list:groups']);",
+              "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:list:groups']);",
               "popup": {
                 "caption": "Group setup",
                 "items": [
@@ -184,7 +184,7 @@
                         "width": "20px",
                         "enabled": false,
                         "caption": "",
-                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'rename:list:group', 'list' => [$listGroups, $listDevices], 'name' => $newGroup]);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:group', 'list' => [$listGroups, $listDevices], 'name' => $newGroup]);"
                       },
                       {
                         "type": "ValidationTextBox",
@@ -200,7 +200,7 @@
                         "width": "20px",
                         "enabled": false,
                         "caption": "",
-                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'rename:list:device', 'list' => [$listGroups, $listDevices], 'name' => $newDevice]);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:device', 'list' => [$listGroups, $listDevices], 'name' => $newDevice]);"
                       }
                     ]
                   },
@@ -222,7 +222,7 @@
                             "caption": "Name",
                             "name": "name",
                             "width": "215px",
-                            "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:group:config', 'mode' => 'config:initial', 'list' => $listGroups]);"
+                            "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:group:config', 'mode' => 'config:initial', 'list' => $listGroups]);"
                           }
                         ],
                         "values": []
@@ -232,7 +232,7 @@
                         "name": "listDevices",
                         "caption": "Device list",
                         "rowCount": 10,
-                        "onEdit": "OSR_LigthifyConfigurator($id, ['method' => 'set:group:config', 'list' => [$listGroups, $listDevices]]);",
+                        "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'set:group:config', 'list' => [$listGroups, $listDevices]]);",
                         "columns": [
                           {
                             "caption": "UUID",
@@ -244,7 +244,7 @@
                             "caption": "Name",
                             "name": "name",
                             "width": "202px",
-                            "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'set:device:rename', 'name' => $listDevices['name'], 'online' => $listDevices['online']]);"
+                            "onClick": "OSR_GlobalConfigurator($id, ['method' => 'set:device:rename', 'name' => $listDevices['name'], 'online' => $listDevices['online']]);"
                           },
                           { 
                             "caption": "",
@@ -280,7 +280,7 @@
                         "width": "126px",
                         "enabled": true,
                         "caption": "Refresh",
-                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:group:config', 'mode' => 'config:loaded', 'list' => $listGroups]);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:group:config', 'mode' => 'config:loaded', 'list' => $listGroups]);"
                       }
                     ]
                   }
@@ -292,7 +292,7 @@
               "name": "createGroup",
               "caption": "Create group",
               "width": "155px",
-              "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:list:devices', 'mode' => 'config:initial']);",
+              "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:list:devices', 'mode' => 'config:initial']);",
               "popup": {
                 "caption": "Create group",
                 "items": [
@@ -320,7 +320,7 @@
                         "width": "20px",
                         "enabled": true,
                         "caption": "",
-                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'create:group', 'list' => $addDevices, 'name' => $addGroup]);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'create:group', 'list' => $addDevices, 'name' => $addGroup]);"
                       }
                     ]
                   },
@@ -329,7 +329,7 @@
                     "name": "addDevices",
                     "caption": "Device list",
                     "rowCount": 10,
-                    "onEdit": "OSR_LigthifyConfigurator($id, ['method' => 'add:device:list', 'list' => $addDevices]);",
+                    "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'add:device:list', 'list' => $addDevices]);",
                     "columns": [
                       {
                         "caption": "Name",
@@ -368,7 +368,7 @@
                         "width": "126px",
                         "enabled": true,
                         "caption": "Refresh",
-                        "onClick": "OSR_LigthifyConfigurator($id, ['method' => 'load:list:devices', 'mode' => 'config:loaded']);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:list:devices', 'mode' => 'config:loaded']);"
                       }
                     ]
                   }

@@ -6,8 +6,7 @@ require_once __DIR__.'/../libs/mainClass.php';
 require_once __DIR__.'/../libs/lightifyClass.php';
 
 
-trait LightifyControl
-{
+trait LightifyControl {
 
   protected $lightifyBase;
   protected $fade = 0;
