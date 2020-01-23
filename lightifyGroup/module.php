@@ -69,7 +69,7 @@ class LightifyGroup extends IPSModule {
       }
 
       //Expansion Panel
-      $formJSON['elements'][1]['items'][0]['values'] = $this->getGroupDevices();
+      //$formJSON['elements'][1]['items'][0]['values'] = $this->getGroupDevices();
       return json_encode($formJSON);
     }
 

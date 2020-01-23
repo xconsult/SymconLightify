@@ -8,7 +8,7 @@
           "name": "ID",
           "enabled": false,
           "value": "",
-          "caption": "[id]",
+          "caption": "ID",
           "width": "25px"
         },
         {
@@ -48,6 +48,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "visible": false,
       "caption": "Extended informations",
       "items": [
         {

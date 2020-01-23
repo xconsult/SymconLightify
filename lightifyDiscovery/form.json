@@ -23,10 +23,10 @@
       "type": "HorizontalSlider",
       "name": "timeSlider",
       "caption": "Time-out [0000 ms]",
-      "minimum": 0,
-      "maximum": 500,
+      "minimum": 300,
+      "maximum": 1200,
       "onChange": "OSR_GlobalDiscovery($id, ['method' => 'set:timeout', 'value' => $timeSlider]);",
-      "value": 0,
+      "value": 300,
       "width": "150px"
     },
     {

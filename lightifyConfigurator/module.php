@@ -115,7 +115,6 @@ class LightifyConfigurator extends IPSModule {
     $formJSON['elements'][0]['items'][0]['objectID'] = $parentID;
 
     $this->SetBuffer("listLocations", vtNoString);
-    $this->SetBuffer("listGroups", vtNoString);
     $Values = [];
 
     $Modules = [
@@ -128,7 +127,7 @@ class LightifyConfigurator extends IPSModule {
     if (empty($Locations)) {
       $Locations = [];
 
-      foreach ($module as $item) {
+      foreach ($Modules as $item) {
         $Locations[] = [
           'module' => $this->Translate($item),
           'name'   => IPS_GetName(0),
@@ -144,13 +143,8 @@ class LightifyConfigurator extends IPSModule {
     $Groups  = $this->geGroupsConfigurator($this->getGatewayGroups());
     $Scenes  = $this->getScenesConfigurator($this->getGatewayScenes());
 
-    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Devices));
-    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Groups));
-    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Scenes));
-
-    $formJSON['actions'][0]['values'] = array_merge($Devices, $Groups, $Scenes);
+    $formJSON['actions'][0]['values'] = $this->getListConfigurator($parentID);
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($formJSON));
-
     return json_encode($formJSON);
 
   }
@@ -199,8 +193,7 @@ class LightifyConfigurator extends IPSModule {
         break;
 
       case self::METHOD_LOAD_LIST_GROUPS:
-        $List = $this->GetBuffer("listGroups");
-        $this->loadListGroups($List);
+        $this->loadListGroups();
         break;
 
       case self::METHOD_RENAME_LIST_GROUP:
@@ -385,15 +378,24 @@ class LightifyConfigurator extends IPSModule {
   }
 
 
-  private function loadListGroups(string $List) : void {
+  private function loadListGroups() : void {
 
-    //Load list
-    if (empty($List)){
-      $Groups = json_encode($this->getListGroups());
-      $this->SetBuffer("listGroups", $Groups);
+    $this->UpdateFormField("newGroup", "value", vtNoString);
+    $this->UpdateFormField("newGroup", "enabled", false);
+    $this->UpdateFormField("renameGroup", "enabled", false);
 
-      $this->UpdateFormField("listGroups", "values", $Groups);
-    }
+/*
+    $this->UpdateFormField("newDevice", "value", vtNoString);
+    $this->UpdateFormField("newDevice", "enabled", false);
+    $this->UpdateFormField("renameDevice", "enabled", false);
+*/
+
+    $this->UpdateFormField("setupProgress", "visible", false);
+    $this->UpdateFormField("setupRefresh", "enabled", false);
+
+    $Groups = json_encode($this->getListGroups());
+    $this->UpdateFormField("listGroups", "values", $Groups);
+    $this->UpdateFormField("listDevices", "values", json_encode([]));
 
   }
 
@@ -402,14 +404,17 @@ class LightifyConfigurator extends IPSModule {
 
     if ($mode == self::MODE_CONFIG_INITIAL) {
       $this->UpdateFormField("newGroup", "enabled", true);
+      $this->UpdateFormField("groupID", "value", $List['ID']);
       $this->UpdateFormField("newGroup", "value", $List['name']);
       $this->UpdateFormField("renameGroup", "enabled", true);
       $this->UpdateFormField("setupRefresh", "enabled", true);
     }
 
+/*
     $this->UpdateFormField("newDevice", "value", vtNoString);
     $this->UpdateFormField("newDevice", "enabled", false);
     $this->UpdateFormField("renameDevice", "enabled", false);
+*/
 
     $buffer  = $this->getListDevices();
     $Devices = [];
@@ -501,14 +506,18 @@ class LightifyConfigurator extends IPSModule {
             $this->UpdateFormField("newGroup", "enabled", false);
             $this->UpdateFormField("renameGroup", "enabled", false);
 
+/*
             $this->UpdateFormField("newDevice", "value", vtNoString);
             $this->UpdateFormField("newDevice", "enabled", false);
             $this->UpdateFormField("renameDevice", "enabled", false);
+*/
 
             $this->UpdateFormField("listGroups", "values", json_encode($this->getListGroups()));
             $this->UpdateFormField("listDevices", "values", json_encode([]));
-
             $this->UpdateFormField("setupRefresh", "enabled", false);
+
+            $parentID = IPS_GetInstance($this->InstanceID)['ConnectionID'];
+            $this->UpdateFormField("configModules", "values", json_encode($this->getListConfigurator($parentID)));
           }
         }
 
@@ -609,16 +618,7 @@ class LightifyConfigurator extends IPSModule {
         $this->UpdateFormField("setupRefresh", "visible", true);
 
         if ($method == self::METHOD_RENAME_LIST_GROUP) {
-          $this->UpdateFormField("newGroup", "value", vtNoString);
-          $this->UpdateFormField("newGroup", "enabled", false);
-          $this->UpdateFormField("renameGroup", "enabled", false);
-
-          $this->UpdateFormField("newDevice", "value", vtNoString);
-          $this->UpdateFormField("newDevice", "enabled", false);
-          $this->UpdateFormField("renameDevice", "enabled", false);
-
-          $this->loadListGroups(vtNoString);
-          $this->UpdateFormField("listDevices", "values", json_encode([]));
+          $this->loadListGroups();
         } else {
           $this->loadGroupConfiguration(self::MODE_CONFIG_LOADED, $List[0]);
         }
@@ -688,7 +688,7 @@ class LightifyConfigurator extends IPSModule {
       return;
     }
 
-    $this->UpdateFormField("createRefresh", "visible", false);
+    $this->UpdateFormField("createGroup", "visible", false);
     $this->UpdateFormField("createProgress", "visible", true);
 
     foreach ($List as $line) {
@@ -715,7 +715,7 @@ class LightifyConfigurator extends IPSModule {
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $ID);
 
     $this->UpdateFormField("createProgress", "visible", false);
-    $this->UpdateFormField("createRefresh", "visible", true);
+    $this->UpdateFormField("createGroup", "visible", true);
 
     if ($success) {
       $ID++;
@@ -723,6 +723,9 @@ class LightifyConfigurator extends IPSModule {
 
       //Set fields
       $this->UpdateFormField("createID", "value", $ID);
+
+      $parentID = IPS_GetInstance($this->InstanceID)['ConnectionID'];
+      $this->UpdateFormField("configModules", "values", json_encode($this->getListConfigurator($parentID)));
     }
 
   }
@@ -814,6 +817,20 @@ class LightifyConfigurator extends IPSModule {
     }
 
     return $List;
+  }
+
+
+  protected function getListConfigurator(int $parentID) : array {
+
+    $Devices = $this->getDevicesConfigurator($this->getGatewayDevices($parentID));
+    $Groups  = $this->geGroupsConfigurator($this->getGatewayGroups());
+    $Scenes  = $this->getScenesConfigurator($this->getGatewayScenes());
+
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Devices));
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Groups));
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Scenes));
+
+    return array_merge($Devices, $Groups, $Scenes);
   }
 
 

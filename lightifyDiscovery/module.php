@@ -11,7 +11,7 @@ class LightifyDiscovery extends IPSModule {
   const MODULE_DNSSD        = "{780B2D48-916C-4D59-AD35-5A429B2355A5}";
 
   const METHOD_SET_TIMEOUT  = "set:timeout";
-  const DNSSD_TIMEOUT       = 300;
+  const DNSSD_TIMEOUT       = 500;
 
 
   public function Create() {

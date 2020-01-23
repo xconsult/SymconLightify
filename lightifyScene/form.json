@@ -7,7 +7,7 @@
           "name": "ID",
           "enabled": false,
           "value": "",
-          "caption": "[id]",
+          "caption": "ID",
           "width": "25px"
         },
         {
