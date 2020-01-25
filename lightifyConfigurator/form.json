@@ -160,6 +160,79 @@
             },
             {
               "type": "PopupButton",
+              "name": "setupDevice",
+              "caption": "Device setup",
+              "width": "155px",
+              "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:list:devices', 'type' => 'setup:device']);",
+              "popup": {
+                "caption": "Device setup",
+                "items": [
+                  {
+                    "type": "RowLayout",
+                    "items": [
+                      {
+                        "type": "ValidationTextBox",
+                        "name": "newName",
+                        "enabled": false,
+                        "value": "",
+                        "caption": "Device name",
+                        "width": "460px"
+                      },
+                      {
+                        "type": "Button",
+                        "name": "renameModul",
+                        "width": "126px",
+                        "enabled": false,
+                        "caption": "Rename",
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:device', 'list' => $listDevices, 'name' => $newName]);"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "RowLayout",
+                    "items": [
+                      {
+                        "type": "List",
+                        "name": "listDevices",
+                        "caption": "Device list",
+                        "rowCount": 10,
+                        "onEdit": "",
+                        "columns": [
+                          {
+                            "caption": "UUID",
+                            "name": "UUID",
+                            "width": "0px",
+                            "visible": false
+                          },
+                          { 
+                            "caption": "Name",
+                            "name": "name",
+                            "width": "242px",
+                            "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:device:config', 'list' => $listDevices]);"
+                          }
+                        ],
+                        "values": []
+                      }
+                    ]
+                  },
+                  { 
+                    "type": "RowLayout",
+                    "items": [
+                      {
+                        "type": "ProgressBar",
+                        "name": "setupProgress",
+                        "width": "586px",
+                        "visible": false,
+                        "indeterminate": true,
+                        "caption": "Synchronisation in progress, please wait ..."
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "type": "PopupButton",
               "name": "setupGroup",
               "caption": "Group setup",
               "width": "155px",
@@ -180,7 +253,7 @@
                       },
                       {
                         "type": "ValidationTextBox",
-                        "name": "newGroup",
+                        "name": "newName",
                         "enabled": false,
                         "value": "",
                         "caption": "Group name",
@@ -188,11 +261,11 @@
                       },
                       {
                         "type": "Button",
-                        "name": "renameGroup",
+                        "name": "renameModul",
                         "width": "126px",
                         "enabled": false,
                         "caption": "Rename",
-                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:group', 'list' => [$listGroups, $listDevices], 'name' => $newGroup]);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:group', 'list' => [$listGroups, $listDevices], 'name' => $newName]);"
                       }
                     ]
                   },
@@ -224,7 +297,7 @@
                         "name": "listDevices",
                         "caption": "Device list",
                         "rowCount": 10,
-                        "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'set:group:config', 'list' => [$listGroups, $listDevices]]);",
+                        "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'set:group:config', 'list' => $listGroups]);",
                         "columns": [
                           {
                             "caption": "UUID",
@@ -283,7 +356,7 @@
               "name": "createGroup",
               "caption": "Create group",
               "width": "155px",
-              "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:list:devices', 'mode' => 'config:initial']);",
+              "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:list:devices', 'type' => 'create:group']);",
               "popup": {
                 "caption": "Create group",
                 "items": [
@@ -299,7 +372,7 @@
                       },
                       {
                         "type": "ValidationTextBox",
-                        "name": "addGroup",
+                        "name": "newName",
                         "enabled": true,
                         "value": "",
                         "caption": "Group name",
@@ -309,10 +382,10 @@
                   },
                   {
                     "type": "List",
-                    "name": "addDevices",
+                    "name": "listDevices",
                     "caption": "Device list",
                     "rowCount": 10,
-                    "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'add:device:list', 'list' => $addDevices]);",
+                    "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'add:device:list', 'list' => $listDevices]);",
                     "columns": [
                       {
                         "caption": "Name",
@@ -351,7 +424,7 @@
                         "width": "126px",
                         "enabled": true,
                         "caption": "Create",
-                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'create:group', 'list' => $addDevices, 'name' => $addGroup]);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'create:group', 'list' => $createDevices, 'name' => $createName]);"
                       }
                     ]
                   }
