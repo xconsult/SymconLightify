@@ -381,17 +381,185 @@ class LightifyConfigurator extends IPSModule {
   }
 
 
+  private function loadListDevices(string $type) : void {
+
+    if ($type == self::TYPE_CREATE_GROUP) {
+      $Groups = $this->getListGroups();
+
+      $ID = count($Groups)+1;
+      $this->SetBuffer("groupID", $ID);
+
+      //Set fields
+      $this->UpdateFormField("createID", "value", $ID);
+    }
+    $this->UpdateFormField("newName", "value", vtNoString);
+
+    if ($type == self::TYPE_SETUP_DEVCICE) {
+      $this->UpdateFormField("newName", "value", vtNoString);
+      $this->UpdateFormField("newName", "enabled", false);
+      $this->UpdateFormField("renameModul", "enabled", false);
+
+      $this->setDeviceDefault();
+      $this->UpdateFormField("saveModul", "enabled", false);
+
+      $this->UpdateFormField("setupProgress", "visible", false);
+    }
+
+    $buffer  = $this->getListDevices();
+    $Devices = [];
+
+    foreach ($buffer as $item) {
+      $color = ($item['online']) ? vtNoString : self::ROW_COLOR_OFFLINE;
+
+      $Devices[] = [
+        'UUID'       => $item['UUID'],
+        'name'       => $item['name'],
+        'online'     => $item['online'],
+        'value'      => $item['value'],
+        'hue'        => $item['hue'],
+        'color'      => $item['color'],
+        'CCT'        => $item['CCT'],
+        'level'      => $item['level'],
+        'saturation' => $item['saturation'],
+        'rowColor'   => $color
+      ];
+    }
+
+    $this->UpdateFormField("listDevices", "values", json_encode($Devices));
+
+  }
+
+
   private function loadDeviceConfiguration(object $List) : void {
 
     if ($List['online']) {
+      $enabled = false;
+
       $this->UpdateFormField("newName", "enabled", true);
       $this->UpdateFormField("newName", "value", $List['name']);
       $this->UpdateFormField("renameModul", "enabled", true);
+
+      if ($List['hue'] > vtNoValue) {
+        $enabled = true;
+        $this->UpdateFormField("hue", "value", (string)$List['hue']."°");
+      } else {
+        $this->setHueDefault();
+      }
+
+      if ($List['color'] > vtNoValue) {
+        $enabled = true;
+
+        $this->UpdateFormField("color", "value", $List['color']);
+        $this->UpdateFormField("color", "enabled", true);
+
+        $this->UpdateFormField("applyColor", "enabled", true);
+      } else {
+        $this->setColorDefault();
+      }
+
+      if ($List['CCT'] > vtNoValue) {
+        $enabled = true;
+
+        $this->UpdateFormField("temperature", "value", $List['CCT']);
+        $this->UpdateFormField("temperature", "enabled", true);
+
+        $this->UpdateFormField("applyCCT", "enabled", true);
+      } else {
+        $this->setTemperatureDefault();
+      }
+
+      if ($List['level'] > vtNoValue) {
+        $enabled = true;
+
+        $this->UpdateFormField("level", "value", $List['level']);
+        $this->UpdateFormField("level", "enabled", true);
+
+        $this->UpdateFormField("applyLevel", "enabled", true);
+      } else {
+        $this->setLevelDefault();
+      }
+
+      if ($List['saturation'] > vtNoValue) {
+        $enabled = true;
+
+        $this->UpdateFormField("saturation", "value", $List['saturation']);
+        $this->UpdateFormField("saturation", "enabled", true);
+
+        $this->UpdateFormField("applySaturation", "enabled", true);
+      } else {
+        $this->setSaturationDefault();
+      }
+
+      if ($enabled) {
+        $this->UpdateFormField("saveModul", "enabled", true);
+      } else {
+        $this->UpdateFormField("saveModul", "enabled", false);
+      }
     } else {
       $this->UpdateFormField("newName", "value", vtNoString);
       $this->UpdateFormField("newName", "enabled", false);
       $this->UpdateFormField("renameModul", "enabled", false);
+
+      $this->setDeviceDefault();
+      $this->UpdateFormField("saveModul", "enabled", false);
     }
+
+    $this->UpdateFormField("setupProgress", "visible", false);
+
+  }
+
+
+  protected function setDeviceDefault() : void {
+
+    $this->setHueDefault();
+    $this->setColorDefault();
+    $this->setTemperatureDefault();
+    $this->setLevelDefault();
+    $this->setSaturationDefault();
+
+  }
+
+
+  protected function setHueDefault() : void {
+
+    $this->UpdateFormField("hue", "value", "0°");
+    $this->UpdateFormField("hue", "enabled", false);
+
+  }
+
+
+  protected function setColorDefault() : void {
+
+    $this->UpdateFormField("color", "value", -1);
+    $this->UpdateFormField("color", "enabled", false);
+    $this->UpdateFormField("applyColor", "enabled", false);
+
+  }
+
+
+  protected function setTemperatureDefault() : void {
+
+    $this->UpdateFormField("temperature", "value", 2500);
+    $this->UpdateFormField("temperature", "enabled", false);
+    $this->UpdateFormField("applyCCT", "enabled", false);
+
+  }
+
+
+  protected function setLevelDefault() : void {
+
+    $this->UpdateFormField("level", "value", 100);
+    $this->UpdateFormField("level", "enabled", false);
+    $this->UpdateFormField("applyLevel", "enabled", false);
+
+  }
+
+
+  protected function setSaturationDefault() : void {
+
+    $this->UpdateFormField("saturation", "value", 100);
+    $this->UpdateFormField("saturation", "enabled", false);
+    $this->UpdateFormField("applySaturation", "enabled", false);
 
   }
 
@@ -626,44 +794,6 @@ class LightifyConfigurator extends IPSModule {
   }
 
 
-  private function loadListDevices(string $type) : void {
-
-    if ($type == self::TYPE_CREATE_GROUP) {
-      $Groups = $this->getListGroups();
-
-      $ID = count($Groups)+1;
-      $this->SetBuffer("groupID", $ID);
-
-      //Set fields
-      $this->UpdateFormField("createID", "value", $ID);
-    }
-    $this->UpdateFormField("newName", "value", vtNoString);
-
-    if ($type == self::TYPE_SETUP_DEVCICE) {
-      $this->UpdateFormField("renameModul", "enabled", false);
-      $this->UpdateFormField("setupProgress", "visible", false);
-    }
-
-    $buffer  = $this->getListDevices();
-    $Devices = [];
-
-    foreach ($buffer as $item) {
-      $color = ($item['online']) ? vtNoString : self::ROW_COLOR_OFFLINE;
-
-      $Devices[] = [
-        'UUID'     => $item['UUID'],
-        'name'     => $item['name'],
-        'online'   => $item['online'],
-        'value'    => $item['value'],
-        'rowColor' => $color
-      ];
-    }
-
-    $this->UpdateFormField("listDevices", "values", json_encode($Devices));
-
-  }
-
-
   private function createGroup(object $List, string $name) : void {
 
     //Default
@@ -770,26 +900,66 @@ class LightifyConfigurator extends IPSModule {
     );
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $data);
 
-    $data = json_decode($data);
+    $data = json_decode($data, true);
     $List = [];
 
     if (is_array($data) && count($data) > 0) {
       foreach ($data as $device) {
-        switch ($device->type) {
+        $light = $plug = false;
+        $type = $device['type'];
+
+        $hue    = $color = $level      = vtNoValue;
+        $temperature     = $saturation = vtNoValue;
+
+        switch ($type) {
           case classConstant::TYPE_FIXED_WHITE:
           case classConstant::TYPE_LIGHT_CCT:
           case classConstant::TYPE_LIGHT_DIMABLE:
           case classConstant::TYPE_LIGHT_COLOR:
           case classConstant::TYPE_LIGHT_EXT_COLOR:
-          case classConstant::TYPE_PLUG_ONOFF:
-            $List[] = [
-              'UUID'   => $device->UUID,
-              'name'   => $device->name,
-              'online' => $device->online,
-              'value'  => false,
-              'Groups' => $device->Groups
-            ];
+            $light = true;
+
+            $RGB = ($type & 8) ? true: false;
+            $CCT = ($type & 2) ? true: false;
+            $CLR = ($type & 4) ? true: false;
+
+            $level = (int)$device['level'];
+            $white = $device['white'];
+            $rgb   = $device['rgb'];
+            $hex   = $this->lightifyBase->RGB2HEX($rgb);
+            $hsv   = $this->lightifyBase->HEX2HSV($hex);
+
+            if ($RGB) {
+              $hue        = (int)$hsv['h'];
+              $color      = hexdec($hex);
+              $saturation = (int)$hsv['s'];
+            }
+
+            if ($CCT) {
+              $temperature = (int)$device['CCT'];
+            }
             break;
+
+          case classConstant::TYPE_PLUG_ONOFF:
+            $plug = true;
+            break;
+        }
+
+        if ($light || $plug) {
+          //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $device['name']."|".$hue."|".$color."|".$temperature."|".$level."|".$saturation);
+
+          $List[] = [
+            'UUID'       => $device['UUID'],
+            'name'       => $device['name'],
+            'online'     => $device['online'],
+            'value'      => false,
+            'hue'        => $hue,
+            'color'      => $color,
+            'CCT'        => $temperature,
+            'level'      => $level,
+            'saturation' => $saturation,
+            'Groups' => $device['Groups']
+          ];
         }
       }
     }

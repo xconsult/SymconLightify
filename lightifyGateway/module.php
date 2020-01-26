@@ -801,8 +801,8 @@ class LightifyGateway extends IPSModule {
           $allState = 1;
         }
 
+        $temperature = hexdec(dechex(ord($data{21})).dechex(ord($data{20})));
         $level = ord($data{19});
-        $cct   = hexdec(dechex(ord($data{21})).dechex(ord($data{20})));
         $white = ord($data{25});
 
         $rgb   = [
@@ -834,7 +834,7 @@ class LightifyGateway extends IPSModule {
           'online'   => $online,
           'state'    => $state,
           'level'    => $level,
-          'cct'      => $cct,
+          'CCT'      => $temperature,
           'rgb'      => $rgb,
           'white'    => $white,
           'Groups'   => $decode
@@ -866,7 +866,7 @@ class LightifyGateway extends IPSModule {
           'online'   => vtNoValue,
           'state'    => $allState,
           'level'    => vtNoString,
-          'cct'      => vtNoString,
+          'CCT'      => vtNoString,
           'rgb'      => vtNoString,
           'white'    => vtNoString,
           'Groups'   => []

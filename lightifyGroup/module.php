@@ -158,8 +158,8 @@ class LightifyGroup extends IPSModule {
         $level = (int)$device['level'];
       }
 
-      if ($newState && $temperature == vtNoValue && $device['temperature'] != vtNoString) {
-        $temperature = (int)$device['temperature'];
+      if ($newState && $temperature == vtNoValue && $device['CCT'] != vtNoString) {
+        $temperature = (int)$device['CCT'];
       }
 
       if ($newState && $saturation == vtNoValue && $device['saturation'] != vtNoString) {
@@ -314,7 +314,7 @@ class LightifyGroup extends IPSModule {
           }
 
           if ($CCT) {
-            $temperature = $device['cct'];
+            $temperature = $device['CCT'];
           }
           break;
 
@@ -342,7 +342,7 @@ class LightifyGroup extends IPSModule {
         'state'       => $state,
         'hue'         => $hue,
         'color'       => $color,
-        'temperature' => $temperature,
+        'CCT'         => $temperature,
         'level'       => $level,
         'saturation'  => $saturation,
         'transition'  => vtNoString,

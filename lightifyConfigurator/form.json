@@ -195,25 +195,171 @@
                         "type": "List",
                         "name": "listDevices",
                         "caption": "Device list",
-                        "rowCount": 10,
+                        "rowCount": 4,
                         "onEdit": "",
                         "columns": [
                           {
-                            "caption": "UUID",
                             "name": "UUID",
-                            "width": "0px",
                             "visible": false
                           },
                           { 
                             "caption": "Name",
                             "name": "name",
-                            "width": "242px",
+                            "width": "562px",
                             "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:device:config', 'list' => $listDevices]);"
                           }
                         ],
                         "values": []
                       }
                     ]
+                  },
+                  {
+                    "type": "Label"
+                  },
+                  {
+                    "type": "ExpansionPanel",
+                    "caption": "Extended settings",
+                    "items": [
+                      {
+                        "type": "RowLayout",
+                        "items": [
+                          {
+                            "type": "ValidationTextBox",
+                            "name": "hue",
+                            "enabled": false,
+                            "value": "0°",
+                            "caption": "Hue",
+                            "width": "50px"
+                          },
+                          {
+                            "type": "Label",
+                            "width": "15px"
+                          },
+                          {
+                            "type": "SelectColor",
+                            "name": "color",
+                            "enabled": false,
+                            "value": -1,
+                            "caption": "Color",
+                            "width": "120px",
+                            "allowTransparent": true
+                          },
+                          {
+                            "type": "Label",
+                            "width": "10px"
+                          },
+                          {
+                            "type": "Button",
+                            "name": "applyColor",
+                            "width": "20px",
+                            "enabled": false,
+                            "caption": "√",
+                            "onClick": ""
+                          },
+                          {
+                            "type": "Label",
+                            "width": "25px"
+                          },
+                          {
+                            "type": "NumberSpinner",
+                            "name": "temperature",
+                            "enabled": false,
+                            "value": 2500,
+                            "caption": "CCT",
+                            "suffix": "K",
+                            "width": "70px"
+                          },
+                          {
+                            "type": "Label",
+                            "width": "10px"
+                          },
+                          {
+                            "type": "Button",
+                            "name": "applyCCT",
+                            "width": "20px",
+                            "enabled": false,
+                            "caption": "√",
+                            "onClick": ""
+                          }
+                        ]
+                      },
+                      {
+                        "type": "RowLayout",
+                        "items": [
+                          {
+                            "type": "Label",
+                            "width": "74px"
+                          },
+                          {
+                            "type": "NumberSpinner",
+                            "name": "level",
+                            "enabled": false,
+                            "value": 100,
+                            "caption": "Level",
+                            "suffix": "%",
+                            "width": "120px"
+                          },
+                          {
+                            "type": "Label",
+                            "width": "10px"
+                          },
+                          {
+                            "type": "Button",
+                            "name": "applyLevel",
+                            "width": "20px",
+                            "enabled": false,
+                            "caption": "√",
+                            "onClick": ""
+                          },
+                          {
+                            "type": "Label",
+                            "width": "25px"
+                          },
+                          {
+                            "type": "NumberSpinner",
+                            "name": "saturation",
+                            "enabled": false,
+                            "value": 100,
+                            "caption": "Saturation",
+                            "suffix": "%",
+                            "width": "70px"
+                          },
+                          {
+                            "type": "Label",
+                            "width": "10px"
+                          },
+                          {
+                            "type": "Button",
+                            "name": "applySaturation",
+                            "width": "20px",
+                            "enabled": false,
+                            "caption": "√",
+                            "onClick": ""
+                          }
+                        ]
+                      },
+                      {
+                        "type": "Label"
+                      },
+                      {
+                        "type": "RowLayout",
+                        "items": [
+                          {
+                            "type": "Label",
+                            "width": "390px"
+                          },
+                          {
+                            "type": "Button",
+                            "name": "saveModul",
+                            "width": "126px",
+                            "enabled": false,
+                            "caption": "Save",
+                            "onClick": ""
+                          }
+                        ]
+                      }
+                    ],
+                    "expanded": true
                   },
                   { 
                     "type": "RowLayout",
@@ -300,9 +446,7 @@
                         "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'set:group:config', 'list' => $listGroups]);",
                         "columns": [
                           {
-                            "caption": "UUID",
                             "name": "UUID",
-                            "width": "0px",
                             "visible": false
                           },
                           { 

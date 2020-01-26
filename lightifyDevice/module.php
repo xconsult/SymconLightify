@@ -261,7 +261,7 @@ class LightifyDevice extends IPSModule {
       }
 
       if ($CCT) {
-        $temperature = $data['cct'];
+        $temperature = $data['CCT'];
       }
 
       if (false === ($stateID = @$this->GetIDForIdent("STATE"))) {
