@@ -125,13 +125,13 @@ trait LightifyControl {
     if ($Light) {
       $type = $this->ReadPropertyInteger("type");
 
-      $RGB  = ($type & 8) ? true: false;
-      $CCT  = ($type & 2) ? true: false;
-      $CLR  = ($type & 4) ? true: false;
+      $RGB = ($type & 8) ? true: false;
+      $CCT = ($type & 2) ? true: false;
+      $CLR = ($type & 4) ? true: false;
 
       if (!$this->fade) {
-        //$this->fade = IPS_GetProperty($this->InstanceID, "transition")*10;
-        //$this->fade = $this->ReadPropertyFloat("transition")*10;
+        //$this->fade = IPS_GetProperty($this->InstanceID, "fade")*10;
+        //$this->fade = $this->ReadPropertyFloat("fade")*10;
       }
     }
 
@@ -202,13 +202,13 @@ trait LightifyControl {
 
       case "COLOR":
         if ($online && ($RGB || $Group)) {
-          $hueID   = @$this->GetIDForIdent("HUE");
-          $colorID = @$this->GetIDForIdent("COLOR");
+          $hueID = @$this->GetIDForIdent("HUE");
+          $clrID = @$this->GetIDForIdent("COLOR");
 
-          if ($hueID && $colorID) {
-            $saturationID = @$this->GetIDForIdent("SATURATION");
+          if ($hueID && $clrID) {
+            $satID = @$this->GetIDForIdent("SATURATION");
 
-            if ($saturationID && $value != GetValueInteger($colorID)) {
+            if ($satID && $value != GetValueInteger($clrID)) {
               $hex = str_pad(dechex($value), 6, "0", STR_PAD_LEFT);
               $hsv = $this->lightifyBase->HEX2HSV($hex);
               $rgb = $this->lightifyBase->HEX2RGB($hex);
@@ -225,10 +225,10 @@ trait LightifyControl {
                   SetValue($hueID, $hsv['h']);
                 }
 
-                if (GetValue($saturationID) != $hsv['s']) {
-                  SetValue($saturationID, $hsv['s']);
+                if (GetValue($satID) != $hsv['s']) {
+                  SetValue($satID, $hsv['s']);
                 }
-                SetValue($colorID, $value);
+                SetValue($clrID, $value);
               }
               return $result;
             }
@@ -246,12 +246,12 @@ trait LightifyControl {
 
       case "COLOR_TEMPERATURE":
         if ($online && ($CCT || $Group)) {
-          $temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
+          $cctID = @$this->GetIDForIdent("COLOR_TEMPERATURE");
 
-          if ($temperatureID) {
-            $temperature = GetValueInteger($temperatureID);
+          if ($cctID) {
+            $cct = GetValueInteger($cctID);
 
-            if ($value != $temperature) {
+            if ($value != $cct) {
               $hex = dechex($value);
 
               if (strlen($hex) < 4) {
@@ -266,7 +266,7 @@ trait LightifyControl {
               $result = $this->sendData(classCommand::SET_COLOR_TEMPERATURE, $param);
 
               if ($result) {
-                SetValue($temperatureID, $value);
+                SetValue($cctID, $value);
               }
               return $result;
             }
@@ -276,12 +276,12 @@ trait LightifyControl {
 
       case "LEVEL":
         if ($online) {
-          $levelID = @$this->GetIDForIdent("LEVEL");
+          $lvlID = @$this->GetIDForIdent("LEVEL");
 
-          if ($levelID) {
-            $level = GetValueInteger($levelID);
+          if ($lvlID) {
+            $lvl = GetValueInteger($lvlID);
 
-            if ($value != $level) {
+            if ($value != $lvl) {
               $param = [
                 'flag'  => $flag,
                 'args'  => utf8_encode($UUID.chr((int)$value).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
@@ -297,7 +297,7 @@ trait LightifyControl {
                     SetValue($stateID, true);
                   }
                 }
-                SetValue($levelID, $value);
+                SetValue($lvlID, $value);
               }
               return $result;
             }
@@ -307,21 +307,22 @@ trait LightifyControl {
 
       case "SATURATION":
         if ($online && ($RGB || $Group)) {
-          $saturationID = @$this->GetIDForIdent("SATURATION");
-          $saturationID = ($Light && $saturationID) ? $saturationID : false;
+          $satID = @$this->GetIDForIdent("SATURATION");
+          $satID = ($Light && $satID) ? $satID : false;
 
-          if ($saturationID) {
-            $saturation = GetValueInteger($saturationID);
-            $colorID    = @$this->GetIDForIdent("COLOR");
-            $colorID    = ($RGB && $colorID) ? $colorID : false;
+          if ($satID) {
+            $sat = GetValueInteger($satID);
 
-            if ($colorID && $value != $saturation) {
+            $clrID = @$this->GetIDForIdent("COLOR");
+            $clrID = ($RGB && $clrID) ? $clrID : false;
+
+            if ($clrID && $value != $sat) {
               $hueID = @$this->GetIDForIdent("HUE");
 
               if ($hueID) {
-                $hex   = $this->lightifyBase->HSV2HEX(GetValueInteger($hueID), $value, 100);
-                $color = hexdec($hex);
-                $rgb   = $this->lightifyBase->HEX2RGB($hex);
+                $hex = $this->lightifyBase->HSV2HEX(GetValueInteger($hueID), $value, 100);
+                $clr = hexdec($hex);
+                $rgb = $this->lightifyBase->HEX2RGB($hex);
 
                 $param = [
                   'flag'  => $flag,
@@ -332,11 +333,11 @@ trait LightifyControl {
 
                 if ($result) {
                   if ($Light) {
-                    SetValue($saturationID, $value);
+                    SetValue($satID, $value);
                   }
 
-                  if ($RGB && GetValue($colorID) != $color) {
-                    SetValue($colorID, $color);
+                  if ($RGB && GetValue($clrID) != $clr) {
+                    SetValue($clrID, $clr);
                   }
                   return $result;
                 }
@@ -352,9 +353,9 @@ trait LightifyControl {
   }
 
 
-  public function WriteValueEx(string $key, int $value, int $transition) : bool {
+  public function WriteValueEx(string $key, int $value, int $fade) : bool {
 
-    $this->fade = $transition;
+    $this->fade = $fade;
     return $this->WriteValue($key, $value);
 
   }

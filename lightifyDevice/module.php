@@ -243,25 +243,26 @@ class LightifyDevice extends IPSModule {
       $CCT = ($type & 2) ? true: false;
       $CLR = ($type & 4) ? true: false;
 
-      $hue    = $color = $level      = vtNoString;
-      $temperature     = $saturation = vtNoString;
+      $hue = $color = $level = vtNoString;
+      $cct = $saturation     = vtNoString;
 
       if ($light) {
+        $rgb = $data['rgb'];
+        $hex = $this->lightifyBase->RGB2HEX($rgb);
+        $hsv = $this->lightifyBase->HEX2HSV($hex);
+
         $level = $data['level'];
         $white = $data['white'];
-        $rgb   = $data['rgb'];
-        $hex   = $this->lightifyBase->RGB2HEX($rgb);
-        $hsv   = $this->lightifyBase->HEX2HSV($hex);
       }
 
       if ($RGB) {
-        $hue        = $hsv['h'];
-        $color      = hexdec($hex);
+        $hue = $hsv['h'];
+        $color = hexdec($hex);
         $saturation = $hsv['s'];
       }
 
       if ($CCT) {
-        $temperature = $data['CCT'];
+        $cct = $data['cct'];
       }
 
       if (false === ($stateID = @$this->GetIDForIdent("STATE"))) {
@@ -330,11 +331,7 @@ class LightifyDevice extends IPSModule {
           }
 
           if ($saturationID) {
-            if ($disable) {
-              $this->DisableAction("SATURATION");
-            } else {
-              $this->EnableAction("SATURATION");
-            }
+            $this->DisableAction("SATURATION");
 
             if (!$disable && GetValueInteger($saturationID) != $saturation) {
               SetValueInteger($saturationID, $saturation);
@@ -343,23 +340,23 @@ class LightifyDevice extends IPSModule {
         }
 
         if ($CCT) {
-          if (false === ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE"))) {
+          if (false === ($cctID = @$this->GetIDForIdent("COLOR_TEMPERATURE"))) {
             $profile = ($RGB) ? "OSR.ColorTempExt" : "OSR.ColorTemp";
 
             //$this->MaintainVariable("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), vtInteger, "OSR.ColorTemp", 316, true);
-            //$temperatureID = $this->GetIDForIdent("COLOR_TEMPERATURE");
-            $temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), "OSR.ColorTemp", 316);
+            //$cctID = $this->GetIDForIdent("COLOR_TEMPERATURE");
+            $cctID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), "OSR.ColorTemp", 316);
           }
 
-          if ($temperatureID) {
+          if ($cctID) {
             if ($disable) {
               $this->DisableAction("COLOR_TEMPERATURE");
             } else {
               $this->EnableAction("COLOR_TEMPERATURE");
             }
 
-            if (!$disable && GetValueInteger($temperatureID) != $temperature) {
-              SetValueInteger($temperatureID, $temperature);
+            if (!$disable && GetValueInteger($cctID) != $cct) {
+              SetValueInteger($cctID, $cct);
             }
           }
         }

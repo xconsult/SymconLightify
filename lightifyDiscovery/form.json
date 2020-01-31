@@ -27,7 +27,7 @@
       "maximum": 1200,
       "onChange": "OSR_GlobalDiscovery($id, ['method' => 'set:timeout', 'value' => $timeSlider]);",
       "value": 300,
-      "width": "150px"
+      "width": "160px"
     },
     {
       "type": "Configurator",

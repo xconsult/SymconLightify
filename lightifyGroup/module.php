@@ -138,8 +138,8 @@ class LightifyGroup extends IPSModule {
     $newOnline = $online;
     $newState  = $state;
 
-    $hue = $color = $level      = vtNoValue;
-    $temperature  = $saturation = vtNoValue;
+    $hue = $color = $level = vtNoValue;
+    $cct = $saturation     = vtNoValue;
 
     foreach ($List as $device) {
       if (!$newState && (bool)$device['state']) {
@@ -158,8 +158,8 @@ class LightifyGroup extends IPSModule {
         $level = (int)$device['level'];
       }
 
-      if ($newState && $temperature == vtNoValue && $device['CCT'] != vtNoString) {
-        $temperature = (int)$device['CCT'];
+      if ($newState && $cct == vtNoValue && $device['cct'] != vtNoString) {
+        $cct = (int)$device['cct'];
       }
 
       if ($newState && $saturation == vtNoValue && $device['saturation'] != vtNoString) {
@@ -208,8 +208,8 @@ class LightifyGroup extends IPSModule {
       $this->MaintainVariable("COLOR", $this->Translate("Color"), vtInteger, "~HexColor", 315, true);
       $colorID = $this->GetIDForIdent("COLOR");
 
-      //$colorID = $this->RegisterVariableInteger("COLOR", $this->Translate("Color"), "~HexColor", 315);
-      //$colorID = $this->RegisterVariableInteger("COLOR", "Color", "~HexColor", 315);
+      //$clrID = $this->RegisterVariableInteger("COLOR", $this->Translate("Color"), "~HexColor", 315);
+      //$clrID = $this->RegisterVariableInteger("COLOR", "Color", "~HexColor", 315);
 
       IPS_SetIcon($colorID, "Paintbrush");
       $this->EnableAction("COLOR");
@@ -222,18 +222,18 @@ class LightifyGroup extends IPSModule {
     }
 
     //Color temperature control
-    if (false === ($temperatureID = @$this->GetIDForIdent("COLOR_TEMPERATURE"))) {
+    if (false === ($cctID = @$this->GetIDForIdent("COLOR_TEMPERATURE"))) {
       $this->MaintainVariable("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), vtInteger, "OSR.ColorTempExt", 316, true);
-      $temperatureID = $this->GetIDForIdent("COLOR_TEMPERATURE");
+      $cctID = $this->GetIDForIdent("COLOR_TEMPERATURE");
 
-      //$temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), "OSR.ColorTempExt", 316);
-      //$temperatureID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTempExt", 316);
+      //$cctID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", $this->Translate("Color Temperature"), "OSR.ColorTempExt", 316);
+      //$cctID = $this->RegisterVariableInteger("COLOR_TEMPERATURE", "Color Temperature", "OSR.ColorTempExt", 316);
       $this->EnableAction("COLOR_TEMPERATURE");
     }
 
-    if ($temperatureID && $temperature != vtNoValue) {
-      if ($temperature != GetValueInteger($temperatureID)) {
-        SetValueInteger($temperatureID, $temperature);
+    if ($cctID && $cct != vtNoValue) {
+      if ($cct != GetValueInteger($cctID)) {
+        SetValueInteger($cctID, $cct);
       }
     }
 
@@ -263,8 +263,7 @@ class LightifyGroup extends IPSModule {
       //$saturationID = $this->RegisterVariableInteger("SATURATION", $this->Translate("Saturation"), "OSR.Intensity", 318);
       //$saturationID = $this->RegisterVariableInteger("SATURATION", "Saturation", "OSR.Intensity", 318);
       IPS_SetIcon($saturationID, "Intensity");
-
-      $this->EnableAction("SATURATION");
+      //$this->EnableAction("SATURATION");
     }
 
     if ($saturationID && $saturation != vtNoValue) {
@@ -285,8 +284,8 @@ class LightifyGroup extends IPSModule {
       $type  = $device['type'];
       $state = $device['state'];
 
-      $hue    = $color = $level      = vtNoString;
-      $temperature     = $saturation = vtNoString;
+      $hue = $color = $level = vtNoString;
+      $cct = $saturation     = vtNoString;
 
       //Decode device info
       switch ($type) {
@@ -302,19 +301,18 @@ class LightifyGroup extends IPSModule {
           $CLR = ($type & 4) ? true: false;
 
           $level = $device['level'];
-          $white = $device['white'];
-          $rgb   = $device['rgb'];
-          $hex   = $this->lightifyBase->RGB2HEX($rgb);
-          $hsv   = $this->lightifyBase->HEX2HSV($hex);
+          $rgb = $device['rgb'];
+          $hex = $this->lightifyBase->RGB2HEX($rgb);
+          $hsv = $this->lightifyBase->HEX2HSV($hex);
 
           if ($RGB) {
-            $hue        = $hsv['h'];
-            $color      = hexdec($hex);
+            $hue = $hsv['h'];
+            $color = hexdec($hex);
             $saturation = $hsv['s'];
           }
 
           if ($CCT) {
-            $temperature = $device['CCT'];
+            $cct = $device['cct'];
           }
           break;
 
@@ -330,25 +328,25 @@ class LightifyGroup extends IPSModule {
         if ($module == "Plug") {
           $rowColor = self::ROW_COLOR_PLUG_ON;
         } else {
-          $rowColor = ($color != vtNoString) ? self::ROW_COLOR_LIGHT_ON : self::ROW_COLOR_CCT_ON;
+          $rowColor = ($clr != vtNoString) ? self::ROW_COLOR_LIGHT_ON : self::ROW_COLOR_CCT_ON;
         }
       } else {
         $rowColor = self::ROW_COLOR_STATE_OFF;
       }
 
       $List[] = [
-        'module'      => $this->translate($module),
-        'name'        => $device['name'],
-        'state'       => $state,
-        'hue'         => $hue,
-        'color'       => $color,
-        'CCT'         => $temperature,
-        'level'       => $level,
-        'saturation'  => $saturation,
-        'transition'  => vtNoString,
-        'zigBee'      => $device['zigBee'],
-        'firmware'    => $device['firmware'],
-        'rowColor'    => $rowColor
+        'module'     => $this->translate($module),
+        'name'       => $device['name'],
+        'state'      => $state,
+        'hue'        => $hue,
+        'color'      => $color,
+        'cct'        => $cct,
+        'level'      => $level,
+        'saturation' => $saturation,
+        'fade'       => vtNoString,
+        'zigBee'     => $device['zigBee'],
+        'firmware'   => $device['firmware'],
+        'rowColor'   => $rowColor
       ];
     }
 
