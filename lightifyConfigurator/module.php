@@ -506,7 +506,7 @@ class LightifyConfigurator extends IPSModule {
       $state = (bool)$List['state'];
 
       if ($state) {
-        IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $List['name']."|".$List['hue']."|".$List['color']."|".$List['cct']."|".$List['level']);
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $List['name']."|".$List['hue']."|".$List['color']."|".$List['cct']."|".$List['level']);
 
         $this->UpdateFormField("deviceName", "enabled", true);
         $this->UpdateFormField("deviceName", "value", $List['name']);
@@ -574,7 +574,7 @@ class LightifyConfigurator extends IPSModule {
     $result = OSR_WriteValue($List['id'], 'STATE', (bool)$List['state']);
     $status = json_decode($result);
 
-    if (!($status->flag && $status->code == 0)) {
+    if ($status->flag && $status->code == 0) {
       $this->loadDeviceConfiguration($List);
     }
 
