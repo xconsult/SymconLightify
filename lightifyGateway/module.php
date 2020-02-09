@@ -75,7 +75,7 @@ class LightifyGateway extends IPSModule {
   protected $oAuthIdent = "osram_lightify";
   protected $message = false;
 
-  protected $queue = [
+  protected $sendResult = [
     'flag' => false,
     'cmd'  => vtNoValue,
     'code' => vtNoValue
@@ -107,9 +107,6 @@ class LightifyGateway extends IPSModule {
 
     //Cloud Access Token
     $this->RegisterAttributeString("osramToken", vtNoString);
-
-    //Global settings
-    $this->SetBuffer("sendStatus", json_encode($this->queue));
 
     $this->RegisterAttributeString("deviceBuffer", vtNoString);
     $this->RegisterAttributeString("cloudDevices", vtNoString);
@@ -194,7 +191,7 @@ class LightifyGateway extends IPSModule {
     }
 
     //Buffer queue
-    $this->SetBuffer("sendStatus", json_encode($this->queue));
+    $this->SetBuffer("sendStatus", json_encode($this->sendResult));
 
     if ($this->ReadPropertyBoolean("cloudAPI")) {
       $this->RegisterOAuth($this->oAuthIdent);
@@ -320,31 +317,32 @@ class LightifyGateway extends IPSModule {
         return vtNoString;
     }
 
-    //Send data
+    //Disable timer and send data
+    $this->SetTimerInterval("timer", vtNoValue);
+
     $buffer = json_decode($data->buffer);
-    $status = json_encode($this->queue);
+    $status = json_encode($this->sendResult);
 
     //State functions
     if ($this->sendRaw($cmd, chr($buffer->flag), utf8_decode($buffer->args))) {
-      //Wait for function call
-      if (!empty($data)) {
-        $status = $this->waitReceive();
+      $status = $this->waitReceive();
 
-        //Sync groups
-        if ($method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_GROUP_NAME) {
-          $this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00));
-          return $this->waitReceive();
-        }
-
-        //Sync devixes
-        $this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01));
-
-        if ($method == classCommand::ADD_DEVICE_TO_GROUP || $method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_DEVICE_NAME) {
-          return $this->waitReceive();
+      //Sync groups
+      if ($method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_GROUP_NAME) {
+        if ($this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00))) {
+          $status = $this->waitReceive();
         }
       }
+
+      //Sync devixes
+      //if ($method == classCommand::ADD_DEVICE_TO_GROUP || $method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_DEVICE_NAME) {
+        if ($this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01))) {
+          $status = $this->waitReceive();
+        }
+      //}
     }
 
+    $this->SetTimerInterval("timer", $this->ReadPropertyInteger("update")*1000);
     return $status;
 
   }
@@ -487,7 +485,7 @@ class LightifyGateway extends IPSModule {
     //$this->requestID = ($this->requestID == classConstant::REQUESTID_HIGH) ? 1 : $this->requestID+1;
     //$data = $flag.chr($command).$this->lightifyBase->getRequestID($this->requestID);
 
-    $this->SetBuffer("sendStatus", json_encode($this->queue));
+    $this->SetBuffer("sendStatus", json_encode($this->sendResult));
     $buffer = $flag.chr($cmd).chr(0x00).chr(0x00).chr(0x00).chr(0x00);
 
     if (!empty($args)) {
@@ -1021,7 +1019,7 @@ class LightifyGateway extends IPSModule {
       $decode = json_decode($status);
 
       if ($decode->flag) {
-        $this->SetBuffer("sendStatus", json_encode($this->queue));
+        $this->SetBuffer("sendStatus", json_encode($this->sendResult));
         break;
       }
 

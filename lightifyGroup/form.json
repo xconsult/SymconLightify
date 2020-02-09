@@ -121,13 +121,13 @@
           "type": "Button",
           "caption": "On",
           "width": "100px",
-          "onClick": "OSR_WriteValue($id, 'STATE', true);"
+          "onClick": "OSR_GlobalGroupModule($id, ['method' => 'set:state', 'value' => true]);"
         },
         {
           "type": "Button",
           "caption": "Off",
           "width": "100px",
-          "onClick": "OSR_WriteValue($id, 'STATE', false);"
+          "onClick": "OSR_GlobalGroupModule($id, ['method' => 'set:state', 'value' => false]);"
         }
       ]
     }

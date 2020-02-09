@@ -172,7 +172,7 @@
                     "items": [
                       {
                         "type": "ValidationTextBox",
-                        "name": "newName",
+                        "name": "deviceName",
                         "enabled": false,
                         "value": "",
                         "caption": "Device name",
@@ -184,7 +184,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Rename",
-                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:device', 'list' => $listDevices, 'name' => $newName]);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:device', 'list' => $listDevices, 'name' => $deviceName]);"
                       }
                     ]
                   },
@@ -221,7 +221,23 @@
                     "items": [
                       {
                         "type": "Label",
-                        "width": "15px"
+                        "width": "20px"
+                      },
+                      {
+                        "type": "CheckBox",
+                        "name": "state",
+                        "enabled": false,
+                        "value": false,
+                        "caption": "Device On"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "RowLayout",
+                    "items": [
+                      {
+                        "type": "Label",
+                        "width": "20px"
                       },
                       {
                         "type": "ValidationTextBox",
@@ -233,7 +249,7 @@
                       },
                       {
                         "type": "Label",
-                        "width": "25px"
+                        "width": "30px"
                       },
                       {
                         "type": "SelectColor",
@@ -246,7 +262,7 @@
                       },
                       {
                         "type": "Label",
-                        "width": "40px"
+                        "width": "30px"
                       },
                       {
                         "type": "NumberSpinner",
@@ -261,7 +277,7 @@
                       },
                       {
                         "type": "Label",
-                        "width": "40px"
+                        "width": "30px"
                       },
                       {
                         "type": "NumberSpinner",
@@ -283,29 +299,32 @@
                     "type": "RowLayout",
                     "items": [
                       {
-                        "type": "Label",
-                        "width": "460px"
-                      },
-                      {
-                        "type": "Button",
-                        "name": "saveModul",
-                        "width": "126px",
-                        "enabled": false,
-                        "caption": "Save",
-                        "onClick": ""
-                      }
-                    ]
-                  },
-                  { 
-                    "type": "RowLayout",
-                    "items": [
-                      {
                         "type": "ProgressBar",
                         "name": "setupProgress",
                         "width": "586px",
                         "visible": false,
                         "indeterminate": true,
                         "caption": "Synchronisation in progress, please wait ..."
+                      },
+                      {
+                        "type": "Label",
+                        "width": "326px"
+                      },
+                      {
+                        "type": "Button",
+                        "name": "applyDevice",
+                        "width": "126px",
+                        "enabled": false,
+                        "caption": "Apply",
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'apply:device:values', 'list' => $listDevices, 'values' => [$color, $cct, $level]]);"
+                      },
+                      {
+                        "type": "Button",
+                        "name": "storeDevice",
+                        "width": "126px",
+                        "enabled": false,
+                        "caption": "Store",
+                        "onClick": ""
                       }
                     ]
                   }
@@ -334,7 +353,7 @@
                       },
                       {
                         "type": "ValidationTextBox",
-                        "name": "newName",
+                        "name": "groupName",
                         "enabled": false,
                         "value": "",
                         "caption": "Group name",
@@ -346,7 +365,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Rename",
-                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:group', 'list' => [$listGroups, $groupDevices], 'name' => $newName]);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:group', 'list' => $listGroups, 'name' => $groupName]);"
                       }
                     ]
                   },
@@ -451,7 +470,7 @@
                       },
                       {
                         "type": "ValidationTextBox",
-                        "name": "newName",
+                        "name": "groupNew",
                         "enabled": true,
                         "value": "",
                         "caption": "Group name",
@@ -503,7 +522,7 @@
                         "width": "126px",
                         "enabled": true,
                         "caption": "Create",
-                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'create:group', 'list' => $createDevices, 'name' => $createName]);"
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'create:group', 'list' => $createDevices, 'name' => $groupNew]);"
                       }
                     ]
                   }

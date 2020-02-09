@@ -11,6 +11,12 @@ trait LightifyControl {
   protected $lightifyBase;
   protected $fade = 0;
 
+  protected $sendResult = [
+    'flag' => false,
+    'cmd'  => vtNoValue,
+    'code' => vtNoValue
+  ];
+
   use InstanceStatus,
       InstanceHelper;
 
@@ -23,7 +29,7 @@ trait LightifyControl {
   }
 
 
-  private function sendData(int $cmd, array $param = []) : bool {
+  private function sendData(int $cmd, array $param = []) : string {
 
     //Add Instance id
     $param['id']  = $this->InstanceID;
@@ -35,7 +41,7 @@ trait LightifyControl {
     );
 
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", IPS_GetName($this->InstanceID)."|".$result);
-    return (bool)$result;
+    return $result;
 
   }
 
@@ -61,17 +67,17 @@ trait LightifyControl {
   }
 
 
-  public function WriteValue(string $key, int $value) : bool {
+  public function WriteValue(string $key, int $value) : string {
 
     if (!$this->HasActiveParent()) {
-      return false;
+      return json_encode($this->sendResult);
     }
 
     //Validate key
     $key = strtoupper($key);
 
     if (!in_array($key, explode(",", classConstant::WRITE_KEY_VALUES))) {
-      return false;
+      return json_encode($this->sendResult);
     }
 
     switch($key) {
@@ -88,7 +94,7 @@ trait LightifyControl {
             return $this->sendData(classConstant::SET_ALL_DEVICES, $param);
           }
         }
-        return false;
+        return json_encode($this->sendResult);
 
       case "SCENE":
         $param = [
@@ -147,7 +153,7 @@ trait LightifyControl {
             return $this->sendData(classCommand::SAVE_LIGHT_STATE, $param);
           }
         }
-        return false;
+        return json_encode($this->sendResult);
 
       case "SOFT_ON":
         $cmd = classCommand::SET_LIGHT_SOFT_ON;
@@ -163,7 +169,14 @@ trait LightifyControl {
             if ($this->ReadAttributeInteger("fade") != $value) {
               $this->WriteAttributeInteger("fade", $value);
             }
-            return true;
+
+            $result = [
+              'flag' => true,
+              'cmd'  => vtNoValue,
+              'code' => 0
+            ];
+            return json_encode($result);
+
           } else {
             $param = [
               'flag'  => $flag,
@@ -174,15 +187,21 @@ trait LightifyControl {
 
           }
         }
-        return false;
+        return json_encode($this->sendResult);
 
       case "LIGHTIFY_LOOP":
         if ($online && ($RGB || $Group)) {
           if ($value == 0 || $value == 1) {
-            return true;
+            $result = [
+              'flag' => true,
+              'cmd'  => vtNoValue,
+              'code' => 0
+            ];
+
+            return json_encode($result);
           }
         }
-        return false;
+        return json_encode($this->sendResult);
 
       case "STATE":
         if ($online && $stateID && ($value == 0 || $value == 1)) {
@@ -195,7 +214,7 @@ trait LightifyControl {
           $cmd = ($Group) ? classConstant::SET_GROUP_STATE : classCommand::SET_DEVICE_STATE;
           return $this->sendData($cmd, $param);
         }
-        return false;
+        return json_encode($this->sendResult);
 
       case "PLANT_LIGHT":
         $value = classConstant::SCENE_PLANT_LIGHT;
@@ -234,7 +253,7 @@ trait LightifyControl {
             }
           }
         }
-        return false;
+        return json_encode($this->sendResult);
 
       case "RELAX":
         $value = classConstant::SCENE_RELAX;
@@ -272,7 +291,7 @@ trait LightifyControl {
             }
           }
         }
-        return false;
+        return json_encode($this->sendResult);
 
       case "LEVEL":
         if ($online) {
@@ -303,7 +322,7 @@ trait LightifyControl {
             }
           }
         }
-        return false;
+        return json_encode($this->sendResult);
 
       case "SATURATION":
         if ($online && ($RGB || $Group)) {
@@ -345,15 +364,21 @@ trait LightifyControl {
             }
           }
         }
-        return false;
+        return json_encode($this->sendResult);
     }
 
-    return true;
+    $result = [
+      'flag' => true,
+      'cmd'  => vtNoValue,
+      'code' => 0
+    ];
+
+    return json_encode($result);
 
   }
 
 
-  public function WriteValueEx(string $key, int $value, int $fade) : bool {
+  public function WriteValueEx(string $key, int $value, int $fade) : string {
 
     $this->fade = $fade;
     return $this->WriteValue($key, $value);
@@ -369,7 +394,7 @@ trait LightifyControl {
   }
 
 
-  public function SetState(bool $state) : bool {
+  public function SetState(bool $state) : string {
 
     $stateID = @$this->GetIDForIdent("STATE");
     $allID   = @$this->GetIDForIdent("ALL_DEVICES");
@@ -379,15 +404,15 @@ trait LightifyControl {
       return $this->WriteValue($key, (int)$state);
     }
 
-    return false;
+    return json_encode($this->sendResult);
 
   }
 
 
-  public function WriteName(string $name) : bool {
+  public function WriteName(string $name) : string {
 
     if (!$this->HasActiveParent()) {
-      return false;
+      return json_encode($this->sendResult);
     }
 
     $module = $this->ReadPropertyString("module");
@@ -410,13 +435,13 @@ trait LightifyControl {
       'args'  => utf8_decode(($UUID).str_pad($name, classConstant::DATA_NAME_LENGTH).chr(0x00)),
       'value' => vtNoValue
     ];
-    $this->sendData($cmd, $param);
+    $result = $this->sendData($cmd, $param);
 
     if (IPS_GetName($this->InstanceID) != $name) {
       IPS_SetName($this->InstanceID, $name);
     }
 
-    return true;
+    return $result;
 
   }
 

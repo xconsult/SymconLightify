@@ -2,9 +2,10 @@
   "translations": {
     "de": {
       "Device can only be configured over the Configurator Instance!" : "Gerät kann nur über die Konfigurator Instanz erstellt werden!",
-      "Device [id]"                                                   : "Geräte [id]",
       "Module"                                                        : "Modul",
-      "Module ["                                                      : "Modul [",
+      "Extended informations"                                         : "Erweiterte Informationen",
+      "is connected to the following group(s)"                        : "ist mit den folgenden Gruppen verbunden",
+      "is not connected to a group"                                   : "ist mit keiner Gruppe verbunden",
       "On"                                                            : "An",
       "Off"                                                           : "Aus",
       "Save"                                                          : "Speichern",
@@ -15,7 +16,9 @@
       "Color Temperature"                                             : "Farbtemperatur",
       "Level"                                                         : "Helligkeit",
       "Saturation"                                                    : "Sättigung",
-      "Motion"                                                        : "Bewegung"
+      "Motion"                                                        : "Bewegung",
+      "Current Device settings were successfully stored!"             : "Die aktuellen Geräte Einstellungen wurden erfolgreich gespeichert!",
+      "Current Device settings were not stored!"                      : "Die aktuellen Geräte Einstellungen konnten nicht gespeichert werden!"
     }
   }
 }

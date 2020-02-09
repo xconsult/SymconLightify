@@ -69,24 +69,40 @@
           "type": "Button",
           "enabled ": true,
           "caption": "On",
-          "onClick": "OSR_SetState($id, true);",
+          "onClick": "OSR_GlobalDeviceModule($id, ['method' => 'set:state', 'value' => true]);",
           "width": "100px"
         },
         {
           "type": "Button",
           "enabled ": true,
           "caption": "Off",
-          "onClick": "OSR_SetState($id, false);",
+          "onClick": "OSR_GlobalDeviceModule($id, ['method' => 'set:state', 'value' => false]);",
           "width": "100px"
         },
         {
           "type": "Button",
           "enabled ": true,
           "caption": "Save",
-          "onClick": "OSR_WriteValue($id, 'SAVE', 1);",
+          "onClick": "OSR_GlobalDeviceModule($id, ['method' => 'set:save', 'value' => 1]);",
           "width": "100px"
         }
       ]
+    },
+    {
+      "type": "PopupAlert",
+      "name": "popupAlert",
+      "visible": false,
+      "popup": {
+        "closeCaption": "Close",
+        "items": [
+          {
+            "type": "Label",
+            "name": "alertMessage",
+            "width": "500px",
+            "caption": ""
+          }
+        ]
+      }
     }
   ]
 }

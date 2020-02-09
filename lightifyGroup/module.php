@@ -12,6 +12,7 @@ class LightifyGroup extends IPSModule {
   const ROW_COLOR_PLUG_ON   = "#cdfcc6";
   const ROW_COLOR_STATE_OFF = "#f6c3c2";
 
+  const METHOD_SET_STATE = "set:state";
   use LightifyControl;
 
 
@@ -81,6 +82,18 @@ class LightifyGroup extends IPSModule {
     ];
 
     return json_encode($formJSON);
+
+  }
+
+
+  public function GlobalGroupModule(array $param) : void {
+
+    switch ($param['method']) {
+      case self::METHOD_SET_STATE:
+        $result = OSR_WriteValue($this->InstanceID, 'STATE', (bool)$param['value']);
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
+        break;
+    }
 
   }
 
@@ -208,8 +221,8 @@ class LightifyGroup extends IPSModule {
       $this->MaintainVariable("COLOR", $this->Translate("Color"), vtInteger, "~HexColor", 315, true);
       $colorID = $this->GetIDForIdent("COLOR");
 
-      //$clrID = $this->RegisterVariableInteger("COLOR", $this->Translate("Color"), "~HexColor", 315);
-      //$clrID = $this->RegisterVariableInteger("COLOR", "Color", "~HexColor", 315);
+      //$colorID = $this->RegisterVariableInteger("COLOR", $this->Translate("Color"), "~HexColor", 315);
+      //$colorID = $this->RegisterVariableInteger("COLOR", "Color", "~HexColor", 315);
 
       IPS_SetIcon($colorID, "Paintbrush");
       $this->EnableAction("COLOR");
@@ -328,7 +341,7 @@ class LightifyGroup extends IPSModule {
         if ($module == "Plug") {
           $rowColor = self::ROW_COLOR_PLUG_ON;
         } else {
-          $rowColor = ($clr != vtNoString) ? self::ROW_COLOR_LIGHT_ON : self::ROW_COLOR_CCT_ON;
+          $rowColor = ($color != vtNoString) ? self::ROW_COLOR_LIGHT_ON : self::ROW_COLOR_CCT_ON;
         }
       } else {
         $rowColor = self::ROW_COLOR_STATE_OFF;

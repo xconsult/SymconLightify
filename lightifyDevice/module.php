@@ -7,6 +7,9 @@ require_once __DIR__.'/../libs/lightifyControl.php';
 
 class LightifyDevice extends IPSModule {
 
+  const METHOD_SET_STATE = "set:state";
+  const METHOD_SET_SAVE  = "set:save";
+
   use LightifyControl;
 
 
@@ -138,6 +141,33 @@ class LightifyDevice extends IPSModule {
     ];
 
     return json_encode($formJSON);
+
+  }
+
+
+  public function GlobalDeviceModule(array $param) : void {
+
+    switch ($param['method']) {
+      case self::METHOD_SET_STATE:
+        $result = OSR_WriteValue($this->InstanceID, 'STATE', (bool)$param['value']);
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
+        break;
+
+      case self::METHOD_SET_SAVE:
+        $result = OSR_WriteValue($this->InstanceID, 'SAVE', $param['value']);
+        $status = json_decode($result);
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
+
+        if ($status->flag || $status->code == 0) {
+          $caption = $this->Translate("Current Device settings were successfully stored!");
+        } else {
+          $caption = $this->Translate("Current Device settings were not stored!")."  Erno = ".$status->code;
+        }
+
+        $this->UpdateFormField("alertMessage", "caption", $caption);
+        $this->UpdateFormField("popupAlert", "visible", true);
+        break;
+    }
 
   }
 
