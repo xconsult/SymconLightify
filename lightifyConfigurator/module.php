@@ -26,7 +26,9 @@ class LightifyConfigurator extends IPSModule {
   const METHOD_SET_CONFIGURATION   = "set:configuration";
   const METHOD_LOAD_LIST_DEVICES   = "load:list:devices";
   const METHOD_LOAD_DEVICE_CONFIG  = "load:device:config";
+  const METHOD_STATE_CHANGE_DEVICE = "state:change:device";
   const METHOD_APPLY_DEVICE_VALUES = "apply:device:values";
+  const METHOD_STORE_DEVICE_VALUES = "store:device:values";
   const METHOD_LOAD_LIST_GROUPS    = "load:list:groups";
   const METHOD_RENAME_LIST_GROUP   = "rename:list:group";
   const METHOD_RENAME_LIST_DEVICE  = "rename:list:device";
@@ -220,8 +222,15 @@ class LightifyConfigurator extends IPSModule {
         $this->loadDeviceConfiguration($param['list']);
         break;
 
+      case self::METHOD_STATE_CHANGE_DEVICE:
+        $this->deviceStateChange($param['list']);
+        break;
+
       case self::METHOD_APPLY_DEVICE_VALUES:
-        $this->applyDeviceValues($param['list'], $param['values']);
+        $this->deviceApplyValues($param['list'], $param['values']);
+        break;
+
+      case self::METHOD_STORE_DEVICE_VALUES:
         break;
 
       case self::METHOD_LOAD_LIST_GROUPS:
@@ -270,12 +279,11 @@ class LightifyConfigurator extends IPSModule {
       case self::METHOD_LOAD_LIST_DEVICES:
         $this->UpdateFormField("deviceName", "value", vtNoString);
         $this->UpdateFormField("deviceName", "enabled", false);
-        $this->UpdateFormField("renameModul", "enabled", false);
 
         $this->setDeviceDefault();
-        $this->UpdateFormField("applyDevice", "enabled", false);
-        $this->UpdateFormField("storeDevice", "enabled", false);
-        $this->UpdateFormField("setupProgress", "visible", false);
+        $this->UpdateFormField("deviceApply", "enabled", false);
+        $this->UpdateFormField("deviceStore", "enabled", false);
+        $this->UpdateFormField("deviceProgress", "visible", false);
 
         if ($method == self::METHOD_LOAD_LIST_DEVICES) {
           break;
@@ -285,13 +293,13 @@ class LightifyConfigurator extends IPSModule {
         $this->UpdateFormField("groupID", "value", vtNoString);
         $this->UpdateFormField("groupName", "value", vtNoString);
         $this->UpdateFormField("groupName", "enabled", false);
-        $this->UpdateFormField("renameModul", "enabled", false);
+        $this->UpdateFormField("groupRename", "enabled", false);
 
         $this->UpdateFormField("listGroups", "values", json_encode($this->getListGroups()));
         $this->UpdateFormField("groupDevices", "values", json_encode([]));
 
-        $this->UpdateFormField("setupProgress", "visible", false);
-        $this->UpdateFormField("setupRefresh", "enabled", false);
+        $this->UpdateFormField("groupProgress", "visible", false);
+        $this->UpdateFormField("groupRefresh", "enabled", false);
 
         if ($method == self::METHOD_LOAD_LIST_GROUPS) {
           break;
@@ -492,118 +500,137 @@ class LightifyConfigurator extends IPSModule {
   private function loadDeviceConfiguration(object $List) : void {
 
     $this->UpdateFormField("type", "value", (int)$List['type']);
-    $this->UpdateFormField("setupProgress", "visible", false);
+    $this->UpdateFormField("deviceProgress", "visible", false);
 
     if ($List['online']) {
       $state = (bool)$List['state'];
-      $this->UpdateFormField("state", "enabled", true);
-      $this->UpdateFormField("state", "value", $state);
 
       if ($state) {
-        $enabled = false;
+        IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $List['name']."|".$List['hue']."|".$List['color']."|".$List['cct']."|".$List['level']);
 
         $this->UpdateFormField("deviceName", "enabled", true);
         $this->UpdateFormField("deviceName", "value", $List['name']);
-        $this->UpdateFormField("renameModul", "enabled", true);
 
-        if ($List['hue'] > vtNoValue) {
-          $enabled = true;
-          $this->UpdateFormField("hue", "value", (string)$List['hue']."°");
+        //Hue
+        $hue = $List['hue'];
+
+        if ($hue > vtNoValue) {
+          $this->UpdateFormField("hue", "value", (string)$hue."°");
         } else {
-          $this->setHueDefault();
+          $this->UpdateFormField("hue", "value", "0°");
         }
 
-        if ($List['color'] > vtNoValue) {
-          $enabled = true;
+        //Color
+        $color = $List['color'];
 
-          $this->UpdateFormField("color", "value", $List['color']);
+        if ($color > vtNoValue) {
+          $this->UpdateFormField("color", "value", $color);
           $this->UpdateFormField("color", "enabled", true);
         } else {
-          $this->setColorDefault();
+          $this->UpdateFormField("color", "value", vtNoValue);
+          $this->UpdateFormField("color", "enabled", false);
         }
 
-        if ($List['cct'] > vtNoValue) {
-          $enabled = true;
+        //CCT
+        $cct = $List['cct'];
 
-          $this->UpdateFormField("cct", "value", $List['cct']);
+        if ($cct > vtNoValue) {
+          $this->UpdateFormField("cct", "value", $cct);
           $this->UpdateFormField("cct", "enabled", true);
         } else {
-          $this->setTemperatureDefault();
+          $this->UpdateFormField("cct", "value", 2500);
+          $this->UpdateFormField("cct", "enabled", false);
         }
 
-        if ($List['level'] > vtNoValue) {
-          $enabled = true;
+        //Level
+        $level = $List['level'];
 
-          $this->UpdateFormField("level", "value", $List['level']);
+        if ($level > vtNoValue) {
+          $this->UpdateFormField("level", "value", $level);
           $this->UpdateFormField("level", "enabled", true);
         } else {
-          $this->setLevelDefault();
+          $this->UpdateFormField("level", "value", 0);
+          $this->UpdateFormField("level", "enabled", false);
         }
 
-        if ($enabled) {
-          $this->UpdateFormField("applyDevice", "enabled", true);
-        } else {
-          $this->UpdateFormField("applyDevice", "enabled", false);
-        }
+        $enabled = ($color > vtNoValue || $cct > vtNoValue || $level > vtNoValue) ? true : false;
+        $this->UpdateFormField("deviceApply", "enabled", $enabled);
+
+        return;
       }
-
-      return;
     }
-
-    $this->UpdateFormField("state", "value", false);
-    $this->UpdateFormField("state", "enabled", false);
 
     $this->UpdateFormField("deviceName", "value", vtNoString);
     $this->UpdateFormField("deviceName", "enabled", false);
-    $this->UpdateFormField("renameModul", "enabled", false);
 
     $this->setDeviceDefault();
-    $this->UpdateFormField("applyDevice", "enabled", false);
+    $this->UpdateFormField("deviceApply", "enabled", false);
 
   }
 
 
-  private function applyDeviceValues(object $List, array $values) : void {
+  private function deviceStateChange(object $List) : void {
 
-    $this->UpdateFormField("applyDevice", "visible", false);
-    $this->UpdateFormField("storeDevice", "visible", false);
-    $this->UpdateFormField("setupProgress", "visible", true);
+    $result = OSR_WriteValue($List['id'], 'STATE', (bool)$List['state']);
+    $status = json_decode($result);
 
-    list($color, $cct, $level) = $values;
+    if (!($status->flag && $status->code == 0)) {
+      $this->loadDeviceConfiguration($List);
+    }
+
+  }
+
+
+  private function deviceApplyValues(object $List, array $values) : void {
+
+    $this->UpdateFormField("deviceApply", "visible", false);
+    $this->UpdateFormField("deviceStore", "visible", false);
+    $this->UpdateFormField("deviceProgress", "visible", true);
+
+    list($newColor, $newCCT, $newLevel) = $values;
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $List['type']."|".$List['color']."|".$List['cct']."|".$List['level']);
 
-    if ($List['color'] > vtNoValue && $List['color'] != $color) {
-      $result = OSR_WriteValue($List['id'], 'COLOR', $color);
+    //Color
+    $color = $List['color'];
+
+    if ($color > vtNoValue && $color != $newColor) {
+      $result = OSR_WriteValue($List['id'], 'COLOR', $newColor);
       $status = json_decode($result);
 
       if (!($status->flag && $status->code == 0)) {
-        $color = $List['color'];
+        $newColor = $color;
       }
     }
 
-    if ($List['cct'] > vtNoValue && $List['cct'] != $cct) {
-      $result = OSR_WriteValue($List['id'], 'COLOR_TEMPERATURE', $cct);
+    //CCT
+    $cct = $List['cct'];
+
+    if ($cct > vtNoValue && $cct != $newCCT) {
+      $result = OSR_WriteValue($List['id'], 'COLOR_TEMPERATURE', $newCCT);
       $status = json_decode($result);
 
       if (!($status->flag && $status->code == 0)) {
-        $cct = $List['cct'];
+        $newCCT = $cct;
       }
     }
 
-    if ($List['level'] > vtNoValue && $List['level'] != $level) {
-      $result = OSR_WriteValue($List['id'], 'LEVEL', $level);
+    //Level
+    $level = $List['level'];
+
+    if ($level > vtNoValue && $level != $newLevel) {
+      $result = OSR_WriteValue($List['id'], 'LEVEL', $newLevel);
       $status = json_decode($result);
 
       if (!($status->flag && $status->code == 0)) {
-        $level = $List['level'];
+        $newLevel = $level;
       }
     }
 
     foreach ($List as $line) {
       if ($List['name'] == $line['name']) {
-        $line['color'] = $color;
-        $line['cct']   = $cct;
-        $line['level'] = $level;
+        $line['color'] = $newColor;
+        $line['level'] = $newLevel;
+        $line['cct']   = $newCCT;
       }
 
       $Devices[] = $line;
@@ -612,53 +639,29 @@ class LightifyConfigurator extends IPSModule {
     $this->UpdateFormField("listDevices", "values", json_encode($Devices));
     $this->initialFormFields(self::METHOD_LOAD_LIST_DEVICES);
 
-    $this->UpdateFormField("setupProgress", "visible", false);
-    $this->UpdateFormField("applyDevice", "visible", true);
-    $this->UpdateFormField("storeDevice", "visible", true);
+    $this->UpdateFormField("deviceProgress", "visible", false);
+    $this->UpdateFormField("deviceApply", "visible", true);
+    $this->UpdateFormField("deviceStore", "visible", true);
 
   }
 
 
   protected function setDeviceDefault() : void {
 
-    $this->UpdateFormField("state", "enabled", false);
-    $this->UpdateFormField("state", "value", false);
-
-    $this->setHueDefault();
-    $this->setColorDefault();
-    $this->setTemperatureDefault();
-    $this->setLevelDefault();
-
-  }
-
-
-  protected function setHueDefault() : void {
-
+    //Hue
     $this->UpdateFormField("hue", "value", "0°");
     $this->UpdateFormField("hue", "enabled", false);
 
-  }
-
-
-  protected function setColorDefault() : void {
-
-    $this->UpdateFormField("color", "value", -1);
+    //Color
+    $this->UpdateFormField("color", "value", vtNoValue);
     $this->UpdateFormField("color", "enabled", false);
 
-  }
-
-
-  protected function setTemperatureDefault() : void {
-
+    //CCT
     $this->UpdateFormField("cct", "value", 2500);
     $this->UpdateFormField("cct", "enabled", false);
 
-  }
-
-
-  protected function setLevelDefault() : void {
-
-    $this->UpdateFormField("level", "value", 100);
+    //Level
+    $this->UpdateFormField("level", "value", 0);
     $this->UpdateFormField("level", "enabled", false);
 
   }
@@ -677,8 +680,8 @@ class LightifyConfigurator extends IPSModule {
       $this->UpdateFormField("groupName", "enabled", true);
       $this->UpdateFormField("groupID", "value", $List['ID']);
       $this->UpdateFormField("groupName", "value", $List['name']);
-      $this->UpdateFormField("renameModul", "enabled", true);
-      $this->UpdateFormField("setupRefresh", "enabled", true);
+      $this->UpdateFormField("groupRename", "enabled", true);
+      $this->UpdateFormField("groupRefresh", "enabled", true);
     }
 
     $buffer  = $this->getListDevices();
@@ -731,8 +734,8 @@ class LightifyConfigurator extends IPSModule {
       $UUID = $List[1]['UUID'];
 
       //Set fields
-      $this->UpdateFormField("setupRefresh", "visible", false);
-      $this->UpdateFormField("setupProgress", "visible", true);
+      $this->UpdateFormField("groupRefresh", "visible", false);
+      $this->UpdateFormField("groupProgress", "visible", true);
 
       if ($value) {
         $cmd = classCommand::ADD_DEVICE_TO_GROUP;
@@ -785,15 +788,15 @@ class LightifyConfigurator extends IPSModule {
           }
         }
 
-        $this->UpdateFormField("setupProgress", "visible", false);
-        $this->UpdateFormField("setupRefresh", "visible", true);
+        $this->UpdateFormField("groupProgress", "visible", false);
+        $this->UpdateFormField("groupRefresh", "visible", true);
 
         return;
       }
       //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
 
       //Error handling
-      $this->UpdateFormField("setupProgress", "visible", false);
+      $this->UpdateFormField("groupProgress", "visible", false);
 
       if ($value) {
         $caption = $this->Translate("Adding device")." [".$device."] ".$this->Translate("to group")." [".$group."] ".$this->Translate("failed!");
@@ -835,9 +838,9 @@ class LightifyConfigurator extends IPSModule {
 
     if ($newName != $name) {
       if ($method == self::METHOD_RENAME_LIST_DEVICE) {
-        $this->UpdateFormField("applyDevice", "visible", false);
-        $this->UpdateFormField("storeDevice", "visible", false);
-        $this->UpdateFormField("setupProgress", "visible", true);
+        $this->UpdateFormField("deviceApply", "visible", false);
+        $this->UpdateFormField("deviceStore", "visible", false);
+        $this->UpdateFormField("deviceProgress", "visible", true);
 
         //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $UUID."|".$name."|".$newName);
         $cmd = classCommand::SET_DEVICE_NAME;
@@ -848,8 +851,8 @@ class LightifyConfigurator extends IPSModule {
           'value' => vtNoValue
         ];
       } else {
-        $this->UpdateFormField("setupRefresh", "visible", false);
-        $this->UpdateFormField("setupProgress", "visible", true);
+        $this->UpdateFormField("groupRefresh", "visible", false);
+        $this->UpdateFormField("groupProgress", "visible", true);
 
         //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $ID."|".$name."|".$newName);
         $cmd = classCommand::SET_GROUP_NAME;
@@ -869,15 +872,16 @@ class LightifyConfigurator extends IPSModule {
         if ($List['id'] && IPS_InstanceExists($List['id'])) {
           IPS_SetName($List['id'], $newName);
         }
-        $this->UpdateFormField("setupProgress", "visible", false);
 
         if ($method == self::METHOD_RENAME_LIST_DEVICE) {
           $this->loadListDevices(self::TYPE_SETUP_DEVCICE);
+          $this->UpdateFormField("deviceProgress", "visible", false);
 
-          $this->UpdateFormField("applyDevice", "visible", true);
-          $this->UpdateFormField("storeDevice", "visible", true);
+          $this->UpdateFormField("deviceApply", "visible", true);
+          $this->UpdateFormField("deviceStore", "visible", true);
         } else {
-          $this->UpdateFormField("setupRefresh", "visible", true);
+          $this->UpdateFormField("groupProgress", "visible", false);
+          $this->UpdateFormField("groupRefresh", "visible", true);
           $this->loadListGroups();
         }
 
@@ -885,8 +889,13 @@ class LightifyConfigurator extends IPSModule {
         $this->updateListConfigurator();
 
       } else {
-        $this->UpdateFormField("setupProgress", "visible", false);
-        $caption = ($method == self::METHOD_RENAME_LIST_DEVICE) ? "Rename of device"." [".$newName."] failed!" : "Rename of group"." [".$newName."] failed!";
+        if ($method == self::METHOD_RENAME_LIST_DEVICE) {
+          $caption = "Rename of device"." [".$newName."] failed!";
+          $this->UpdateFormField("deviceProgress", "visible", false);
+        } else {
+          $caption = "Rename of group"." [".$newName."] failed!";
+          $this->UpdateFormField("groupProgress", "visible", false);
+        }
 
         $this->UpdateFormField("alertMessage", "caption", $this->Translate($caption));
         $this->UpdateFormField("popupAlert", "visible", true);
@@ -920,7 +929,7 @@ class LightifyConfigurator extends IPSModule {
       return;
     }
 
-    $this->UpdateFormField("createGroup", "visible", false);
+    $this->UpdateFormField("groupCreate", "visible", false);
     $this->UpdateFormField("createProgress", "visible", true);
 
     foreach ($List as $line) {
@@ -951,7 +960,7 @@ class LightifyConfigurator extends IPSModule {
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $ID);
 
     $this->UpdateFormField("createProgress", "visible", false);
-    $this->UpdateFormField("createGroup", "visible", true);
+    $this->UpdateFormField("groupCreate", "visible", true);
 
     if ($success) {
       //usleep(150000);

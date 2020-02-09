@@ -180,7 +180,7 @@
                       },
                       {
                         "type": "Button",
-                        "name": "renameModul",
+                        "name": "deviceRename",
                         "width": "126px",
                         "enabled": false,
                         "caption": "Rename",
@@ -196,7 +196,7 @@
                         "name": "listDevices",
                         "caption": "Device list",
                         "rowCount": 5,
-                        "onEdit": "",
+                        "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'state:change:device', 'list' => $listDevices]);",
                         "columns": [
                           {
                             "name": "UUID",
@@ -205,8 +205,16 @@
                           { 
                             "caption": "Name",
                             "name": "name",
-                            "width": "562px",
+                            "width": "485px",
                             "onClick": "OSR_GlobalConfigurator($id, ['method' => 'load:device:config', 'list' => $listDevices]);"
+                          },
+                          { 
+                            "caption": "On/Off",
+                            "name": "state",
+                            "width": "65px",
+                            "edit": {
+                              "type": "CheckBox"
+                            }
                           }
                         ],
                         "values": []
@@ -224,26 +232,10 @@
                         "width": "20px"
                       },
                       {
-                        "type": "CheckBox",
-                        "name": "state",
-                        "enabled": false,
-                        "value": false,
-                        "caption": "Device On"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "RowLayout",
-                    "items": [
-                      {
-                        "type": "Label",
-                        "width": "20px"
-                      },
-                      {
                         "type": "ValidationTextBox",
                         "name": "hue",
                         "enabled": false,
-                        "value": "0°",
+                        "value": "",
                         "caption": "Hue",
                         "width": "40px"
                       },
@@ -255,7 +247,7 @@
                         "type": "SelectColor",
                         "name": "color",
                         "enabled": false,
-                        "value": -1,
+                        "value": "",
                         "caption": "Color",
                         "width": "160px",
                         "allowTransparent": true
@@ -268,7 +260,7 @@
                         "type": "NumberSpinner",
                         "name": "cct",
                         "enabled": true,
-                        "value": 2500,
+                        "value": "",
                         "caption": "CCT",
                         "suffix": "K",
                         "minimum": 2500,
@@ -283,7 +275,7 @@
                         "type": "NumberSpinner",
                         "name": "level",
                         "enabled": true,
-                        "value": 100,
+                        "value": "",
                         "caption": "Level",
                         "suffix": "%",
                         "minimum": 0,
@@ -300,7 +292,7 @@
                     "items": [
                       {
                         "type": "ProgressBar",
-                        "name": "setupProgress",
+                        "name": "deviceProgress",
                         "width": "586px",
                         "visible": false,
                         "indeterminate": true,
@@ -312,7 +304,7 @@
                       },
                       {
                         "type": "Button",
-                        "name": "applyDevice",
+                        "name": "deviceApply",
                         "width": "126px",
                         "enabled": false,
                         "caption": "Apply",
@@ -320,7 +312,7 @@
                       },
                       {
                         "type": "Button",
-                        "name": "storeDevice",
+                        "name": "deviceStore",
                         "width": "126px",
                         "enabled": false,
                         "caption": "Store",
@@ -361,7 +353,7 @@
                       },
                       {
                         "type": "Button",
-                        "name": "renameModul",
+                        "name": "groupRename",
                         "width": "126px",
                         "enabled": false,
                         "caption": "Rename",
@@ -426,7 +418,7 @@
                     "items": [
                       {
                         "type": "ProgressBar",
-                        "name": "setupProgress",
+                        "name": "groupProgress",
                         "width": "586px",
                         "visible": false,
                         "indeterminate": true,
@@ -438,7 +430,7 @@
                       },
                       {
                         "type": "Button",
-                        "name": "setupRefresh",
+                        "name": "groupRefresh",
                         "width": "126px",
                         "enabled": true,
                         "caption": "Refresh",
@@ -488,12 +480,12 @@
                       {
                         "caption": "Name",
                         "name": "name",
-                        "width": "190px"
+                        "width": "524px"
                       },
                       {
                         "caption": "",
                         "name": "value",
-                        "width": "auto",
+                        "width": "25px",
                         "edit": {
                           "type": "CheckBox"
                         }
@@ -518,7 +510,7 @@
                       },
                       {
                         "type": "Button",
-                        "name": "createGroup",
+                        "name": "groupCreate",
                         "width": "126px",
                         "enabled": true,
                         "caption": "Create",
