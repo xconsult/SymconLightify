@@ -15,61 +15,61 @@ define('LIGHITFY_GATEWAY_OFFLINE',        5019);
 
 class LightifyGateway extends IPSModule {
 
-  const OAUTH_AUTHORIZE      = "https://oauth.ipmagic.de/authorize/";
-  const OAUTH_FORWARD        = "https://oauth.ipmagic.de/forward/";
-  const OAUTH_ACCESS_TOKEN   = "https://oauth.ipmagic.de/access_token/";
-  const AUTHENTICATION_TYPE  = "Bearer";
+  private const OAUTH_AUTHORIZE      = "https://oauth.ipmagic.de/authorize/";
+  private const OAUTH_FORWARD        = "https://oauth.ipmagic.de/forward/";
+  private const OAUTH_ACCESS_TOKEN   = "https://oauth.ipmagic.de/access_token/";
+  private const AUTHENTICATION_TYPE  = "Bearer";
 
-  const RESOURCE_SESSION     = "/session";
-  const LIGHTIFY_EUROPE      = "https://emea.lightify-api.com/";
-  const LIGHTIFY_USA         = "https://na.lightify-api.com/";
-  const LIGHTIFY_VERSION     = "v4/";
+  private const RESOURCE_SESSION     = "/session";
+  private const LIGHTIFY_EUROPE      = "https://emea.lightify-api.com/";
+  private const LIGHTIFY_USA         = "https://na.lightify-api.com/";
+  private const LIGHTIFY_VERSION     = "v4/";
 
-  const PROTOCOL_VERSION     =  1;
-  const HEADER_AUTHORIZATION = "Authorization: Bearer ";
-  const HEADER_FORM_CONTENT  = "Content-Type: application/x-www-form-urlencoded";
-  const HEADER_JSON_CONTENT  = "Content-Type: application/json";
+  private const PROTOCOL_VERSION     =  1;
+  private const HEADER_AUTHORIZATION = "Authorization: Bearer ";
+  private const HEADER_FORM_CONTENT  = "Content-Type: application/x-www-form-urlencoded";
+  private const HEADER_JSON_CONTENT  = "Content-Type: application/json";
 
-  const RESSOURCE_DEVICES    = "devices/";
-  const RESSOURCE_GROUPS     = "groups/";
-  const RESSOURCE_SCENES     = "scenes/";
+  private const RESSOURCE_DEVICES    = "devices/";
+  private const RESSOURCE_GROUPS     = "groups/";
+  private const RESSOURCE_SCENES     = "scenes/";
 
-  const LIGHTIFY_MAXREDIRS   = 10;
-  const LIGHTIFY_TIMEOUT     = 30;
+  private const LIGHTIFY_MAXREDIRS   = 10;
+  private const LIGHTIFY_TIMEOUT     = 30;
 
-  const HUE_MIN              = 0;
-  const HUE_MAX              = 360;
-  const COLOR_MIN            = "0000ff";
-  const COLOR_MAX            = "ffffff";
-  const LEVEL_MIN            = 0;
-  const LEVEL_MAX            = 100;
-  const SATURATION_MIN       = 0;
-  const SATURATION_MAX       = 100;
-  const INTENSITY_MIN        = 0;
-  const INTENSITY_MAX        = 100;
+  private const HUE_MIN              = 0;
+  private const HUE_MAX              = 360;
+  private const COLOR_MIN            = "0000ff";
+  private const COLOR_MAX            = "ffffff";
+  private const LEVEL_MIN            = 0;
+  private const LEVEL_MAX            = 100;
+  private const SATURATION_MIN       = 0;
+  private const SATURATION_MAX       = 100;
+  private const INTENSITY_MIN        = 0;
+  private const INTENSITY_MAX        = 100;
 
-  const METHOD_APPLY_CONFIG  = "apply:config";
-  const METHOD_LOAD_LOCAL    = "load:local";
+  private const METHOD_APPLY_CONFIG  = "apply:config";
+  private const METHOD_LOAD_LOCAL    = "load:local";
 
-  const BUFFER_HEADER_LENGTH = 8;
-  const BUFFER_REPLY_LENGTH  = 11;
+  private const BUFFER_HEADER_LENGTH = 8;
+  private const BUFFER_REPLY_LENGTH  = 11;
 
-  const DATA_DEVICE_LOADED   = 50;
-  const DATA_DEVICE_LENGTH   = 41;
-  const DATA_GROUP_LENGTH    = 18;
-  const DATA_SCENE_LENGTH    = 20;
-  const DATA_WIFI_LENGTH     = 97;
+  private const DATA_DEVICE_LOADED   = 50;
+  private const DATA_DEVICE_LENGTH   = 41;
+  private const DATA_GROUP_LENGTH    = 18;
+  private const DATA_SCENE_LENGTH    = 20;
+  private const DATA_WIFI_LENGTH     = 97;
 
-  const GET_WIFI_CONFIG      = 0x00;
-  const SET_WIFI_CONFIG      = 0x01;
-  const SCAN_WIFI_CONFIG     = 0x03;
+  private const GET_WIFI_CONFIG      = 0x00;
+  private const SET_WIFI_CONFIG      = 0x01;
+  private const SCAN_WIFI_CONFIG     = 0x03;
 
-  const WIFI_PROFILE_LENGTH  = 31;
-  const WIFI_SSID_LENGTH     = 32;
-  const WIFI_BSSID_LENGTH    = 5;
-  const WIFI_CHANNEL_LENGTH  = 3;
+  private const WIFI_PROFILE_LENGTH  = 31;
+  private const WIFI_SSID_LENGTH     = 32;
+  private const WIFI_BSSID_LENGTH    = 5;
+  private const WIFI_CHANNEL_LENGTH  = 3;
 
-  const REQUESTID_HIGH       = 4294967295;
+  private const REQUESTID_HIGH       = 4294967295;
 
   protected $lightifyBase;
   protected $oAuthIdent = "osram_lightify";

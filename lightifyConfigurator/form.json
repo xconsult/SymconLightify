@@ -316,7 +316,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Store",
-                        "onClick": ""
+                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices]);"
                       }
                     ]
                   }
@@ -458,6 +458,7 @@
                         "name": "createID",
                         "enabled": false,
                         "value": "",
+                        "caption": "ID",
                         "width": "30px"
                       },
                       {

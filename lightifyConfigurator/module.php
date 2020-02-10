@@ -8,61 +8,61 @@ require_once __DIR__.'/../libs/lightifyClass.php';
 
 class LightifyConfigurator extends IPSModule {
 
-  const ROW_COLOR_OFFLINE = "#f6c3c2";
+  private const ROW_COLOR_OFFLINE = "#f6c3c2";
 
-  const DEVICE_ITEM_INDEX = 1000;
-  const GROUP_ITEM_INDEX  = 2000;
-  const SCENE_ITEM_INDEX  = 3000;
+  private const DEVICE_ITEM_INDEX = 1000;
+  private const GROUP_ITEM_INDEX  = 2000;
+  private const SCENE_ITEM_INDEX  = 3000;
 
-  const MODE_DEVICES_CONFIGURATOR  = "devices:configurator";
-  const MODE_DEVICES_LIST          = "devices:list";
-  const MODE_GROUPS_CONFIGURATOR   = "groups:configurator";
-  const MODE_GROUPS_LIST           = "groups:list";
+  private const MODE_DEVICES_CONFIGURATOR  = "devices:configurator";
+  private const MODE_DEVICES_LIST          = "devices:list";
+  private const MODE_GROUPS_CONFIGURATOR   = "groups:configurator";
+  private const MODE_GROUPS_LIST           = "groups:list";
 
-  const METHOD_CLEAR_ALL           = "clear:all";
-  const METHOD_API_REGISTER        = "api:register";
-  const METHOD_LOAD_LOCATIONS      = "load:locations";
-  const METHOD_SET_LOCATIONS       = "set:locations";
-  const METHOD_SET_CONFIGURATION   = "set:configuration";
-  const METHOD_LOAD_LIST_DEVICES   = "load:list:devices";
-  const METHOD_LOAD_DEVICE_CONFIG  = "load:device:config";
-  const METHOD_STATE_CHANGE_DEVICE = "state:change:device";
-  const METHOD_APPLY_DEVICE_VALUES = "apply:device:values";
-  const METHOD_STORE_DEVICE_VALUES = "store:device:values";
-  const METHOD_LOAD_LIST_GROUPS    = "load:list:groups";
-  const METHOD_RENAME_LIST_GROUP   = "rename:list:group";
-  const METHOD_RENAME_LIST_DEVICE  = "rename:list:device";
-  const METHOD_LOAD_GROUP_CONFIG   = "load:group:config";
-  const METHOD_SET_GROUP_CONFIG    = "set:group:config";
-  const METHOD_CREATE_GROUP        = "create:group";
-  const METHOD_ADD_DEVICE_LIST     = "add:device:list";
+  private const METHOD_CLEAR_ALL           = "clear:all";
+  private const METHOD_API_REGISTER        = "api:register";
+  private const METHOD_LOAD_LOCATIONS      = "load:locations";
+  private const METHOD_SET_LOCATIONS       = "set:locations";
+  private const METHOD_SET_CONFIGURATION   = "set:configuration";
+  private const METHOD_LOAD_LIST_DEVICES   = "load:list:devices";
+  private const METHOD_LOAD_DEVICE_CONFIG  = "load:device:config";
+  private const METHOD_STATE_CHANGE_DEVICE = "state:change:device";
+  private const METHOD_APPLY_DEVICE_VALUES = "apply:device:values";
+  private const METHOD_STORE_DEVICE_VALUES = "store:device:values";
+  private const METHOD_LOAD_LIST_GROUPS    = "load:list:groups";
+  private const METHOD_RENAME_LIST_GROUP   = "rename:list:group";
+  private const METHOD_RENAME_LIST_DEVICE  = "rename:list:device";
+  private const METHOD_LOAD_GROUP_CONFIG   = "load:group:config";
+  private const METHOD_SET_GROUP_CONFIG    = "set:group:config";
+  private const METHOD_CREATE_GROUP        = "create:group";
+  private const METHOD_ADD_DEVICE_LIST     = "add:device:list";
 
-  const TYPE_CREATE_GROUP   = "create:group";
-  const TYPE_SETUP_DEVCICE  = "setup:device";
+  private const TYPE_CREATE_GROUP     = "create:group";
+  private const TYPE_SETUP_DEVCICE    = "setup:device";
 
-  const MODE_CONFIG_INITIAL = "config:initial";
-  const MODE_CONFIG_LOADED  = "config:loaded";
+  private const MODE_CONFIG_INITIAL   = "config:initial";
+  private const MODE_CONFIG_LOADED    = "config:loaded";
 
-  const MODEL_MANUFACTURER  = "OSRAM";
-  const MODEL_PLUG_ONOFF    = "PLUG";
-  const MODEL_UNKNOWN       = "UNKNOWN";
+  private const MODEL_MANUFACTURER    = "OSRAM";
+  private const MODEL_PLUG_ONOFF      = "PLUG";
+  private const MODEL_UNKNOWN         = "UNKNOWN";
 
-  const LABEL_ALL_DEVICES     = "On|Off";
-  const LABEL_FIXED_WHITE     = "On|Off";
-  const LABEL_LIGHT_CCT       = "On|Off Level Temperature";
-  const LABEL_LIGHT_DIMABLE   = "On|Off Level";
-  const LABEL_LIGHT_COLOR     = "On|Off Level Colour";
-  const LABEL_LIGHT_EXT_COLOR = "On|Off Level Colour Temperature";
-  const LABEL_PLUG_ONOFF      = "On|Off";
-  const LABEL_SENSOR_MOTION   = "Active|Inactive";
-  const LABEL_SENSOR_CONTACT  = "Active|Inactive";
-  const LABEL_DIMMER_2WAY     = "2 Button Dimmer";
-  const LABEL_SWITCH_MINI     = "3 Button Switch Mini";
-  const LABEL_SWITCH_4WAY     = "4 Button Switch";
-  const LABEL_GROUP_ONOFF     = "On|Off";
-  const LABEL_SCENE_APPLY     = "Apply";
-  const LABEL_NO_CAPABILITY   = "-";
-  const LABEL_UNKNOWN         = "-Unknown-";
+  private const LABEL_ALL_DEVICES     = "On|Off";
+  private const LABEL_FIXED_WHITE     = "On|Off";
+  private const LABEL_LIGHT_CCT       = "On|Off Level Temperature";
+  private const LABEL_LIGHT_DIMABLE   = "On|Off Level";
+  private const LABEL_LIGHT_COLOR     = "On|Off Level Colour";
+  private const LABEL_LIGHT_EXT_COLOR = "On|Off Level Colour Temperature";
+  private const LABEL_PLUG_ONOFF      = "On|Off";
+  private const LABEL_SENSOR_MOTION   = "Active|Inactive";
+  private const LABEL_SENSOR_CONTACT  = "Active|Inactive";
+  private const LABEL_DIMMER_2WAY     = "2 Button Dimmer";
+  private const LABEL_SWITCH_MINI     = "3 Button Switch Mini";
+  private const LABEL_SWITCH_4WAY     = "4 Button Switch";
+  private const LABEL_GROUP_ONOFF     = "On|Off";
+  private const LABEL_SCENE_APPLY     = "Apply";
+  private const LABEL_NO_CAPABILITY   = "-";
+  private const LABEL_UNKNOWN         = "-Unknown-";
 
   protected $lightifyBase;
 
@@ -231,6 +231,7 @@ class LightifyConfigurator extends IPSModule {
         break;
 
       case self::METHOD_STORE_DEVICE_VALUES:
+        $this->deviceStoreValues($param['list']);
         break;
 
       case self::METHOD_LOAD_LIST_GROUPS:
@@ -555,6 +556,7 @@ class LightifyConfigurator extends IPSModule {
 
         $enabled = ($color > vtNoValue || $cct > vtNoValue || $level > vtNoValue) ? true : false;
         $this->UpdateFormField("deviceApply", "enabled", $enabled);
+        $this->UpdateFormField("deviceStore", "enabled", $enabled);
 
         return;
       }
@@ -565,6 +567,7 @@ class LightifyConfigurator extends IPSModule {
 
     $this->setDeviceDefault();
     $this->UpdateFormField("deviceApply", "enabled", false);
+    $this->UpdateFormField("deviceStore", "enabled", false);
 
   }
 
@@ -576,6 +579,8 @@ class LightifyConfigurator extends IPSModule {
 
     if ($status->flag && $status->code == 0) {
       $this->loadDeviceConfiguration($List);
+    } else {
+      //ToDo: Error handling
     }
 
   }
@@ -638,6 +643,26 @@ class LightifyConfigurator extends IPSModule {
 
     $this->UpdateFormField("listDevices", "values", json_encode($Devices));
     $this->initialFormFields(self::METHOD_LOAD_LIST_DEVICES);
+
+    $this->UpdateFormField("deviceApply", "visible", true);
+    $this->UpdateFormField("deviceStore", "visible", true);
+
+  }
+
+
+  private function deviceStoreValues(object $List) : void {
+
+    $this->UpdateFormField("deviceApply", "visible", false);
+    $this->UpdateFormField("deviceStore", "visible", false);
+    $this->UpdateFormField("deviceProgress", "visible", true);
+
+
+    $result = OSR_WriteValue($List['id'], 'SAVE', true);
+    $status = json_decode($result);
+
+    if (!($status->flag && $status->code == 0)) {
+      //ToDo: Error handling
+    }
 
     $this->UpdateFormField("deviceProgress", "visible", false);
     $this->UpdateFormField("deviceApply", "visible", true);

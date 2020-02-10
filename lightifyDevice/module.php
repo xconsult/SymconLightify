@@ -7,8 +7,8 @@ require_once __DIR__.'/../libs/lightifyControl.php';
 
 class LightifyDevice extends IPSModule {
 
-  const METHOD_SET_STATE = "set:state";
-  const METHOD_SET_SAVE  = "set:save";
+  private const METHOD_SET_STATE = "set:state";
+  private const METHOD_SET_SAVE  = "set:save";
 
   use LightifyControl;
 

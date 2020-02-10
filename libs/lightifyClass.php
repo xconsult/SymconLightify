@@ -24,27 +24,27 @@ class classCommand {
   # DB Set light soft on
   # DC Set light soft off
 
-  const GET_DEVICE_LIST          = 0x13;
-  const GET_GROUP_LIST           = 0x1E;
-  const GET_SCENE_LIST           = 0x1F;
-  const ADD_DEVICE_TO_GROUP      = 0x20;
-  const RENOVE_DEVICE_FROM_GROUP = 0x21;
-  const GET_GROUP_INFO           = 0x26;
-  const SET_GROUP_NAME           = 0x27;
-  const SET_DEVICE_NAME          = 0x28;
-  const SET_LIGHT_LEVEL          = 0x31;
-  const SET_DEVICE_STATE         = 0x32;
-  const SET_COLOR_TEMPERATURE    = 0x33;
-  const SET_LIGHT_COLOR          = 0x36;
-  const SET_LIGHT_SATURATION     = 0x36;
-  const SAVE_LIGHT_STATE         = 0x38;
-  const ACTIVATE_GROUP_SCENE     = 0x52;
-  const GET_DEVICE_INFO          = 0x68;
-  const GET_GATEWAY_FIRMWARE     = 0x6F;
-  const CYCLE_LIGHT_COLOR        = 0xD5;
-  const SET_LIGHT_SOFT_ON        = 0xDB;
-  const SET_LIGHT_SOFT_OFF       = 0xDC;
-  const GET_GATEWAY_WIFI         = 0xE3;
+  public const GET_DEVICE_LIST          = 0x13;
+  public const GET_GROUP_LIST           = 0x1E;
+  public const GET_SCENE_LIST           = 0x1F;
+  public const ADD_DEVICE_TO_GROUP      = 0x20;
+  public const RENOVE_DEVICE_FROM_GROUP = 0x21;
+  public const GET_GROUP_INFO           = 0x26;
+  public const SET_GROUP_NAME           = 0x27;
+  public const SET_DEVICE_NAME          = 0x28;
+  public const SET_LIGHT_LEVEL          = 0x31;
+  public const SET_DEVICE_STATE         = 0x32;
+  public const SET_COLOR_TEMPERATURE    = 0x33;
+  public const SET_LIGHT_COLOR          = 0x36;
+  public const SET_LIGHT_SATURATION     = 0x36;
+  public const SAVE_LIGHT_STATE         = 0x38;
+  public const ACTIVATE_GROUP_SCENE     = 0x52;
+  public const GET_DEVICE_INFO          = 0x68;
+  public const GET_GATEWAY_FIRMWARE     = 0x6F;
+  public const CYCLE_LIGHT_COLOR        = 0xD5;
+  public const SET_LIGHT_SOFT_ON        = 0xDB;
+  public const SET_LIGHT_SOFT_OFF       = 0xDC;
+  public const GET_GATEWAY_WIFI         = 0xE3;
 
 }
 
@@ -52,76 +52,76 @@ class classCommand {
 //Constants
 class classConstant {
 
-  const CLIENT_SOCKET  = "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}";
-  const RX_VIRTUAL     = "{018EF6B5-AB94-40C6-AA53-46943E824ACF}";
-  const TX_VIRTUAL     = "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}";
+  public const CLIENT_SOCKET  = "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}";
+  public const RX_VIRTUAL     = "{018EF6B5-AB94-40C6-AA53-46943E824ACF}";
+  public const TX_VIRTUAL     = "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}";
 
-  const MODULE_GATEWAY = "{C3859938-D71C-4714-8B02-F2889A62F481}";
-  const MODULE_DEVICE  = "{0028DE9E-6155-451A-97E1-7D2D1563F5BA}";
-  const MODULE_GROUP   = "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}";
-  const MODULE_SCENE   = "{4C839FA9-6926-4548-8105-DA5B111E39C3}";
+  public const MODULE_GATEWAY = "{C3859938-D71C-4714-8B02-F2889A62F481}";
+  public const MODULE_DEVICE  = "{0028DE9E-6155-451A-97E1-7D2D1563F5BA}";
+  public const MODULE_GROUP   = "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}";
+  public const MODULE_SCENE   = "{4C839FA9-6926-4548-8105-DA5B111E39C3}";
 
-  const TX_GATEWAY     = "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}";
-  const TX_DEVICE      = "{0EC8C035-D581-4DF2-880D-E3C400F41682}";
-  const TX_GROUP       = "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}";
-  const TX_SCENE       = "{1C913701-904E-4EAD-9A70-702597567A0F}";
+  public const TX_GATEWAY     = "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}";
+  public const TX_DEVICE      = "{0EC8C035-D581-4DF2-880D-E3C400F41682}";
+  public const TX_GROUP       = "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}";
+  public const TX_SCENE       = "{1C913701-904E-4EAD-9A70-702597567A0F}";
 
-  const GATEWAY_PORT           = 4000;
-  const TIMER_SYNC             = 5;
-  const GATEWAY_SERIAL_LENGTH  = 11;
+  public const GATEWAY_PORT           = 4000;
+  public const TIMER_SYNC             = 5;
+  public const GATEWAY_SERIAL_LENGTH  = 11;
 
-  const UUID_OSRAM_LENGTH      = 8;
-  const DATA_NAME_LENGTH       = 15;
+  public const UUID_OSRAM_LENGTH      = 8;
+  public const DATA_NAME_LENGTH       = 15;
 
-  const GET_DEVICES_LOCAL      = 1001;
-  const GET_DEVICES_CLOUD      = 1002;
-  const GET_GROUPS_LOCAL       = 1003;
-  const GET_GROUPS_CLOUD       = 1004;
-  const GET_SCENES_LOCAL       = 1005;
-  const GET_SCENES_CLOUD       = 1006;
+  public const GET_DEVICES_LOCAL      = 1001;
+  public const GET_DEVICES_CLOUD      = 1002;
+  public const GET_GROUPS_LOCAL       = 1003;
+  public const GET_GROUPS_CLOUD       = 1004;
+  public const GET_SCENES_LOCAL       = 1005;
+  public const GET_SCENES_CLOUD       = 1006;
 
-  const SET_ALL_DEVICES        = 1010;
-  const SET_GROUP_STATE        = 1011;
-  const SET_LIGHT_SATURATION   = 1012;
+  public const SET_ALL_DEVICES        = 1010;
+  public const SET_GROUP_STATE        = 1011;
+  public const SET_LIGHT_SATURATION   = 1012;
 
-  const TYPE_FIXED_WHITE       = 1;   //Fixed White
-  const TYPE_LIGHT_CCT         = 2;   //Tuneable White
-  const TYPE_LIGHT_DIMABLE     = 4;   //Can only control level
-  const TYPE_LIGHT_COLOR       = 8;   //Fixed White and RGB
-  const TYPE_LIGHT_EXT_COLOR   = 10;  //Tuneable White and RGBW
-  const TYPE_PLUG_ONOFF        = 16;  //Only On/off capable lamp/device
-  const TYPE_SENSOR_CONTACT    = 31;  //Contact sensor
-  const TYPE_SENSOR_MOTION     = 32;  //Motion sensor
-  const TYPE_DIMMER_2WAY       = 64;  //2 button dimmer
-  const TYPE_SWITCH_4WAY       = 65;  //4 butten switch
-  const TYPE_SWITCH_MINI       = 66;  //Switch Mini
-  const TYPE_SWITCH_UKNOWN     = 67;  //Unknown switch
-  const TYPE_LIGHT_CCT_TRADFRI = 128; //Tradfri Tuneable White
+  public const TYPE_FIXED_WHITE       = 1;   //Fixed White
+  public const TYPE_LIGHT_CCT         = 2;   //Tuneable White
+  public const TYPE_LIGHT_DIMABLE     = 4;   //Can only control level
+  public const TYPE_LIGHT_COLOR       = 8;   //Fixed White and RGB
+  public const TYPE_LIGHT_EXT_COLOR   = 10;  //Tuneable White and RGBW
+  public const TYPE_PLUG_ONOFF        = 16;  //Only On/off capable lamp/device
+  public const TYPE_SENSOR_CONTACT    = 31;  //Contact sensor
+  public const TYPE_SENSOR_MOTION     = 32;  //Motion sensor
+  public const TYPE_DIMMER_2WAY       = 64;  //2 button dimmer
+  public const TYPE_SWITCH_4WAY       = 65;  //4 butten switch
+  public const TYPE_SWITCH_MINI       = 66;  //Switch Mini
+  public const TYPE_SWITCH_UKNOWN     = 67;  //Unknown switch
+  public const TYPE_LIGHT_CCT_TRADFRI = 128; //Tradfri Tuneable White
 
-  const TYPE_DEVICE            = 0;   // 0x00
-  const TYPE_DEVICE_GROUP      = 240; // 0xF0
-  const TYPE_GROUP_SCENE       = 241; // 0xF1
-  const TYPE_ALL_DEVICES       = 255; // 0xFF
+  public const TYPE_DEVICE            = 0;   // 0x00
+  public const TYPE_DEVICE_GROUP      = 240; // 0xF0
+  public const TYPE_GROUP_SCENE       = 241; // 0xF1
+  public const TYPE_ALL_DEVICES       = 255; // 0xFF
 
-  const CTEMP_DIMABLE_MIN      = 2700;
-  const CTEMP_DIMABLE_MAX      = 6500;
-  const CTEMP_CCT_MIN          = 2700;
-  const CTEMP_CCT_MAX          = 6500;
-  const CTEMP_COLOR_MIN        = 2000;
-  const CTEMP_COLOR_MAX        = 8000;
+  public const CTEMP_DIMABLE_MIN      = 2700;
+  public const CTEMP_DIMABLE_MAX      = 6500;
+  public const CTEMP_CCT_MIN          = 2700;
+  public const CTEMP_CCT_MAX          = 6500;
+  public const CTEMP_COLOR_MIN        = 2000;
+  public const CTEMP_COLOR_MAX        = 8000;
 
-  const SCENE_PLANT_LIGHT      = "ff2a6D";
-  const SCENE_RELAX            = 2700;
-  const SCENE_ACTIVE           = 6500;
+  public const SCENE_PLANT_LIGHT      = "ff2a6D";
+  public const SCENE_RELAX            = 2700;
+  public const SCENE_ACTIVE           = 6500;
 
-  const COLOR_SPEED_MIN        = 5;
-  const COLOR_SPEED_MAX        = 65535;
+  public const COLOR_SPEED_MIN        = 5;
+  public const COLOR_SPEED_MAX        = 65535;
 
-  const TIME_MIN               = 0;    //0.0 sec
-  const TIME_MAX               = 8000; //8.0 sec
+  public const TIME_MIN               = 0;    //0.0 sec
+  public const TIME_MAX               = 8000; //8.0 sec
 
-  const WRITE_KEY_VALUES       = "ALL_DEVICES,NAME,SAVE,SCENE,MOOD,SOFT_ON,SOFT_OFF,FADE,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION";
-  const LIST_KEY_IDENTS        = "HUE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION,MOTION,SCENE,MOOD,ZIGBEE,FIRMWARE";
+  public const WRITE_KEY_VALUES       = "ALL_DEVICES,NAME,SAVE,SCENE,MOOD,SOFT_ON,SOFT_OFF,FADE,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION";
+  public const LIST_KEY_IDENTS        = "HUE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION,MOTION,SCENE,MOOD,ZIGBEE,FIRMWARE";
 
 }
 

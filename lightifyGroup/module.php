@@ -7,12 +7,13 @@ require_once __DIR__.'/../libs/lightifyControl.php';
 
 class LightifyGroup extends IPSModule {
 
-  const ROW_COLOR_LIGHT_ON  = "#fffde7";
-  const ROW_COLOR_CCT_ON    = "#ffffff";
-  const ROW_COLOR_PLUG_ON   = "#cdfcc6";
-  const ROW_COLOR_STATE_OFF = "#f6c3c2";
+  private const ROW_COLOR_LIGHT_ON  = "#fffde7";
+  private const ROW_COLOR_CCT_ON    = "#ffffff";
+  private const ROW_COLOR_PLUG_ON   = "#cdfcc6";
+  private const ROW_COLOR_STATE_OFF = "#f6c3c2";
 
-  const METHOD_SET_STATE = "set:state";
+  private const METHOD_SET_STATE = "set:state";
+
   use LightifyControl;
 
 

@@ -7,11 +7,11 @@ require_once __DIR__.'/../libs/lightifyClass.php';
 
 class LightifyDiscovery extends IPSModule {
 
-  const MODULE_CONFIGURATOR = "{5552DA2D-B613-4291-8E57-61B0535B8047}";
-  const MODULE_DNSSD        = "{780B2D48-916C-4D59-AD35-5A429B2355A5}";
+  private const MODULE_CONFIGURATOR = "{5552DA2D-B613-4291-8E57-61B0535B8047}";
+  private const MODULE_DNSSD        = "{780B2D48-916C-4D59-AD35-5A429B2355A5}";
 
-  const METHOD_SET_TIMEOUT  = "set:timeout";
-  const DNSSD_TIMEOUT       = 500;
+  private const METHOD_SET_TIMEOUT  = "set:timeout";
+  private const DNSSD_TIMEOUT       = 500;
 
 
   public function Create() {
