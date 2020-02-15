@@ -156,36 +156,32 @@ trait LightifyControl {
         return json_encode($this->sendResult);
 
       case "SOFT_ON":
-        $cmd = classCommand::SET_LIGHT_SOFT_ON;
-
       case "SOFT_OFF":
-        if (!isset($cmd)) {
-          $cmd = classCommand::SET_LIGHT_SOFT_OFF;
+        if ($Light) {
+          $param = [
+            'flag'  => $flag,
+            'args'  => utf8_encode($UUID.chr($value).chr(0x00)),
+            'value' => vtNoValue
+          ];
+
+          $result = $this->sendData(classCommand::SET_LIGHT_SOFT_ON, $param);
+          return $this->sendData(classCommand::SET_LIGHT_SOFT_OFF, $param);
         }
+        return json_encode($this->sendResult);
 
       case "FADE":
         if ($Light) {
-          if (!isset($cmd)) {
-            if ($this->ReadAttributeInteger("fade") != $value) {
-              $this->WriteAttributeInteger("fade", $value);
-            }
-
-            $result = [
-              'flag' => true,
-              'cmd'  => vtNoValue,
-              'code' => 0
-            ];
-            return json_encode($result);
-
-          } else {
-            $param = [
-              'flag'  => $flag,
-              'args'  => utf8_encode($UUID.chr($value).chr(0x00)),
-              'value' => vtNoValue
-            ];
-            return $this->sendData($cmd, $param);
-
+          if ($this->ReadAttributeInteger("fade") != $value) {
+            $this->WriteAttributeInteger("fade", $value);
           }
+
+          $result = [
+            'flag' => true,
+            'cmd'  => vtNoValue,
+            'code' => 0
+          ];
+
+          return json_encode($result);
         }
         return json_encode($this->sendResult);
 

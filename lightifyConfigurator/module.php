@@ -26,6 +26,7 @@ class LightifyConfigurator extends IPSModule {
   private const METHOD_SET_CONFIGURATION   = "set:configuration";
   private const METHOD_LOAD_LIST_DEVICES   = "load:list:devices";
   private const METHOD_LOAD_DEVICE_CONFIG  = "load:device:config";
+  private const METHOD_SET_DEVICE_SOFTTIME = "set:device:softtime";
   private const METHOD_STATE_CHANGE_DEVICE = "state:change:device";
   private const METHOD_APPLY_DEVICE_VALUES = "apply:device:values";
   private const METHOD_STORE_DEVICE_VALUES = "store:device:values";
@@ -220,6 +221,10 @@ class LightifyConfigurator extends IPSModule {
 
       case self::METHOD_LOAD_DEVICE_CONFIG:
         $this->loadDeviceConfiguration($param['list']);
+        break;
+
+      case self::METHOD_SET_DEVICE_SOFTTIME:
+        $this->setDeviceSoftTime($param['value']);
         break;
 
       case self::METHOD_STATE_CHANGE_DEVICE:
@@ -547,9 +552,15 @@ class LightifyConfigurator extends IPSModule {
         $level = $List['level'];
 
         if ($level > vtNoValue) {
+          $this->UpdateFormField("softTime", "enabled", true);
           $this->UpdateFormField("level", "value", $level);
           $this->UpdateFormField("level", "enabled", true);
         } else {
+          $caption = "Soft ". $this->Translate("On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Time")." 0.5s]";
+          $this->UpdateFormField("softTime", "caption", $caption);
+          $this->UpdateFormField("softTime", "value", 0.5);
+
+          $this->UpdateFormField("softTime", "enabled", false);
           $this->UpdateFormField("level", "value", 0);
           $this->UpdateFormField("level", "enabled", false);
         }
@@ -568,6 +579,14 @@ class LightifyConfigurator extends IPSModule {
     $this->setDeviceDefault();
     $this->UpdateFormField("deviceApply", "enabled", false);
     $this->UpdateFormField("deviceStore", "enabled", false);
+
+  }
+
+
+  private function setDeviceSoftTime(float $value) : void {
+
+    $caption = "Soft ".$this->Translate("On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Time")." ".(string)$value."s]";
+    $this->UpdateFormField("softTime", "caption", $caption);
 
   }
 
@@ -592,8 +611,20 @@ class LightifyConfigurator extends IPSModule {
     $this->UpdateFormField("deviceStore", "visible", false);
     $this->UpdateFormField("deviceProgress", "visible", true);
 
-    list($newColor, $newCCT, $newLevel) = $values;
+    list($softTime, $newColor, $newCCT, $newLevel) = $values;
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $List['type']."|".$List['color']."|".$List['cct']."|".$List['level']);
+
+    //Color
+    $color = $List['color'];
+
+    if ($color > vtNoValue && $color != $newColor) {
+      $result = OSR_WriteValue($List['id'], 'COLOR', $newColor);
+      $status = json_decode($result);
+
+      if (!($status->flag && $status->code == 0)) {
+        $newColor = $color;
+      }
+    }
 
     //Color
     $color = $List['color'];
@@ -622,12 +653,16 @@ class LightifyConfigurator extends IPSModule {
     //Level
     $level = $List['level'];
 
-    if ($level > vtNoValue && $level != $newLevel) {
-      $result = OSR_WriteValue($List['id'], 'LEVEL', $newLevel);
-      $status = json_decode($result);
+    if ($level > vtNoValue) {
+      $result = OSR_WriteValue($List['id'], 'SOFT_ON', $softTime*10);
 
-      if (!($status->flag && $status->code == 0)) {
-        $newLevel = $level;
+      if ($level != $newLevel) {
+        $result = OSR_WriteValue($List['id'], 'LEVEL', $newLevel);
+        $status = json_decode($result);
+
+        if (!($status->flag && $status->code == 0)) {
+          $newLevel = $level;
+        }
       }
     }
 
@@ -672,6 +707,12 @@ class LightifyConfigurator extends IPSModule {
 
 
   protected function setDeviceDefault() : void {
+
+    //Soft On/Off
+    $caption = "Soft ".$this->Translate("On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Time")." 0.5s]";
+    $this->UpdateFormField("softTime", "caption", $caption);
+    $this->UpdateFormField("softTime", "value", "0.5");
+    $this->UpdateFormField("softTime", "enabled", false);
 
     //Hue
     $this->UpdateFormField("hue", "value", "0°");
