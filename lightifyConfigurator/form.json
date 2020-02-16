@@ -119,7 +119,7 @@
                         "width": "auto"
                       },
                       {
-                        "caption": "[id]",
+                        "caption": "ID",
                         "name": "ID",
                         "width": "0px",
                         "visible": false,
@@ -184,7 +184,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Rename",
-                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'rename:list:device', 'list' => $listDevices, 'name' => $deviceName]);"
+                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'rename:list:device', 'list' => $listDevices, 'name' => $deviceName]);"
                       }
                     ]
                   },
@@ -325,7 +325,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Apply",
-                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'apply:device:values', 'list' => $listDevices, 'values' => [$softTime, $color, $cct, $level]]);"
+                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'apply:device:values', 'list' => $listDevices, 'values' => [$softTime, $color, $cct, $level]]);"
                       },
                       {
                         "type": "Button",
@@ -333,7 +333,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Store",
-                        "onClick": "OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices]);"
+                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices]);"
                       }
                     ]
                   },
