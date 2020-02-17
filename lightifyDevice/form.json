@@ -96,9 +96,18 @@
         "closeCaption": "Close",
         "items": [
           {
+            "type": "ProgressBar",
+            "name": "alertProgress",
+            "width": "560px",
+            "visible": false,
+            "indeterminate": true,
+            "caption": "Synchronisation in progress, please wait ..."
+          },
+          {
             "type": "Label",
             "name": "alertMessage",
-            "width": "500px",
+            "visible": false,
+            "width": "560px",
             "caption": ""
           }
         ]

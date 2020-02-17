@@ -118,6 +118,7 @@ trait LightifyControl {
 
       $onlineID = @$this->GetIDForIdent("ONLINE");
       $online   = ($onlineID) ? GetValueBoolean($onlineID) : false;
+
     } else {
       $flag = 2;
       $UUID = str_pad(chr($this->ReadPropertyInteger("ID")), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
@@ -382,8 +383,7 @@ trait LightifyControl {
   }
 
 
-  public function ReadValue(string $key)
-  {
+  public function ReadValue(string $key) {
 
     return $this->GetValue(strtoupper($key));
 

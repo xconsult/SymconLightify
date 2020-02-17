@@ -317,29 +317,27 @@ class LightifyGateway extends IPSModule {
         return vtNoString;
     }
 
-    //Disable timer and send data
+    //Disable timer
     $this->SetTimerInterval("timer", vtNoValue);
 
     $buffer = json_decode($data->buffer);
     $status = json_encode($this->sendResult);
 
-    //State functions
+    //Send data
     if ($this->sendRaw($cmd, chr($buffer->flag), utf8_decode($buffer->args))) {
       $status = $this->waitReceive();
 
+      //Sync devices
+      if ($this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01))) {
+        $status = $this->waitReceive();
+      }
+
       //Sync groups
-      if ($method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_GROUP_NAME) {
+      if ($method == classCommand::ADD_DEVICE_TO_GROUP || $method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_GROUP_NAME) {
         if ($this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00))) {
           $status = $this->waitReceive();
         }
       }
-
-      //Sync devixes
-      //if ($method == classCommand::ADD_DEVICE_TO_GROUP || $method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_DEVICE_NAME) {
-        if ($this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01))) {
-          $status = $this->waitReceive();
-        }
-      //}
     }
 
     $this->SetTimerInterval("timer", $this->ReadPropertyInteger("update")*1000);
@@ -374,9 +372,6 @@ class LightifyGateway extends IPSModule {
         //Gateway WiFi configuration
         case classCommand::GET_GATEWAY_WIFI:
           $this->getGatewayWiFi($data);
-
-          //Get gateway firmware version
-          $this->sendRaw(classCommand::GET_GATEWAY_FIRMWARE, chr(0x00));
           break;
 
         //Gateway firmware version
@@ -397,9 +392,6 @@ class LightifyGateway extends IPSModule {
               'buffer' => $Devices])
             );
           }
-
-          //Get gateway groups
-          $this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00));
           break;
 
         //Gateway groups
@@ -415,9 +407,6 @@ class LightifyGateway extends IPSModule {
               'buffer' => $Groups])
             );
           }
-
-          //Get gateway scenes
-          $this->sendRaw(classCommand::GET_SCENE_LIST, chr(0x00));
           break;
 
         case classCommand::GET_SCENE_LIST:
@@ -476,7 +465,7 @@ class LightifyGateway extends IPSModule {
   }
 
 
-  private function sendRaw(int $cmd, string $flag, string $args = vtNoString): bool {
+  private function sendRaw(int $cmd, string $flag, string $args = vtNoString) : bool {
 
     if (!$this->HasActiveParent()) {
       return false;
@@ -543,15 +532,36 @@ class LightifyGateway extends IPSModule {
       }
     }
 
-    //Get Lightify infos
-    if (empty(GetValueString($ssidID)) || empty(GetValueString($firmwareID))) {
-      $this->sendRaw(classCommand::GET_GATEWAY_WIFI, chr(self::SCAN_WIFI_CONFIG));
-      return;
+    //Get gateway WiFi configuration
+    if (empty(GetValueString($ssidID))) {
+      if ($this->sendRaw(classCommand::GET_GATEWAY_WIFI, chr(self::SCAN_WIFI_CONFIG))) {
+        $this->waitReceive();
+      }
+    }
+
+    //Get gateway firmware version
+    if (empty(GetValueString($firmwareID))) {
+      if ($this->sendRaw(classCommand::GET_GATEWAY_FIRMWARE, chr(0x00))) {
+        $this->waitReceive();
+      }
     }
 
     //Get paired devices
-    $this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01));
-    return;
+    if ($this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01))) {
+      $this->waitReceive();
+    }
+
+
+    //Get gateway groups
+    if ($this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00))) {
+      $this->waitReceive();
+    }
+
+
+    //Get gateway scenes
+    if ($this->sendRaw(classCommand::GET_SCENE_LIST, chr(0x00))) {
+      $this->waitReceive();
+    }
 
   }
 
@@ -654,6 +664,7 @@ class LightifyGateway extends IPSModule {
 
       $this->WriteAttributeString("osramToken", $buffer);
       return $data->access_token;
+
     } else {
       $this->SendDebug("<".__FUNCTION__.">", $result, 0);
       return vtNoString;
@@ -1014,7 +1025,7 @@ class LightifyGateway extends IPSModule {
 
 
   private function waitReceive() : string {
-    for ($x = 0; $x < 500; $x++) {
+    for ($t = 0; $t < 750; $t++) {
       $status = $this->GetBuffer("sendStatus");
       $decode = json_decode($status);
 
@@ -1023,7 +1034,7 @@ class LightifyGateway extends IPSModule {
         break;
       }
 
-      IPS_Sleep(10);
+      usleep(10000);
     }
 
     return $status;

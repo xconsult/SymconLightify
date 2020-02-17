@@ -105,7 +105,7 @@
                     "type": "List",
                     "name": "listLocations",
                     "caption": "Category selection",
-                    "rowCount": 6,
+                    "rowCount": 12,
                     "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'set:locations', 'list' => $listLocations]);",
                     "columns": [
                       {
@@ -133,14 +133,6 @@
                   {
                     "type": "RowLayout",
                     "items": [
-                      {
-                        "type": "ProgressBar",
-                        "name": "locateProgress",
-                        "width": "586px",
-                        "visible": false,
-                        "indeterminate": true,
-                        "caption": "Synchronisation in progress, please wait ..."
-                      },
                       {
                         "type": "Label",
                         "width": "470px"
@@ -308,14 +300,6 @@
                         "width": "50px"
                       },
                       {
-                        "type": "ProgressBar",
-                        "name": "deviceProgress",
-                        "width": "294px",
-                        "visible": false,
-                        "indeterminate": true,
-                        "caption": "Synchronisation in progress, please wait ..."
-                      },
-                      {
                         "type": "Label",
                         "width": "26px"
                       },
@@ -333,7 +317,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Store",
-                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices]);"
+                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices, 'values' => [$softTime, $color, $cct, $level]]);"
                       }
                     ]
                   },
@@ -446,14 +430,6 @@
                     "type": "RowLayout",
                     "items": [
                       {
-                        "type": "ProgressBar",
-                        "name": "groupProgress",
-                        "width": "586px",
-                        "visible": false,
-                        "indeterminate": true,
-                        "caption": "Synchronisation in progress, please wait ..."
-                      },
-                      {
                         "type": "Label",
                         "width": "460px"
                       },
@@ -527,14 +503,6 @@
                     "type": "RowLayout",
                     "items": [
                       {
-                        "type": "ProgressBar",
-                        "name": "createProgress",
-                        "width": "586px",
-                        "visible": false,
-                        "indeterminate": true,
-                        "caption": "Synchronisation in progress, please wait ..."
-                      },
-                      {
                         "type": "Label",
                         "width": "460px"
                       },
@@ -564,8 +532,17 @@
         "closeCaption": "Close",
         "items": [
           {
+            "type": "ProgressBar",
+            "name": "alertProgress",
+            "width": "560px",
+            "visible": false,
+            "indeterminate": true,
+            "caption": "Synchronisation in progress, please wait ..."
+          },
+          {
             "type": "Label",
             "name": "alertMessage",
+            "visible": false,
             "width": "560px",
             "caption": ""
           }

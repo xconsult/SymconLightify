@@ -17,8 +17,9 @@
       "Level"                                                         : "Helligkeit",
       "Saturation"                                                    : "Sättigung",
       "Motion"                                                        : "Bewegung",
-      "Current Device settings were successfully stored!"             : "Die aktuellen Geräte Einstellungen wurden erfolgreich gespeichert!",
-      "Current Device settings were not stored!"                      : "Die aktuellen Geräte Einstellungen konnten nicht gespeichert werden!"
+      "Synchronisation in progress, please wait ..."                  : "Synchronisation läuft, bitte warten ...",
+      "Current device settings were successfully stored!"             : "Die aktuellen Geräte Einstellungen wurden erfolgreich gespeichert!",
+      "Current device settings were not stored! (Error: "             : "Die aktuellen Geräte Einstellungen konnten nicht gespeichert werden! (Fehler: "
     }
   }
 }

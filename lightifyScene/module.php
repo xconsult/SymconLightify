@@ -64,12 +64,13 @@ class LightifyScene extends IPSModule {
 
         $formJSON['elements'][1]['items'][1]['caption']  = $name;
         $formJSON['elements'][1]['items'][1]['objectID'] = $instanceID;
+
       } else {
         $formJSON['elements'][1]['items'][1]['caption'] = "- Unknown -";
         $formJSON['elements'][1]['items'][1]['enabled'] = false;
       }
-      $formJSON['actions'][0]['onClick'] = "OSR_WriteValue(\$id, 'SCENE', ".$ID.");";
 
+      $formJSON['actions'][0]['onClick'] = "OSR_WriteValue(\$id, 'SCENE', ".$ID.");";
       return json_encode($formJSON);
     }
 
@@ -94,6 +95,7 @@ class LightifyScene extends IPSModule {
       if ($scene['ID'] == $this->ReadPropertyInteger("ID")) {
         $this->WriteAttributeInteger("group", $scene['group']);
         $this->setSceneInfo();
+
         break;
       }
     }

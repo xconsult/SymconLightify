@@ -88,6 +88,7 @@ class LightifyDevice extends IPSModule {
 
         $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is connected to the following group(s)")." ";
         $formJSON['elements'][2]['items'][0]['caption'] = $caption;
+
       } else {
         $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is not connected to a group");
         $formJSON['elements'][2]['items'][0]['caption'] = $caption;
@@ -154,18 +155,24 @@ class LightifyDevice extends IPSModule {
         break;
 
       case self::METHOD_SET_SAVE:
+        //Show progress bar
+        $this->showProgressBar(true);
+
         $result = OSR_WriteValue($this->InstanceID, 'SAVE', $param['value']);
         $status = json_decode($result);
         //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
 
-        if ($status->flag || $status->code == 0) {
-          $caption = $this->Translate("Current Device settings were successfully stored!");
-        } else {
-          $caption = $this->Translate("Current Device settings were not stored!")."  Erno = ".$status->code;
-        }
+        //Hide progress bar
+        $this->showProgressBar(false);
 
-        $this->UpdateFormField("alertMessage", "caption", $caption);
-        $this->UpdateFormField("popupAlert", "visible", true);
+        //Show info
+        if ($status->flag || $status->code == 0) {
+          $caption = $this->Translate("Current device settings were successfully stored!");
+        } else {
+          $caption = $this->Translate("Current device settings were not stored!")."  (Error: ".$status->code.")";
+        }
+        $this->showInfoWindow($caption);
+
         break;
     }
 
@@ -473,6 +480,33 @@ class LightifyDevice extends IPSModule {
 
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Groups));
     return $Groups;
+  }
+
+
+  private function showInfoWindow(string $caption) : void {
+
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $caption);
+
+    $this->UpdateFormField("alertProgress", "visible", false);
+    $this->UpdateFormField("alertMessage", "visible", true);
+    $this->UpdateFormField("alertMessage", "caption", $caption);
+
+    $this->UpdateFormField("popupAlert", "visible", true);
+
+  }
+
+
+  private function showProgressBar(bool $show) : void {
+
+    if ($show) {
+      $this->UpdateFormField("alertProgress", "visible", true);
+      $this->UpdateFormField("alertMessage", "visible", false);
+
+      $this->UpdateFormField("popupAlert", "visible", true);
+
+    } else {
+      $this->UpdateFormField("popupAlert", "visible", false);
+    }
   }
 
 

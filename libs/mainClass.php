@@ -324,6 +324,7 @@ trait WebOAuth {
       IPS_SetProperty($Instances[0], "ClientIDs", json_encode($oAuths));
       IPS_ApplyChanges($Instances[0]);
     }
+
   }
 
 
@@ -396,7 +397,7 @@ trait InstanceStatus {
   * @access protected
   * @return int ID des Parent.
   */
-  protected function RegisterParent() {
+  protected function RegisterParent() : int {
 
     $saveID   = $this->ParentID;
     $parentID = @IPS_GetInstance($this->InstanceID)['ConnectionID'];
@@ -426,7 +427,7 @@ trait InstanceStatus {
   * @access protected
   * @return bool True wenn Parent vorhanden und in Status 102, sonst false.
   */
-  protected function HasActiveParent() {
+  protected function HasActiveParent() : bool {
 
     $instance = @IPS_GetInstance($this->InstanceID);
 
