@@ -81,10 +81,10 @@ class LightifyDiscovery extends IPSModule {
     }
 
     $timeout = $this->ReadAttributeInteger("timeout");
-    $caption = "Time-out [".(string)$timeout."ms]";
+    $caption = "Time-out [".sprintf("%04dms]", $timeout);
 
-    $formJSON['actions'][0]['caption'] = $caption;
-    $formJSON['actions'][0]['value'] = $timeout;
+    $formJSON['actions'][0]['items'][1]['caption'] = $caption;
+    $formJSON['actions'][0]['items'][1]['value'] = $timeout;
 
     $formJSON['actions'][1]['values'] = $Values;
     return json_encode($formJSON);
@@ -95,11 +95,11 @@ class LightifyDiscovery extends IPSModule {
   public function GlobalDiscovery(array $param) : void {
 
     if ($param['method'] == self::METHOD_SET_TIMEOUT) {
-      $value   = $param['value'];
-      $caption = "Time-out [".$value."ms]";
+      $timeout = $param['value'];
+      $caption = "Time-out [".sprintf("%04dms]", $timeout);
 
       $this->UpdateFormField("timeSlider", "caption", $caption);
-      $this->WriteAttributeInteger("timeout", (int)$value);
+      $this->WriteAttributeInteger("timeout", (int)$timeout);
     }
 
   }
