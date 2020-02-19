@@ -558,7 +558,7 @@ class LightifyConfigurator extends IPSModule {
 
   private function setDeviceTime(float $value) : void {
 
-    $caption = "Soft ".$this->Translate("On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Time")." ".(string)$value."s]";
+    $caption = "Soft ".$this->Translate("On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Time").sprintf(" %0.1fs]", $value);
     $this->UpdateFormField("deviceTime", "caption", $caption);
 
   }
@@ -576,7 +576,7 @@ class LightifyConfigurator extends IPSModule {
   }
 
 
-  private function deviceStoreValues(object $List, int $value) : void {
+  private function deviceStoreValues(object $List, array $values) : void {
 
     if (empty($List['id'])) {
       $saveLine = json_decode($this->GetBuffer("saveLine"));
@@ -597,8 +597,9 @@ class LightifyConfigurator extends IPSModule {
 
     //Show progress bar
     $this->showProgressBar(true);
+    list($time) = $values;
 
-    $result = OSR_WriteValue($id, 'SOFT_ON', $softTime*10);
+    $result = OSR_WriteValue($id, 'SOFT_ON', $time*10);
     $status = json_decode($result);
 
     //Update

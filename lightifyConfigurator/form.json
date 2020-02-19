@@ -245,7 +245,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Store",
-                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices, 'value' => $deviceTime]);"
+                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices, 'value' => [$deviceTime]]);"
                       }
                     ]
                   }
