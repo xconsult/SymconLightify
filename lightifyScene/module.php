@@ -54,7 +54,10 @@ class LightifyScene extends IPSModule {
 
     if ($ID != vtNoValue) {
       $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
-      $formJSON['elements'][0]['items'][1]['value'] = $this->Translate($this->ReadPropertyString("module"));
+      $module = $this->ReadPropertyString("module");
+
+      $formJSON['actions'][0]['items'][0]['value'] = $ID;
+      $formJSON['actions'][0]['items'][1]['value'] = $this->Translate($module);
 
       $group = $this->ReadAttributeInteger("group");
       $instanceID = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
@@ -62,13 +65,16 @@ class LightifyScene extends IPSModule {
       if ($instanceID) {
         $name = IPS_GetName($instanceID);
 
-        $formJSON['elements'][1]['items'][1]['caption']  = $name;
-        $formJSON['elements'][1]['items'][1]['objectID'] = $instanceID;
+        $formJSON['actions'][1]['items'][1]['caption']  = $name;
+        $formJSON['actions'][1]['items'][1]['objectID'] = $instanceID;
 
       } else {
-        $formJSON['elements'][1]['items'][1]['caption'] = "- Unknown -";
-        $formJSON['elements'][1]['items'][1]['enabled'] = false;
+        $formJSON['actions'][1]['items'][1]['caption'] = "- Unknown -";
+        $formJSON['actions'][1]['items'][1]['enabled'] = false;
       }
+
+      $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is connected to the following group");
+      $formJSON['actions'][1]['items'][0]['caption'] = $caption;
 
       $formJSON['actions'][0]['onClick'] = "OSR_WriteValue(\$id, 'SCENE', ".$ID.");";
       return json_encode($formJSON);

@@ -187,7 +187,7 @@
                         "type": "List",
                         "name": "listDevices",
                         "caption": "Device list",
-                        "rowCount": 5,
+                        "rowCount": 9,
                         "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'state:change:device', 'list' => $listDevices]);",
                         "columns": [
                           {
@@ -221,95 +221,23 @@
                     "items": [
                       {
                         "type": "Label",
-                        "width": "10px"
+                        "width": "5px"
                       },
                       {
                         "type": "HorizontalSlider",
-                        "name": "softTime",
+                        "name": "deviceTime",
                         "enabled": false,
                         "caption": "",
                         "minimum": 0,
                         "maximum": 8,
-                        "onChange": "OSR_GlobalConfigurator($id, ['method' => 'set:device:softtime', 'value' => $softTime]);",
+                        "onChange": "OSR_GlobalConfigurator($id, ['method' => 'set:device:time', 'value' => $deviceTime]);",
                         "stepSize": 0.1,
                         "value": 0.5,
-                        "width": "235px"
+                        "width": "408px"
                       },
                       {
                         "type": "Label",
                         "width": "30px"
-                      },
-                      {
-                        "type": "ValidationTextBox",
-                        "name": "hue",
-                        "enabled": false,
-                        "value": "",
-                        "caption": "Hue",
-                        "width": "35px"
-                      },
-                      {
-                        "type": "Label",
-                        "width": "10px"
-                      },
-                      {
-                        "type": "SelectColor",
-                        "name": "color",
-                        "enabled": false,
-                        "value": "",
-                        "caption": "Color",
-                        "width": "230px",
-                        "allowTransparent": true
-                      }
-                    ]
-                  },
-                  {
-                    "type": "RowLayout",
-                    "items": [
-                      {
-                        "type": "Label",
-                        "width": "20px"
-                      },
-                      {
-                        "type": "NumberSpinner",
-                        "name": "cct",
-                        "enabled": true,
-                        "value": "",
-                        "caption": "CCT",
-                        "suffix": "K",
-                        "minimum": 2500,
-                        "maximum": 6500,
-                        "width": "80px"
-                      },
-                      {
-                        "type": "Label",
-                        "width": "30px"
-                      },
-                      {
-                        "type": "NumberSpinner",
-                        "name": "level",
-                        "enabled": true,
-                        "value": "",
-                        "caption": "Level",
-                        "suffix": "%",
-                        "minimum": 0,
-                        "maximum": 100,
-                        "width": "80px"
-                      },
-                      {
-                        "type": "Label",
-                        "width": "50px"
-                      },
-                      {
-                        "type": "Label",
-                        "width": "26px"
-                      },
-                      {
-                        "type": "Button",
-                        "name": "deviceApply",
-                        "width": "126px",
-                        "enabled": false,
-                        "caption": "Apply",
-                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'apply:device:values', 'list' => $listDevices, 'values' => [$softTime, $color, $cct, $level]]);"
                       },
                       {
                         "type": "Button",
@@ -317,19 +245,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Store",
-                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices, 'values' => [$softTime, $color, $cct, $level]]);"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "Label"
-                  },
-                  {
-                    "type": "RowLayout",
-                    "items": [
-                      {
-                        "type": "Label",
-                        "width": "326px"
+                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices, 'value' => $deviceTime]);"
                       }
                     ]
                   }

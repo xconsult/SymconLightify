@@ -60,13 +60,16 @@ class LightifyGroup extends IPSModule {
 
     if ($ID != vtNoValue) {
       $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
-      $formJSON['elements'][0]['items'][1]['value'] = $this->Translate($this->ReadPropertyString("module"));
+      $module = $this->ReadPropertyString("module");
+
+      $formJSON['actions'][0]['items'][0]['value'] = $ID;
+      $formJSON['actions'][0]['items'][1]['value'] = $this->Translate($module);
 
       if ($stateID = @$this->GetIDForIdent("STATE")) {
         if (GetValueBoolean($stateID)) {
-          $formJSON['actions'][0]['items'][0]['visible'] = true;
+          $formJSON['actions'][0]['items'][2]['visible'] = true;
         } else {
-          $formJSON['actions'][0]['items'][1]['visible'] = true;
+          $formJSON['actions'][0]['items'][3]['visible'] = true;
         }
       }
 
@@ -91,8 +94,15 @@ class LightifyGroup extends IPSModule {
 
     switch ($param['method']) {
       case self::METHOD_SET_STATE:
-        $result = OSR_WriteValue($this->InstanceID, 'STATE', (bool)$param['value']);
-        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
+        $state  = (bool)$param['value'];
+
+        $result = OSR_WriteValue($this->InstanceID, 'STATE', $state);
+        $status = json_decode($result);
+
+        if ($status->flag && $status->code == 0) {
+          $this->UpdateFormField("groupOn", "visible", $state);
+          $this->UpdateFormField("groupOff", "visible", !$state);
+        }
         break;
     }
 

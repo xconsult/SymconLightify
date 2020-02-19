@@ -64,8 +64,8 @@ class LightifyDevice extends IPSModule {
       $onlineID = @$this->GetIDForIdent("ONLINE");
       $module = $this->ReadPropertyString("module");
 
-      $value  = $this->Translate($module);
-      $formJSON['elements'][0]['items'][0]['value'] = $value;
+      $formJSON['actions'][0]['items'][0]['value'] = $this->Translate($module);
+      $formJSON['actions'][1]['value'] = $this->ReadPropertyString("UUID");
 
       if ($module == "Light" || $module == "Plug") {
         $i = 0;
@@ -76,22 +76,22 @@ class LightifyDevice extends IPSModule {
           if ($instanceID) {
             $name = IPS_GetName($instanceID);
 
-            $formJSON['elements'][2]['items'][1]['items'][$i]['type']     = "OpenObjectButton";
-            $formJSON['elements'][2]['items'][1]['items'][$i]['enabled']  = true;
-            $formJSON['elements'][2]['items'][1]['items'][$i]['caption']  = $name;
-            $formJSON['elements'][2]['items'][1]['items'][$i]['objectID'] = $instanceID;
-            $formJSON['elements'][2]['items'][1]['items'][$i]['width']    = "auto";
+            $formJSON['actions'][2]['items'][1]['items'][$i]['type']     = "OpenObjectButton";
+            $formJSON['actions'][2]['items'][1]['items'][$i]['enabled']  = true;
+            $formJSON['actions'][2]['items'][1]['items'][$i]['caption']  = $name;
+            $formJSON['actions'][2]['items'][1]['items'][$i]['objectID'] = $instanceID;
+            $formJSON['actions'][2]['items'][1]['items'][$i]['width']    = "auto";
           }
 
           $i++;
         }
 
-        $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is connected to the following group(s)")." ";
-        $formJSON['elements'][2]['items'][0]['caption'] = $caption;
+        $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is connected to the following group(s)");
+        $formJSON['actions'][2]['items'][0]['caption'] = $caption;
 
       } else {
         $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is not connected to a group");
-        $formJSON['elements'][2]['items'][0]['caption'] = $caption;
+        $formJSON['actions'][2]['items'][0]['caption'] = $caption;
       }
 
       if ($module == "Light" || $module == "Plug" || $module == "Sensor") {
@@ -126,9 +126,9 @@ class LightifyDevice extends IPSModule {
       }
 
       if ($stateID && GetValueBoolean($stateID)) {
-        $formJSON['elements'][0]['items'][1]['visible'] = true;
+        $formJSON['actions'][0]['items'][1]['visible'] = true;
       } else {
-        $formJSON['elements'][0]['items'][2]['visible'] = true;
+        $formJSON['actions'][0]['items'][2]['visible'] = true;
       }
 
       return json_encode($formJSON);
@@ -150,8 +150,15 @@ class LightifyDevice extends IPSModule {
 
     switch ($param['method']) {
       case self::METHOD_SET_STATE:
-        $result = OSR_WriteValue($this->InstanceID, 'STATE', (bool)$param['value']);
-        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
+        $state  = (bool)$param['value'];
+
+        $result = OSR_WriteValue($this->InstanceID, 'STATE', $state);
+        $status = json_decode($result);
+
+        if ($status->flag && $status->code == 0) {
+          $this->UpdateFormField("deviceOn", "visible", $state);
+          $this->UpdateFormField("deviceOff", "visible", !$state);
+        }
         break;
 
       case self::METHOD_SET_SAVE:
