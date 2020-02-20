@@ -27,7 +27,7 @@ class LightifyConfigurator extends IPSModule {
   private const METHOD_LOAD_LIST_DEVICES   = "load:list:devices";
   private const METHOD_LOAD_DEVICE_CONFIG  = "load:device:config";
   private const METHOD_STATE_CHANGE_DEVICE = "state:change:device";
-  private const METHOD_SET_DEVICE_TIME     = "set:device:time";
+  private const METHOD_SET_DEVICE_FADING   = "set:device:fading";
   private const METHOD_STORE_DEVICE_VALUES = "store:device:values";
   private const METHOD_LOAD_LIST_GROUPS    = "load:list:groups";
   private const METHOD_RENAME_LIST_GROUP   = "rename:list:group";
@@ -226,8 +226,8 @@ class LightifyConfigurator extends IPSModule {
         $this->deviceStateChange($param['list']);
         break;
 
-      case self::METHOD_SET_DEVICE_TIME:
-        $this->setDeviceTime($param['value']);
+      case self::METHOD_SET_DEVICE_FADING:
+        $this->setDeviceFading($param['value']);
         break;
 
       case self::METHOD_STORE_DEVICE_VALUES:
@@ -538,7 +538,7 @@ class LightifyConfigurator extends IPSModule {
           $this->UpdateFormField("deviceStore", "enabled", false);
 
         } else {
-          $this->UpdateFormField("deviceTime", "enabled", true);
+          $this->UpdateFormField("deviceFade", "enabled", true);
           $this->UpdateFormField("deviceStore", "enabled", true);
         }
 
@@ -556,10 +556,10 @@ class LightifyConfigurator extends IPSModule {
   }
 
 
-  private function setDeviceTime(float $value) : void {
+  private function setDeviceFading(float $value) : void {
 
-    $caption = "Soft ".$this->Translate("On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Time").sprintf(" %0.1fs]", $value);
-    $this->UpdateFormField("deviceTime", "caption", $caption);
+    $caption = $this->Translate("Fade On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Duration").sprintf(" %0.1fs]", $value);
+    $this->UpdateFormField("deviceFade", "caption", $caption);
 
   }
 
@@ -597,9 +597,9 @@ class LightifyConfigurator extends IPSModule {
 
     //Show progress bar
     $this->showProgressBar(true);
-    list($time) = $values;
+    list($fading) = $values;
 
-    $result = OSR_WriteValue($id, 'SOFT_ON', $time*10);
+    $result = OSR_WriteValue($id, 'SOFT_ON', $$fading*10);
     $status = json_decode($result);
 
     //Update
@@ -622,10 +622,10 @@ class LightifyConfigurator extends IPSModule {
   private function setDeviceDefault() : void {
 
     //Soft On/Off
-    $caption = "Soft ".$this->Translate("On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Time")." 0.5s]";
-    $this->UpdateFormField("deviceTime", "caption", $caption);
-    $this->UpdateFormField("deviceTime", "value", "0.5");
-    $this->UpdateFormField("deviceTime", "enabled", false);
+    $caption = $this->Translate("Fade On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Duration")." 0.5s]";
+    $this->UpdateFormField("deviceFade", "caption", $caption);
+    $this->UpdateFormField("deviceFade", "value", "0.5");
+    $this->UpdateFormField("deviceFade", "enabled", false);
 
   }
 

@@ -187,7 +187,7 @@
                         "type": "List",
                         "name": "listDevices",
                         "caption": "Device list",
-                        "rowCount": 9,
+                        "rowCount": 7,
                         "onEdit": "OSR_GlobalConfigurator($id, ['method' => 'state:change:device', 'list' => $listDevices]);",
                         "columns": [
                           {
@@ -214,7 +214,8 @@
                     ]
                   },
                   {
-                    "type": "Label"
+                    "type": "Label",
+                    "caption": "Set the fade duration for On/off. This duration sset for fading represents the time taken by the light to turn fully On/Off."
                   },
                   {
                     "type": "RowLayout",
@@ -225,12 +226,12 @@
                       },
                       {
                         "type": "HorizontalSlider",
-                        "name": "deviceTime",
+                        "name": "deviceFade",
                         "enabled": false,
                         "caption": "",
                         "minimum": 0,
                         "maximum": 8,
-                        "onChange": "OSR_GlobalConfigurator($id, ['method' => 'set:device:time', 'value' => $deviceTime]);",
+                        "onChange": "OSR_GlobalConfigurator($id, ['method' => 'set:device:fading', 'value' => $deviceFade]);",
                         "stepSize": 0.1,
                         "value": 0.5,
                         "width": "408px"
@@ -245,7 +246,7 @@
                         "width": "126px",
                         "enabled": false,
                         "caption": "Store",
-                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices, 'value' => [$deviceTime]]);"
+                        "onClick": "@OSR_GlobalConfigurator($id, ['method' => 'store:device:values', 'list' => $listDevices, 'value' => [$deviceFade]]);"
                       }
                     ]
                   }
