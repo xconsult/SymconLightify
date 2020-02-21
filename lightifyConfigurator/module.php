@@ -147,7 +147,7 @@ class LightifyConfigurator extends IPSModule {
         ];
       }
 
-      $formJSON['actions'][1]['items'][0]['items'][0]['popup']['items'][0]['values'] = $Locations;
+      $formJSON['actions'][0]['items'][0]['popup']['items'][0]['values'] = $Locations;
       $this->WriteAttributeString("listLocations", json_encode($Locations));
     }
 
@@ -155,8 +155,8 @@ class LightifyConfigurator extends IPSModule {
     $Groups  = $this->geGroupsConfigurator($this->getGatewayGroups(self::MODE_GROUPS_CONFIGURATOR));
     $Scenes  = $this->getScenesConfigurator($this->getGatewayScenes());
 
-    $formJSON['actions'][0]['values'] = $this->getListConfigurator($parentID);
-    $formJSON['actions'][1]['items'][0]['items'][1]['popup']['items'][1]['values'] = [];
+    $formJSON['actions'][1]['values'] = $this->getListConfigurator($parentID);
+    $formJSON['actions'][0]['items'][1]['popup']['items'][1]['values'] = [];
 
 /*
     $formJSON['actions'][1]['items'][0]['items'][2]['popup']['items'][1]['items'][0]['values'] = [];

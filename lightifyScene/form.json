@@ -18,7 +18,8 @@
     }
   ],
   "actions": [
-    { "type": "RowLayout",
+    { 
+      "type": "RowLayout",
       "items": [
         {
           "type": "ValidationTextBox",
@@ -38,12 +39,21 @@
       ]
     },
     {
+      "type": "Button",
+      "caption": "Apply",
+      "width": "110px",
+      "onClick": ""
+    },
+    {
+      "type": "Label"
+    },
+    {
       "type": "ExpansionPanel",
       "caption": "Extended informations",
       "items": [
         {
           "type": "Label",
-          "caption": "Module [Scene] is connected to the following group"
+          "caption": "Connected to the following group"
         },
         {
           "type": "OpenObjectButton",
@@ -54,15 +64,6 @@
         }
       ],
       "expanded": false
-    },
-    {
-      "type": "Label"
-    },
-    {
-      "type": "Button",
-      "caption": "Apply",
-      "width": "110px",
-      "onClick": ""
     }
   ]
 }

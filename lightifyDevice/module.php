@@ -60,12 +60,10 @@ class LightifyDevice extends IPSModule {
 
     if ($type != vtNoValue) {
       $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
-
       $onlineID = @$this->GetIDForIdent("ONLINE");
-      $module = $this->ReadPropertyString("module");
 
+      $module = $this->ReadPropertyString("module");
       $formJSON['actions'][0]['items'][0]['value'] = $this->Translate($module);
-      $formJSON['actions'][1]['value'] = $this->ReadPropertyString("UUID");
 
       if ($module == "Light" || $module == "Plug") {
         $i = 0;
@@ -76,53 +74,53 @@ class LightifyDevice extends IPSModule {
           if ($instanceID) {
             $name = IPS_GetName($instanceID);
 
-            $formJSON['actions'][2]['items'][1]['items'][$i]['type']     = "OpenObjectButton";
-            $formJSON['actions'][2]['items'][1]['items'][$i]['enabled']  = true;
-            $formJSON['actions'][2]['items'][1]['items'][$i]['caption']  = $name;
-            $formJSON['actions'][2]['items'][1]['items'][$i]['objectID'] = $instanceID;
-            $formJSON['actions'][2]['items'][1]['items'][$i]['width']    = "auto";
+            $formJSON['actions'][3]['items'][1]['items'][$i]['type']     = "OpenObjectButton";
+            $formJSON['actions'][3]['items'][1]['items'][$i]['enabled']  = true;
+            $formJSON['actions'][3]['items'][1]['items'][$i]['caption']  = $name;
+            $formJSON['actions'][3]['items'][1]['items'][$i]['objectID'] = $instanceID;
+            $formJSON['actions'][3]['items'][1]['items'][$i]['width']    = "auto";
           }
 
           $i++;
         }
 
-        $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is connected to the following group(s)");
-        $formJSON['actions'][2]['items'][0]['caption'] = $caption;
+        $caption = $this->Translate("Connected to the following group(s)");
+        $formJSON['actions'][3]['items'][0]['caption'] = $caption;
 
       } else {
-        $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is not connected to a group");
-        $formJSON['actions'][2]['items'][0]['caption'] = $caption;
+        $caption = $this->Translate("Not connected to any group");
+        $formJSON['actions'][3]['items'][0]['caption'] = $caption;
       }
 
       if ($module == "Light" || $module == "Plug" || $module == "Sensor") {
         $stateID = @$this->GetIDForIdent("STATE");
 
         if ($onlineID && GetValueBoolean($onlineID)) {
-          $formJSON['actions'][0]['items'][0]['enabled'] = true;
-          $formJSON['actions'][0]['items'][1]['enabled'] = true;
+          $formJSON['actions'][1]['items'][0]['enabled'] = true;
+          $formJSON['actions'][1]['items'][1]['enabled'] = true;
 
           if ($module == "Light") {
-            $formJSON['actions'][0]['items'][2]['enabled'] = true;
+            $formJSON['actions'][1]['items'][2]['enabled'] = true;
           } else {
-            $formJSON['actions'][0]['items'][2]['enabled'] = false;
+            $formJSON['actions'][1]['items'][2]['enabled'] = false;
           }
         } else {
-          $formJSON['actions'][0]['items'][0]['enabled'] = false;
-          $formJSON['actions'][0]['items'][1]['enabled'] = false;
-          $formJSON['actions'][0]['items'][2]['enabled'] = false;
+          $formJSON['actions'][1]['items'][0]['enabled'] = false;
+          $formJSON['actions'][1]['items'][1]['enabled'] = false;
+          $formJSON['actions'][1]['items'][2]['enabled'] = false;
         }
       }
       elseif ($module == "Dimmer" || $module == "Switch") {
         $stateID = $onlineID;
 
-        $formJSON['actions'][0]['items'][0]['enabled'] = false;
-        $formJSON['actions'][0]['items'][1]['enabled'] = false;
-        $formJSON['actions'][0]['items'][2]['enabled'] = false;
+        $formJSON['actions'][1]['items'][0]['enabled'] = false;
+        $formJSON['actions'][1]['items'][1]['enabled'] = false;
+        $formJSON['actions'][1]['items'][2]['enabled'] = false;
       }
 
       if ($type == classConstant::TYPE_ALL_DEVICES) {
         $stateID = @$this->GetIDForIdent("ALL_DEVICES");
-        $formJSON['actions'][0]['items'][2]['enabled'] = false;
+        $formJSON['actions'][1]['items'][2]['enabled'] = false;
       }
 
       if ($stateID && GetValueBoolean($stateID)) {

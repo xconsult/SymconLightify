@@ -65,18 +65,18 @@ class LightifyScene extends IPSModule {
       if ($instanceID) {
         $name = IPS_GetName($instanceID);
 
-        $formJSON['actions'][1]['items'][1]['caption']  = $name;
-        $formJSON['actions'][1]['items'][1]['objectID'] = $instanceID;
+        $formJSON['actions'][3]['items'][1]['caption']  = $name;
+        $formJSON['actions'][3]['items'][1]['objectID'] = $instanceID;
 
       } else {
-        $formJSON['actions'][1]['items'][1]['caption'] = "- Unknown -";
-        $formJSON['actions'][1]['items'][1]['enabled'] = false;
+        $formJSON['actions'][3]['items'][1]['caption'] = "- Unknown -";
+        $formJSON['actions'][3]['items'][1]['enabled'] = false;
       }
 
-      $caption = "[".IPS_GetName($this->InstanceID)."] ".$this->Translate("is connected to the following group");
-      $formJSON['actions'][1]['items'][0]['caption'] = $caption;
+      $caption = $this->Translate("Connected to the following group");
+      $formJSON['actions'][3]['items'][0]['caption'] = $caption;
 
-      $formJSON['actions'][0]['onClick'] = "OSR_WriteValue(\$id, 'SCENE', ".$ID.");";
+      $formJSON['actions'][1]['onClick'] = "OSR_WriteValue(\$id, 'SCENE', ".$ID.");";
       return json_encode($formJSON);
     }
 

@@ -16,72 +16,6 @@
           "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAwCAYAAAB0WahSAAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAAATgAAAAAAAACQAAAAAQAAAJAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAACKgAwAEAAAAAQAAADAAAAAAytfdFwAAAAlwSFlzAAAWJQAAFiUBSVIk8AAABcBJREFUWAnNmF1sVEUUx/8zs7uwtrQGkFIUI418RdCEoGhMGwJBiRBF0AQMRkUNPMgTEfFBnzSSaEJUfDAxJpBYoiYU4wcGAQMJGkyD4aNVISCgtlDYRqHQ0t6Z8Zy5vbt30+69ld4NTnJ3ZufjnN+cc+bc2RXW2nb8D4ogEFuKgwf0ya8hzv/iT5myEGrsjFLTh9Wfilstfn4P4uR+CKKyGQncCBBBlFIYCPQQBSNrV3F/0oW2WLqwbmsLah1L6enDGokEcQjskn4CQfYoYA1L74DFkSC+RcJryoVBIRBWU6ptDVmFHjME39i+LpjOE7A9naAlfmiVEhzqjzw1vH+KVd81LDWmMKfX2gTxzWqgsgqouR/2ruVITVsKqEykWyMt4ruG4sI1CIpqbkYVMbIKIlMBefk8ZMsXEE0r4DU+BO9cc9SyobkmL4FOUFSU8JiashhYfRjm6f3QDeuAitFQJ/dBbFsE7/SekhuJtIgDIBNIcotkU5BJ4izCYacqJ0BNrEdq/jvAyn3QdfWQlzqAHSuhO47k9xVuRILwDmVgAyagJ8oiPEX/vhf6g5kwO9dC536FumUGxJNN8G6fA9V5DtizHlb3hRlcOxKEZwQ5hNsuVrhRojjIm6phsqNgD26G/bgB5tR3kNkxEA9vhpetBE7sgj79/QAJ8SC8hLcanJ4BIoo71PjZUKt+gH12N5kzDbvjOdhLZ5GaMBti+hKoaxT8LZ8PcHEsiJvAR5dhIkzCw94/Z6APbCIr7IW8Yz6w6H0g9xfMkUbnUnHnI75v23+ijRW7JzKP8F7ZNYW44CQf/s4zfEaPkpjYtgyptqPkmizMCwegJi+CGT8NaGv2LTB2KnQmQ8nuMmTvVWBktS+APmNBAkVcF4D4m18YTDNE4+NQHS0knMD6uoFrXZBqBPDMbgjhh7wcdzfMiz/Cpqh/xKhAhKsjQViJpbxu2YrkHqFtUeJxELnjsJ8sgzzXApOmOb00tWE95MQHnAJZdaur+UPIFFTtLKh8T6HhQoCzg/a64f3RDO/Ked+MwRyhIDwSQo/hHfYXDhud+40glkK2HyMl1EHApuFVpBZshCKl/6W42XxbNF++BHVwK2zNZJinPoWqmelcYe9bC3vhLGzVOIhpjzrZDGGOfQbseg3qwnFIgtCa+uZtgFrwJq0bzInRWO7Oasin5t3pSOXOuMjTY+ooI26HrL3Hrba9XbAq7Xzu3HFoC1TTGrJSD8hg/RCvEMRbhQQYrXfAqHONSGdh56yFMbQTEqxypyC2LoFpP+wWyEwlFLmF92laCXD7GkhNELTasMvmMcTG64ZgJT4INVT9OuiFbzjBDCM7TwNbHoMmGLZCUMTRHZA9dIelYhli/gYXE05QMOk66vx659WGl2GmLqSjR5IY5iK56ivq672SF21vm+XcZ/l0TJ4LMff164iIvLh8o+h3De/cu3oR2EaXmdY9dK+gDlKo56yCfOJDd/yM7oU9/i0lOgrJSfVQ2ZvzwobTKAIJBPV154DG5Ui37gYoN/Cx1Cs+gpr9vJsSuMpZMVg0zDrvmrCcNL8t6Qh7dQ86CDe2fxMlNkrLVBggSQiWOSgID6jsaGDx2zApOlFkAtnWCv3nIR4qSykJwjtWE++FqJ1BUUlf+PXdf5zLQVISxCmjNG05GBmEigydHr8nuc9oENLjriBsHnJP8SsvOQiWFP9morevoPeIs0r43pgsR+lgzetha7i3HPckfVbyWqJBnFqG4MQRPIW1ibZiY4SuV0UKmaccJR4kpDn0V0niLEMDCdwSgkqaJB7EP7f9pyZp9QV58SBltEIBI+Jdk58UBiljHolPaERkOaHxQ3mk+AxxXzJlaK4JrBLUyegukjI0EF5SRggWHw8S/PAmnwRNXph0iYwRNoKlC5LIVPv/k2QrnP5yxMmgd9ZgtwyiO89A/t0Bl1XHTYKqGBsMJ1ozCP2fdOPLv/wx9toBpU70AAAAAElFTkSuQmCC"
         }
       ]
-    },
-    {
-      "type": "ExpansionPanel",
-      "visible": false,
-      "caption": "Extended informations",
-      "items": [
-        {
-          "type": "List",
-          "name": "listDevices",
-          "caption": "Device list",
-          "rowCount": 6,
-          "columns": [
-            {
-              "caption": "Module",
-              "name": "module",
-              "width": "100px"
-            },
-            {
-              "caption": "Name",
-              "name": "name",
-              "width": "200px"
-            },
-            {
-              "caption": "Hue",
-              "name": "hue",
-              "width": "50px"
-            },
-            {
-              "caption": "Color",
-              "name": "color",
-              "width": "90px"
-            },
-            {
-              "caption": "Temperature",
-              "name": "temperature",
-              "width": "110px"
-            },
-            {
-              "caption": "Level",
-              "name": "level",
-              "width": "90px"
-            },
-            {
-              "caption": "Saturation",
-              "name": "saturation",
-              "width": "90px"
-            },
-            {
-              "caption": "T [ms]",
-              "name": "transition",
-              "width": "60px"
-            },
-            {
-              "caption": "ZLL",
-              "name": "zigBee",
-              "width": "60px"
-            },
-            {
-              "caption": "Firmware",
-              "name": "firmware",
-              "width": "auto"
-            }
-          ],
-          "values": []
-        }
-      ]
     }
   ],
   "actions": [
@@ -116,9 +50,6 @@
           "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAAATgAAAAAAAACQAAAAAQAAAJAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAABigAwAEAAAAAQAAABgAAAAAMLjNDAAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAzRJREFUSA21VFtrE0EU/jZ7SdJN0rQpSi9JJZZepK+F/gUvf6DYihSKPhRB/AOKRV/6YgX9D+KLSkFfpKD0SV+KUIptFErRpLknm73veiYaSLObUIodGGbOzJnzzfnON8O51NCl9dg6cYLjuBN2uyG0G53zXgc7fbvZgW4b/2v93AF6UtSehWXbMI6P4ToOpMEExFCwfbvrnOtVZHbKyOZQ23wHHBxAUDXYmg7F0GEMj+DC0iKik5Ndg7ONrgDspvXtbZgf3iPSH4MQDsHVDQRKZVi5HMr5PI7KZUQXFjC+uAQhFPIFEpgU/dRS//wJ9uYm4tNTCIwMw5UEcA0NyGUh8iL6HRearuPo2XMYlNn06qonDovtWwP9dxbG2zcYuJxGIDkKjI0BQQlcvU4500WVBsRKCWG6dSQew+HLF4jPzWF4ft6Tha+KSq9fIcILCERjQCQKDAzCTVyE2x8HomSH+wApBJ58eJ6HYJr49vQJ/F6sB8AkZ2d3F8QdQHNQQaGqRE8DIEqatmkBjg3XZd1tBlb291HMZDwZeCjSqYCOohAVxEWlDDdfACeK4CSJqFGBfBFupQK7ocAwTLqDCduyYFgmygffkUinT4B4AGymd5KiRqP8K0uU803OIZCrRkUuFKnQx9CqVTQoM43WWLeIKlDhO5sHIJRIQCE5VpQ6eAoqGSTNYgEQKACtOxRYrVZQpbFWq0GhbBuMvvgA5GSqM75XRUFZhpFKovj1C1yiSaZbBksloixAtNvQNZVE1GgCMBDWVcpgcPwSEj6PzpMBu0JqZQU7Wx+JY4ME0weJ+GclcYgCnQqtEmidJFsi4ArVQwiGMPXgPkRGY0fzrpDD0Owshm4v43B9HZFY9B8AB1YfVlTGOaOGgXC0lly+hYmr1zpC/zUFv1fM3tLMnbtNOjIbGxBJJWyNSdKkuUlZWPSVBPtkjN5cxNyjhxCYyjoai931L2K+DgX8ubWFnbXHUOizcygwR7WQwmHIqXGk761i4voNiD7BW1g9AVpONk0Ke3uo/cg06yCPJTF0ZQaSD+etM63xVAAt57OMnq/iLEF6nTl3AF+Ztm7EVHOa5qfE1rk/qwyDGGzEX0MAAAAASUVORK5CYII="
         }
       ]
-    },
-    {
-      "type": "Label"
     },
     {
       "type": "RowLayout",

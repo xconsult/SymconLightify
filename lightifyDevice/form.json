@@ -44,31 +44,6 @@
       ]
     },
     {
-      "type": "ValidationTextBox",
-      "name": "UUID",
-      "enabled": false,
-      "caption": "UUID",
-      "value": ""
-    },
-    {
-      "type": "ExpansionPanel",
-      "caption": "Extended informations",
-      "items": [
-        {
-          "type": "Label",
-          "caption": ""
-        },
-        { "type": "RowLayout",
-          "items": [
-          ]
-        }
-      ],
-      "expanded": false
-    },
-    {
-      "type": "Label"
-    },
-    {
       "type": "RowLayout",
       "items": [
         {
@@ -93,6 +68,24 @@
           "width": "100px"
         }
       ]
+    },
+    {
+      "type": "Label"
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Extended informations",
+      "items": [
+        {
+          "type": "Label",
+          "caption": ""
+        },
+        { "type": "RowLayout",
+          "items": [
+          ]
+        }
+      ],
+      "expanded": false
     },
     {
       "type": "PopupAlert",
