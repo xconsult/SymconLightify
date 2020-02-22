@@ -35,7 +35,8 @@
           "name": "module",
           "enabled": false,
           "value": "",
-          "caption": "Module"
+          "caption": "Module",
+          "width": "282px"
         },
         {
           "type": "Image",

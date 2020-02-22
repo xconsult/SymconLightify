@@ -27,7 +27,8 @@
           "name": "module",
           "enabled": false,
           "value": "",
-          "caption": "Module"
+          "caption": "Module",
+          "width": "314px"
         },
         {
           "type": "Image",
