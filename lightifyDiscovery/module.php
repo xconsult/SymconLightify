@@ -10,15 +10,11 @@ class LightifyDiscovery extends IPSModule {
   private const MODULE_CONFIGURATOR = "{5552DA2D-B613-4291-8E57-61B0535B8047}";
   private const MODULE_DNSSD        = "{780B2D48-916C-4D59-AD35-5A429B2355A5}";
 
-  private const METHOD_SET_TIMEOUT  = "set:timeout";
-  private const DNSSD_TIMEOUT       = 500;
-
 
   public function Create() {
 
     //Never delete this line!
     parent::Create();
-    $this->RegisterAttributeInteger("timeout", self::DNSSD_TIMEOUT);
 
   }
 
@@ -80,56 +76,28 @@ class LightifyDiscovery extends IPSModule {
       $Values[] = $value;
     }
 
-    $timeout = $this->ReadAttributeInteger("timeout");
-    $caption = "Time-out [".sprintf("%04dms]", $timeout);
-
-    $formJSON['actions'][0]['items'][1]['caption'] = $caption;
-    $formJSON['actions'][0]['items'][1]['value'] = $timeout;
-
-    $formJSON['actions'][1]['values'] = $Values;
+    $formJSON['actions'][0]['values'] = $Values;
     return json_encode($formJSON);
-
-  }
-
-
-  public function GlobalDiscovery(array $param) : void {
-
-    if ($param['method'] == self::METHOD_SET_TIMEOUT) {
-      $timeout = $param['value'];
-      $caption = "Time-out [".sprintf("%04dms]", $timeout);
-
-      $this->UpdateFormField("timeSlider", "caption", $caption);
-      $this->WriteAttributeInteger("timeout", (int)$timeout);
-    }
 
   }
 
 
   public function DiscoverGateways() : array {
 
-    $timeout  = $this->ReadAttributeInteger("timeout");
     $Gateways = [];
 
     if (IPS_ModuleExists(self::MODULE_DNSSD)) {
       $version  = IPS_GetKernelVersion();
       $moduleID = IPS_GetInstanceListByModuleID(self::MODULE_DNSSD)[0];
 
-      if ($version >= 5.4) {
-        $mDNS  = ZC_QueryServiceTypeEx($moduleID, "_http._tcp", "", $timeout);
-      } else {
-        $mDNS  = ZC_QueryServiceType($moduleID, "_http._tcp", "");
-      }
+      $mDNS  = ZC_QueryServiceType($moduleID, "_http._tcp", "");
       //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $moduleID."|".json_encode($mDNS));
 
       foreach ($mDNS as $item) {
         $name = $item['Name'];
 
         if (stripos($name, "Lightify-") !== false) {
-          if ($version >= 5.4) {
-            $query = ZC_QueryServiceEx($moduleID, $name, $item['Type'], "local.", $timeout);
-          } else {
-            $query = ZC_QueryService($moduleID, $name, $item['Type'], "local.");
-          }
+          $query = ZC_QueryService($moduleID, $name, $item['Type'], "local.");
           //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $moduleID."|".json_encode($query));
 
           foreach ($query as $device) {

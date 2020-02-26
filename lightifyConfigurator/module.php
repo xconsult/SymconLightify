@@ -525,14 +525,11 @@ class LightifyConfigurator extends IPSModule {
       ];
       $this->SetBuffer("saveLine", json_encode($saveLine));
 
-      if ((bool)$state) {
-        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $List['name']."|".$List['hue']."|".$List['color']."|".$List['cct']."|".$List['level']);
-
+      //if ((bool)$state) {
         $this->UpdateFormField("deviceName", "enabled", true);
         $this->UpdateFormField("deviceName", "value", $List['name']);
         $this->UpdateFormField("deviceRename", "enabled", true);
 
-        //Level
         if ($type == classConstant::TYPE_PLUG_ONOFF) {
           $this->setDeviceDefault();
           $this->UpdateFormField("deviceStore", "enabled", false);
@@ -543,7 +540,7 @@ class LightifyConfigurator extends IPSModule {
         }
 
         return;
-      }
+      //}
     }
 
     $this->UpdateFormField("deviceName", "value", vtNoString);
@@ -558,7 +555,7 @@ class LightifyConfigurator extends IPSModule {
 
   private function setDeviceFading(float $value) : void {
 
-    $caption = $this->Translate("Fade On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Duration").sprintf(" %0.1fs]", $value);
+    $caption = $this->Translate("Fade On/Off")." "."[".$this->Translate("Duration").sprintf(" %0.1fs]", $value);
     $this->UpdateFormField("deviceFade", "caption", $caption);
 
   }
@@ -599,11 +596,11 @@ class LightifyConfigurator extends IPSModule {
     $this->showProgressBar(true);
     list($fading) = $values;
 
-    $result = OSR_WriteValue($id, 'SOFT_ON', $$fading*10);
+    $result = OSR_WriteValue($id, 'SOFT_ON', $fading*10);
     $status = json_decode($result);
 
     //Update
-    $this->initialFormFields(self::METHOD_LOAD_LIST_DEVICES);
+    //$this->initialFormFields(self::METHOD_LOAD_LIST_DEVICES);
 
     //Hide progress bar
     $this->showProgressBar(false);
@@ -614,6 +611,8 @@ class LightifyConfigurator extends IPSModule {
     } else {
       $caption = $this->Translate("Device settings were not stored! (Error: ").$status->code.")";
     }
+
+    //Show info
     $this->showInfoWindow($caption);
 
   }
@@ -622,7 +621,7 @@ class LightifyConfigurator extends IPSModule {
   private function setDeviceDefault() : void {
 
     //Soft On/Off
-    $caption = $this->Translate("Fade On/Off").str_pad(chr(20), 2, chr(20))."[".$this->Translate("Duration")." 0.5s]";
+    $caption = $this->Translate("Fade On/Off")." "."[".$this->Translate("Duration")." 0.5s]";
     $this->UpdateFormField("deviceFade", "caption", $caption);
     $this->UpdateFormField("deviceFade", "value", "0.5");
     $this->UpdateFormField("deviceFade", "enabled", false);
@@ -1020,6 +1019,8 @@ class LightifyConfigurator extends IPSModule {
     $Groups  = $this->geGroupsConfigurator($this->getGatewayGroups(self::MODE_GROUPS_CONFIGURATOR));
     $Scenes  = $this->getScenesConfigurator($this->getGatewayScenes());
 
+    //$Devices = [];
+
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Devices));
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Groups));
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Scenes));
@@ -1181,11 +1182,13 @@ class LightifyConfigurator extends IPSModule {
             'model'    => $model,
             'firmware' => $device['firmware']
           ];
+        }
 
-        } else {
+        if ($mode == self::MODE_DEVICES_LIST) {
           if ($module == "Light" || $module == "Plug") {
             $instanceID = $this->lightifyBase->getInstanceByUUID(classConstant::MODULE_DEVICE, $UUID);
             $rowColor = ($device['online']) ? vtNoString : self::ROW_COLOR_OFFLINE;
+            //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $device['name']."|".$instanceID."|".$UUID);
 
             $Devices[] = [
               'id'       => $instanceID,
@@ -1229,8 +1232,9 @@ class LightifyConfigurator extends IPSModule {
             'module' => "Group",
             'name'   => $group->name
           ];
+        }
 
-        } else {
+        if ($mode == self::MODE_GROUPS_LIST) {
           $instanceID = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group->ID);
 
           $Groups[] = [

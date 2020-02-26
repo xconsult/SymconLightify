@@ -7,8 +7,9 @@ require_once __DIR__.'/../libs/lightifyControl.php';
 
 class LightifyDevice extends IPSModule {
 
-  private const METHOD_SET_STATE = "set:state";
-  private const METHOD_SET_SAVE  = "set:save";
+  private const METHOD_SET_DEVICE_FADING = "set:device:fading";
+  private const METHOD_SET_STATE         = "set:state";
+  private const METHOD_SET_SAVE          = "set:save";
 
   use LightifyControl;
 
@@ -66,6 +67,9 @@ class LightifyDevice extends IPSModule {
       $formJSON['actions'][0]['items'][0]['value'] = $this->Translate($module);
 
       if ($module == "Light" || $module == "Plug") {
+        if ($module == "Light") {
+          $formJSON['actions'][2]['items'][1]['enabled'] = true;
+        }
         $i = 0;
 
         foreach ($this->getDeviceGroups() as $group) {
@@ -74,53 +78,53 @@ class LightifyDevice extends IPSModule {
           if ($instanceID) {
             $name = IPS_GetName($instanceID);
 
-            $formJSON['actions'][3]['items'][1]['items'][$i]['type']     = "OpenObjectButton";
-            $formJSON['actions'][3]['items'][1]['items'][$i]['enabled']  = true;
-            $formJSON['actions'][3]['items'][1]['items'][$i]['caption']  = $name;
-            $formJSON['actions'][3]['items'][1]['items'][$i]['objectID'] = $instanceID;
-            $formJSON['actions'][3]['items'][1]['items'][$i]['width']    = "auto";
+            $formJSON['actions'][5]['items'][1]['items'][$i]['type']     = "OpenObjectButton";
+            $formJSON['actions'][5]['items'][1]['items'][$i]['enabled']  = true;
+            $formJSON['actions'][5]['items'][1]['items'][$i]['caption']  = $name;
+            $formJSON['actions'][5]['items'][1]['items'][$i]['objectID'] = $instanceID;
+            $formJSON['actions'][5]['items'][1]['items'][$i]['width']    = "auto";
           }
 
           $i++;
         }
 
         $caption = $this->Translate("Connected to the following group(s)");
-        $formJSON['actions'][3]['items'][0]['caption'] = $caption;
+        $formJSON['actions'][5]['items'][0]['caption'] = $caption;
 
       } else {
         $caption = $this->Translate("Not connected to any group");
-        $formJSON['actions'][3]['items'][0]['caption'] = $caption;
+        $formJSON['actions'][5]['items'][0]['caption'] = $caption;
       }
 
       if ($module == "Light" || $module == "Plug" || $module == "Sensor") {
         $stateID = @$this->GetIDForIdent("STATE");
 
         if ($onlineID && GetValueBoolean($onlineID)) {
-          $formJSON['actions'][1]['items'][0]['enabled'] = true;
-          $formJSON['actions'][1]['items'][1]['enabled'] = true;
+          $formJSON['actions'][3]['items'][0]['enabled'] = true;
+          $formJSON['actions'][3]['items'][1]['enabled'] = true;
 
           if ($module == "Light") {
-            $formJSON['actions'][1]['items'][2]['enabled'] = true;
+            $formJSON['actions'][3]['items'][2]['enabled'] = true;
           } else {
-            $formJSON['actions'][1]['items'][2]['enabled'] = false;
+            $formJSON['actions'][3]['items'][2]['enabled'] = false;
           }
         } else {
-          $formJSON['actions'][1]['items'][0]['enabled'] = false;
-          $formJSON['actions'][1]['items'][1]['enabled'] = false;
-          $formJSON['actions'][1]['items'][2]['enabled'] = false;
+          $formJSON['actions'][3]['items'][0]['enabled'] = false;
+          $formJSON['actions'][3]['items'][1]['enabled'] = false;
+          $formJSON['actions'][3]['items'][2]['enabled'] = false;
         }
       }
       elseif ($module == "Dimmer" || $module == "Switch") {
         $stateID = $onlineID;
 
-        $formJSON['actions'][1]['items'][0]['enabled'] = false;
-        $formJSON['actions'][1]['items'][1]['enabled'] = false;
-        $formJSON['actions'][1]['items'][2]['enabled'] = false;
+        $formJSON['actions'][3]['items'][0]['enabled'] = false;
+        $formJSON['actions'][3]['items'][1]['enabled'] = false;
+        $formJSON['actions'][3]['items'][2]['enabled'] = false;
       }
 
       if ($type == classConstant::TYPE_ALL_DEVICES) {
         $stateID = @$this->GetIDForIdent("ALL_DEVICES");
-        $formJSON['actions'][1]['items'][2]['enabled'] = false;
+        $formJSON['actions'][3]['items'][2]['enabled'] = false;
       }
 
       if ($stateID && GetValueBoolean($stateID)) {
@@ -147,37 +151,16 @@ class LightifyDevice extends IPSModule {
   public function GlobalDeviceModule(array $param) : void {
 
     switch ($param['method']) {
+      case self::METHOD_SET_DEVICE_FADING:
+        $this->setDeviceFading($param['value']);
+        break;
+
       case self::METHOD_SET_STATE:
-        $state  = (bool)$param['value'];
-
-        $result = OSR_WriteValue($this->InstanceID, 'STATE', $state);
-        $status = json_decode($result);
-
-        if ($status->flag && $status->code == 0) {
-          $this->UpdateFormField("deviceOn", "visible", $state);
-          $this->UpdateFormField("deviceOff", "visible", !$state);
-        }
+        $this->deviceStateChange((bool)$param['value']);
         break;
 
       case self::METHOD_SET_SAVE:
-        //Show progress bar
-        $this->showProgressBar(true);
-
-        $result = OSR_WriteValue($this->InstanceID, 'SAVE', $param['value']);
-        $status = json_decode($result);
-        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
-
-        //Hide progress bar
-        $this->showProgressBar(false);
-
-        //Show info
-        if ($status->flag || $status->code == 0) {
-          $caption = $this->Translate("Current device settings were successfully stored!");
-        } else {
-          $caption = $this->Translate("Current device settings were not stored!")."  (Error: ".$status->code.")";
-        }
-        $this->showInfoWindow($caption);
-
+        $this->deviceStoreValues($param['values']);
         break;
     }
 
@@ -485,6 +468,55 @@ class LightifyDevice extends IPSModule {
 
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Groups));
     return $Groups;
+  }
+
+
+  private function setDeviceFading(float $value) : void {
+
+    $caption = $this->Translate("Fade On/Off")." "."[".$this->Translate("Duration").sprintf(" %0.1fs]", $value);
+    $this->UpdateFormField("deviceFade", "caption", $caption);
+
+  }
+
+
+  private function deviceStateChange(bool $state) : void {
+
+    $result = OSR_WriteValue($this->InstanceID, 'STATE', $state);
+    $status = json_decode($result);
+
+    if ($status->flag && $status->code == 0) {
+      $this->UpdateFormField("deviceOn", "visible", $state);
+      $this->UpdateFormField("deviceOff", "visible", !$state);
+    }
+
+  }
+
+  private function deviceStoreValues(array $values) : void {
+
+    //Show progress bar
+    $this->showProgressBar(true);
+
+    //Set On/Off
+    list($save, $fading) = $values;
+    $result = OSR_WriteValue($this->InstanceID, 'SOFT_ON', $fading*10);
+
+    $result = OSR_WriteValue($this->InstanceID, 'SAVE', $save);
+    $status = json_decode($result);
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $result);
+
+    //Hide progress bar
+    $this->showProgressBar(false);
+
+    //Show info
+    if ($status->flag || $status->code == 0) {
+      $caption = $this->Translate("Current device settings were successfully stored!");
+    } else {
+      $caption = $this->Translate("Current device settings were not stored!")."  (Error: ".$status->code.")";
+    }
+
+    //Show info
+    $this->showInfoWindow($caption);
+
   }
 
 

@@ -155,7 +155,7 @@
               },
               {
                 "type": "Label",
-                "caption": "Set the fade duration for On/off. This duration sset for fading represents the time taken by the light to turn fully On/Off."
+                "caption": "Set the fade duration for On/Off. This duration set for fading represents the time taken by the light to turn fully On/Off."
               },
               {
                 "type": "RowLayout",

@@ -3,6 +3,9 @@
     "de": {
       "Device can only be configured over the Configurator Instance!" : "Gerät kann nur über die Konfigurator Instanz erstellt werden!",
       "Module"                                                        : "Modul",
+      "Set the fade duration for On/Off. This duration set for fading represents the time taken by the light to turn fully On/Off." : "Hier kann die Soft Ein-/Aus- Dauer eingestellt werden. Die Dauer repräsentiert die Zeit, die das Licht zum vollständigen Ein-/Aus- Schalten benötigt.",
+      "Fade On/Off"                                                   : "Soft An/Aus",
+      "Duration"                                                      : "Dauer",
       "Extended informations"                                         : "Erweiterte Informationen",
       "Connected to the following group(s)"                           : "Verbunden mit den folgenden Gruppen",
       "Not connected to any group"                                    : "Mit keiner Gruppe verbunden",
