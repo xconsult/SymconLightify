@@ -19,9 +19,11 @@ class LightifyDevice extends IPSModule {
     parent::Create();
 
     //Store at runtime
+    $this->RegisterAttributeInteger("ID", vtNoValue);
+    $this->RegisterPropertyString("UUID", vtNoString);
+
     $this->RegisterPropertyString("module", vtNoString);
     $this->RegisterPropertyInteger("type", vtNoValue);
-    $this->RegisterPropertyString("UUID", vtNoString);
 
     $this->RegisterAttributeInteger("transition", classConstant::TIME_MIN);
     $this->ConnectParent(classConstant::MODULE_GATEWAY);
@@ -38,6 +40,12 @@ class LightifyDevice extends IPSModule {
       return;
     }
 
+    //Apply filter
+    //$filter = '.*\\"UUID\\":"\\'.$this->ReadPropertyString("UUID").'\\".*';
+    $filter = ".*--".$this->ReadPropertyString("UUID")."--.*";
+    $this->SetReceiveDataFilter($filter);
+
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", IPS_GetName($this->InstanceID)."|".$filter);
     $this->WriteAttributeInteger("transition", classConstant::TIME_MIN);
 
   }
@@ -169,13 +177,18 @@ class LightifyDevice extends IPSModule {
 
   public function ReceiveData($JSONString) {
 
+    //Decode data
     $data = json_decode($JSONString, true);
-    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", IPS_GetName($this->InstanceID)."|".count($data)."|".json_encode($data));
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $this->InstanceID."|".json_encode($data['buffer']));
 
-    foreach ($data['buffer'] as $device) {
-      if ($device['UUID'] == $this->ReadPropertyString("UUID")) {
-        if ($device['type'] == classConstant::TYPE_ALL_DEVICES) {
-          $newState = (bool)$device['state'];
+    if (!empty($data)) {
+      $buffer = $data['buffer'];
+
+      if ($buffer['UUID'] == $this->ReadPropertyString("UUID")) {
+        $this->WriteAttributeInteger("ID", $buffer['ID']);
+
+        if ($buffer['type'] == classConstant::TYPE_ALL_DEVICES) {
+          $newState = (bool)$buffer['state'];
 
           if (false === ($stateID  = @$this->GetIDForIdent("ALL_DEVICES"))) {
             $stateID = $this->RegisterVariableBoolean("ALL_DEVICES", $this->Translate("State"), "OSR.Switch", 313);
@@ -189,9 +202,9 @@ class LightifyDevice extends IPSModule {
               SetValueBoolean($stateID, $newState);
             }
           }
+
         } else {
-          $this->setDeviceInfo($device);
-          break;
+          $this->setDeviceInfo($buffer);
         }
       }
     }
@@ -449,21 +462,20 @@ class LightifyDevice extends IPSModule {
 
 
   protected function getDeviceGroups() : array {
+    //Get buffer list
     $data = $this->SendDataToParent(json_encode([
       'DataID' => classConstant::TX_GATEWAY,
-      'method' => classConstant::GET_DEVICES_LOCAL])
+      'method' => classConstant::GET_BUFFER_DEVICES,
+      'uID'    => $this->ReadAttributeInteger("ID")])
     );
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $data);
 
+    //Decode
     $data   = json_decode($data);
     $Groups = [];
 
-    if (is_array($data) && count($data) > 0) {
-      foreach ($data as $device) {
-        if ($device->UUID == $this->ReadPropertyString("UUID")) {
-          $Groups = $device->Groups;
-          break;
-        }
-      }
+    if (!empty($data)) {
+      $Groups = $data->Groups;
     }
 
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($Groups));

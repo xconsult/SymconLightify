@@ -33,6 +33,12 @@ class LightifyScene extends IPSModule {
       return;
     }
 
+    //Apply filter
+    $filter = ".*--".(string)$this->ReadPropertyInteger("ID")."--.*";
+    $this->SetReceiveDataFilter($filter);
+
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", IPS_GetName($this->InstanceID)."|".$filter);
+
   }
 
 
@@ -96,13 +102,14 @@ class LightifyScene extends IPSModule {
 
     //Decode data
     $data = json_decode($JSONString, true);
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $this->InstanceID."|".json_encode($data['buffer']));
 
-    foreach ($data['buffer'] as $scene) {
-      if ($scene['ID'] == $this->ReadPropertyInteger("ID")) {
-        $this->WriteAttributeInteger("group", $scene['group']);
+    if (!empty($data)) {
+      $buffer = $data['buffer'];
+
+      if ($buffer['ID'] == $this->ReadPropertyInteger("ID")) {
+        $this->WriteAttributeInteger("group", $buffer['group']);
         $this->setSceneInfo();
-
-        break;
       }
     }
 

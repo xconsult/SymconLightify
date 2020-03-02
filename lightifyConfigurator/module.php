@@ -118,10 +118,6 @@ class LightifyConfigurator extends IPSModule {
 
   public function GetConfigurationForm() {
 
-    if (!$this->HasActiveParent()) {
-      return vtNoForm;
-    }
-
     $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
     $parentID = IPS_GetInstance($this->InstanceID)['ConnectionID'];
     $formJSON['elements'][0]['items'][0]['objectID'] = $parentID;
@@ -1118,7 +1114,7 @@ class LightifyConfigurator extends IPSModule {
 
           case classConstant::TYPE_ALL_DEVICES:
             $module = "All Devices";
-            $UUID   = vtNoString;
+            //$UUID   = vtNoString;
             $label  = self::LABEL_ALL_DEVICES;
             break;
 

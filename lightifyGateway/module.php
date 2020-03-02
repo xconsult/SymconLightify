@@ -289,6 +289,24 @@ class LightifyGateway extends IPSModule {
 
       case classConstant::GET_SCENES_CLOUD:
         return $this->ReadAttributeString("cloudScenes");
+
+      case classConstant::GET_BUFFER_DEVICES:
+        if ($data->uID != vtNoValue) {
+          return $this->GetBuffer("Device-".$data->uID);
+        }
+        return $this->getBufferDevices();
+
+      case classConstant::GET_BUFFER_GROUPS:
+        if ($data->uID != vtNoValue) {
+          return $this->GetBuffer("Group-".$data->uID);
+        }
+        return $this->getBufferGroups();
+
+      case classConstant::GET_BUFFER_SCENES:
+        if ($data->uID != vtNoValue) {
+          return $this->GetBuffer("Scene-".$data->uID);
+        }
+        return $this->getBufferScenes();
     }
 
     switch ($method) {
@@ -385,11 +403,14 @@ class LightifyGateway extends IPSModule {
           $Devices = $this->getGatewayDevices($cloudAPI, $data);
           $this->WriteAttributeString("deviceBuffer", json_encode($Devices));
 
-          if (!empty($Devices)) {
+          foreach ($this->getBufferDevices() as $line) {
+            $device = json_decode($this->GetBuffer($line), true);
+
             $this->SendDataToChildren(json_encode([
               'DataID' => classConstant::TX_DEVICE,
               'id'     => $this->InstanceID,
-              'buffer' => $Devices])
+              'uID'    => "--".$device['UUID']."--",
+              'buffer' => $device])
             );
           }
           break;
@@ -400,11 +421,14 @@ class LightifyGateway extends IPSModule {
           $Groups = $this->getGatewayGroups($cloudAPI, $data);
           $this->WriteAttributeString("groupBuffer", json_encode($Groups));
 
-          if (!empty($Groups)) {
+          foreach ($this->getBufferGroups() as $line) {
+            $group = json_decode($this->GetBuffer($line), true);
+
             $this->SendDataToChildren(json_encode([
               'DataID' => classConstant::TX_GROUP,
               'id'     => $this->InstanceID,
-              'buffer' => $Groups])
+              'uID'    => "--".(string)$group['ID']."--",
+              'buffer' => $group])
             );
           }
           break;
@@ -414,11 +438,14 @@ class LightifyGateway extends IPSModule {
           $Scenes = $this->getGatewayScenes($cloudAPI, $data);
           $this->WriteAttributeString("sceneBuffer", json_encode($Scenes));
 
-          if (!empty($Scenes)) {
+          foreach ($this->getBufferScenes() as $line) {
+            $scene = json_decode($this->GetBuffer($line), true);
+
             $this->SendDataToChildren(json_encode([
               'DataID' => classConstant::TX_SCENE,
               'id'     => $this->InstanceID,
-              'buffer' => $Scenes])
+              'uID'    => "--".(string)$scene['ID']."--",
+              'buffer' => $scene])
             );
           }
           break;
@@ -787,7 +814,6 @@ class LightifyGateway extends IPSModule {
 
     if (strlen($data) >= (2 + self::DATA_DEVICE_LENGTH)) {
       $Devices  = [];
-      $buffer   = [];
       $allState = 0;
 
       $ncount = ord($data{0})+ord($data{1});
@@ -810,7 +836,7 @@ class LightifyGateway extends IPSModule {
           $allState = 1;
         }
 
-        $cct = hexdec(dechex(ord($data{21})).dechex(ord($data{20})));
+        $cct   = hexdec(dechex(ord($data{21})).dechex(ord($data{20})));
         $level = ord($data{19});
         $white = ord($data{25});
 
@@ -833,7 +859,7 @@ class LightifyGateway extends IPSModule {
             $decode = $this->lightifyBase->decodeGroup(ord($data{16}), ord($data{17}));
         }
 
-        $Devices[] = [
+        $device = [
           'ID'       => $i,
           'type'     => $type,
           'zigBee'   => $zigBee,
@@ -842,13 +868,17 @@ class LightifyGateway extends IPSModule {
           'firmware' => $firmware,
           'online'   => $online,
           'state'    => $state,
-          'cct'      => $cct,
-          'level'    => $level,
-          'rgb'      => $rgb,
-          'white'    => $white,
           'Groups'   => $decode
         ];
+        $Devices[] = $device;
 
+        $device += [
+          'cct'    => $cct,
+          'level'  => $level,
+          'rgb'    => $rgb,
+          'white'  => $white
+        ];
+        $this->SetBuffer("Device-".$i, json_encode($device));
 
         if (($length = strlen($data)) > self::DATA_DEVICE_LOADED) {
           $length = self::DATA_DEVICE_LOADED;
@@ -865,21 +895,27 @@ class LightifyGateway extends IPSModule {
       }
 
       if (!empty($Devices)) {
-        array_unshift($Devices, [
+        $allDevice = [
           'ID'       => 0,
           'type'     => classConstant::TYPE_ALL_DEVICES,
           'zigBee'   => vtNoString,
-          'UUID'     => vtNoString,
+          'UUID'     => "84:18:26:00:00:00:00:00",
           'name'     => "All Devices",
           'firmware' => vtNoString,
           'online'   => vtNoValue,
           'state'    => $allState,
-          'level'    => vtNoString,
-          'cct'      => vtNoString,
-          'rgb'      => vtNoString,
-          'white'    => vtNoString,
           'Groups'   => []
-        ]);
+        ];
+        array_unshift($Devices, $allDevice);
+
+        $allDevice += [
+          'level'  => vtNoString,
+          'cct'    => vtNoString,
+          'rgb'    => vtNoString,
+          'white'  => vtNoString
+        ];
+        $this->SetBuffer("Device-0", json_encode($allDevice));
+
       }
 
       $this->SendDebug("<".__FUNCTION__.">", json_encode($Devices), 0);
@@ -894,9 +930,9 @@ class LightifyGateway extends IPSModule {
   private function getGatewayGroups(bool $cloudAPI, string $data) : array {
 
     if (strlen($data) >= (2 + self::DATA_GROUP_LENGTH)) {
-      $Devices = json_decode($this->ReadAttributeString("deviceBuffer"));
-      $Groups  = [];
-      $List    = [];
+      //$Devices = json_decode($this->ReadAttributeString("deviceBuffer"));
+      $Groups = [];
+      $List   = [];
 
       $ncount = ord($data{0})+ord($data{1});
       $data   = substr($data, 2);
@@ -909,8 +945,12 @@ class LightifyGateway extends IPSModule {
         $name = (!empty($name)) ? $name : "-Unknown-";
 
         //Get Group devices
-        if (!empty($Devices)) {
-          foreach ($Devices as $device) {
+        $List = $this->getBufferDevices();
+
+        if (!empty($List)) {
+          foreach ($List as $line) {
+            $device = json_decode($this->GetBuffer($line));
+
             foreach ($device->Groups as $id) {
               if (ord($data{0}) == $id) {
                 $buffer[] = $device;
@@ -920,12 +960,15 @@ class LightifyGateway extends IPSModule {
           }
         }
 
-        $Groups[] = [
+        $group = [
           'ID'      => ord($data{0}),
           'type'    => classConstant::TYPE_DEVICE_GROUP,
           'name'    => $name,
-          'Devices' => $buffer
         ];
+        $Groups[] = $group;
+
+        $group['Devices'] = $buffer;
+        $this->SetBuffer("Group-".$i, json_encode($group));
 
         if (($length = strlen($data)) > self::DATA_GROUP_LENGTH) {
           $length = self::DATA_GROUP_LENGTH;
@@ -964,7 +1007,7 @@ class LightifyGateway extends IPSModule {
         $name = (!empty($name)) ? $name : "-Unknown-";
         //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $i."|".$name."|".ord($data{18})." ".ord($data{19}));
 
-        $Scenes[] = [
+        $scene = [
           'ID'    => ord($data{0}),
           'type'  => classConstant::TYPE_GROUP_SCENE,
           'name'  => $name,
@@ -974,6 +1017,9 @@ class LightifyGateway extends IPSModule {
         if (($length = strlen($data)) > self::DATA_SCENE_LENGTH) {
           $length = self::DATA_SCENE_LENGTH;
         }
+
+        $Scenes[] = $scene;
+        $this->SetBuffer("Scene-".$i, json_encode($scene));
 
         $data = substr($data, $length);
       }
@@ -1040,5 +1086,69 @@ class LightifyGateway extends IPSModule {
     return $status;
 
   }
+
+
+  private function getBufferDevices(string $uID = vtNoString) : array {
+
+    $buffer = [];
+    $List   = $this->GetBufferList();
+
+    foreach ($List as $line) {
+      if (strpos($line, "Device-") !== false) {
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $line);
+        $buffer[] = $line;
+
+        if ($uID != vtNoString && $line == "Device-".$uID) {
+          break;
+        }
+      }
+    }
+
+    return $buffer;
+
+  }
+
+
+  private function getBufferGroups(int $uID = vtNoValue) : array {
+
+    $buffer = [];
+    $List   = $this->GetBufferList();
+
+    foreach ($List as $line) {
+      if (strpos($line, "Group-") !== false) {
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $line);
+        $buffer[] = $line;
+
+        if ($uID != vtNoValue && $line == "Group-".$uID) {
+          break;
+        }
+      }
+    }
+
+    return $buffer;
+
+  }
+
+
+  private function getBufferScenes(int $uID = vtNoValue) : array {
+
+    $buffer = [];
+    $List   = $this->GetBufferList();
+
+    foreach ($List as $line) {
+      if (strpos($line, "Scene-") !== false) {
+        //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $line);
+        $buffer[] = $line;
+
+        if ($uID != vtNoValue && $line == "Scene-".$uID) {
+          break;
+        }
+      }
+    }
+
+    return $buffer;
+
+  }
+
 
 }

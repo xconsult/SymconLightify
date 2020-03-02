@@ -80,6 +80,10 @@ class classConstant {
   public const GET_SCENES_LOCAL       = 1005;
   public const GET_SCENES_CLOUD       = 1006;
 
+  public const GET_BUFFER_DEVICES     = 1007;
+  public const GET_BUFFER_GROUPS      = 1008;
+  public const GET_BUFFER_SCENES      = 1009;
+
   public const SET_ALL_DEVICES        = 1010;
   public const SET_GROUP_STATE        = 1011;
   public const SET_LIGHT_SATURATION   = 1012;

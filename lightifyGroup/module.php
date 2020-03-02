@@ -39,6 +39,12 @@ class LightifyGroup extends IPSModule {
       return;
     }
 
+    //Apply filter
+    $filter = ".*--".(string)$this->ReadPropertyInteger("ID")."--.*";
+    $this->SetReceiveDataFilter($filter);
+
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", IPS_GetName($this->InstanceID)."|".$filter);
+
   }
 
 
@@ -49,6 +55,12 @@ class LightifyGroup extends IPSModule {
         $this->ApplyChanges();
         break;
     }
+
+    //Apply filter
+    $filter = ".*--".$this->ReadPropertyInteger("ID")."--.*";
+    $this->SetReceiveDataFilter($filter);
+
+    IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", IPS_GetName($this->InstanceID)."|".$filter);
 
   }
 
@@ -111,14 +123,16 @@ class LightifyGroup extends IPSModule {
 
     //Decode data
     $data = json_decode($JSONString, true);
-    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($data['buffer']));
+    //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $this->InstanceID."|".json_encode($data['buffer']));
 
-    foreach($data['buffer'] as $group) {
-      if ($group['ID'] == $this->ReadPropertyInteger("ID")) {
-        $List = $this->getListDevices($group['Devices']);
+    if (!empty($data)) {
+      $buffer = $data['buffer'];
+
+      if ($buffer['ID'] == $this->ReadPropertyInteger("ID")) {
+        $List   = $this->getListDevices($buffer['Devices']);
         //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($List));
+
         $this->setGroupInfo($List);
-        break;
       }
     }
 
@@ -127,10 +141,11 @@ class LightifyGroup extends IPSModule {
 
   private function getGroupDevices() : array {
 
-    //Get data
+    //Get buffer list
     $data = $this->SendDataToParent(json_encode([
       'DataID' => classConstant::TX_GATEWAY,
-      'method' => classConstant::GET_GROUPS_LOCAL])
+      'method' => classConstant::GET_BUFFER_GROUPS,
+      'uID'    => $this->ReadPropertyInteger("ID")])
     );
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $data);
 
@@ -138,14 +153,9 @@ class LightifyGroup extends IPSModule {
     $data = json_decode($data, true);
     $List = [];
 
-    if (is_array($data) && count($data) > 0) {
-      foreach ($data as $group) {
-        if ($group['ID'] == $this->ReadPropertyInteger("ID")) {
-          $List = $this->getListDevices($group['Devices']);
-          //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($List));
-          break;
-        }
-      }
+    if (!empty($data)) {
+      $List = $this->getListDevices($data['Devices']);
+      //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($List));
     }
 
     return $List;
