@@ -35,7 +35,7 @@ trait LightifyControl {
     $param['id']  = $this->InstanceID;
 
     $result = $this->SendDataToParent(json_encode([
-      'DataID' => classConstant::TX_GATEWAY,
+      'DataID' => Constants::TX_GATEWAY,
       'method' => $cmd,
       'buffer' => json_encode($param)])
     );
@@ -76,7 +76,7 @@ trait LightifyControl {
     //Validate key
     $key = strtoupper($key);
 
-    if (!in_array($key, explode(",", classConstant::WRITE_KEY_VALUES))) {
+    if (!in_array($key, explode(",", Constants::WRITE_KEY_VALUES))) {
       return json_encode($this->sendResult);
     }
 
@@ -91,7 +91,7 @@ trait LightifyControl {
             ];
 
             //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", json_encode($param));
-            return $this->sendData(classConstant::SET_ALL_DEVICES, $param);
+            return $this->sendData(Constants::SET_ALL_DEVICES, $param);
           }
         }
         return json_encode($this->sendResult);
@@ -102,7 +102,7 @@ trait LightifyControl {
           'args'  => utf8_encode(chr($value)),
           'value' => vtNoValue
         ];
-        return $this->sendData(classCommand::ACTIVATE_GROUP_SCENE, $param);
+        return $this->sendData(Commands::ACTIVATE_GROUP_SCENE, $param);
     }
 
     //Get module
@@ -121,13 +121,13 @@ trait LightifyControl {
 
     } else {
       $flag = 2;
-      $UUID = str_pad(chr($this->ReadPropertyInteger("ID")), classConstant::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
+      $UUID = str_pad(chr($this->ReadPropertyInteger("ID")), Constants::UUID_OSRAM_LENGTH, chr(0x00), STR_PAD_RIGHT);
       $online = true;
     }
 
     $stateID = @$this->GetIDForIdent("STATE");
     $state   = ($stateID) ? GetValueBoolean($stateID) : false;
-    $this->fade = classConstant::TIME_MIN;
+    $this->fade = Constants::TIME_MIN;
 
     if ($Light) {
       $type = $this->ReadPropertyInteger("type");
@@ -151,7 +151,7 @@ trait LightifyControl {
               'args'  => utf8_encode($UUID.chr(0x00)),
               'value' => vtNoValue
             ];
-            return $this->sendData(classCommand::SAVE_LIGHT_STATE, $param);
+            return $this->sendData(Commands::SAVE_LIGHT_STATE, $param);
           }
         }
         return json_encode($this->sendResult);
@@ -165,8 +165,8 @@ trait LightifyControl {
             'value' => vtNoValue
           ];
 
-          $result = $this->sendData(classCommand::SET_LIGHT_SOFT_ON, $param);
-          return $this->sendData(classCommand::SET_LIGHT_SOFT_OFF, $param);
+          $result = $this->sendData(Commands::SET_LIGHT_SOFT_ON, $param);
+          return $this->sendData(Commands::SET_LIGHT_SOFT_OFF, $param);
         }
         return json_encode($this->sendResult);
 
@@ -208,13 +208,13 @@ trait LightifyControl {
             'value' => $value
           ];
 
-          $cmd = ($Group) ? classConstant::SET_GROUP_STATE : classCommand::SET_DEVICE_STATE;
+          $cmd = ($Group) ? Constants::SET_GROUP_STATE : Commands::SET_DEVICE_STATE;
           return $this->sendData($cmd, $param);
         }
         return json_encode($this->sendResult);
 
       case "PLANT_LIGHT":
-        $value = classConstant::SCENE_PLANT_LIGHT;
+        $value = Constants::SCENE_PLANT_LIGHT;
 
       case "COLOR":
         if ($online && ($RGB || $Group)) {
@@ -234,7 +234,7 @@ trait LightifyControl {
                 'args'  => utf8_encode($UUID.chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0xff).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
                 'value' => vtNoValue
               ];
-              $result = $this->sendData(classCommand::SET_LIGHT_COLOR, $param);
+              $result = $this->sendData(Commands::SET_LIGHT_COLOR, $param);
 
               if ($result) {
                 if ($hueID && GetValue($hueID) != $hsv['h']) {
@@ -253,11 +253,11 @@ trait LightifyControl {
         return json_encode($this->sendResult);
 
       case "RELAX":
-        $value = classConstant::SCENE_RELAX;
+        $value = Constants::SCENE_RELAX;
 
       case "ACTIVE":
         if (!isset($value)) {
-          $value = classConstant::SCENE_ACTIVE;
+          $value = Constants::SCENE_ACTIVE;
         }
 
       case "COLOR_TEMPERATURE":
@@ -279,7 +279,7 @@ trait LightifyControl {
                 'args'  => utf8_encode($UUID.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
                 'value' => vtNoValue
               ];
-              $result = $this->sendData(classCommand::SET_COLOR_TEMPERATURE, $param);
+              $result = $this->sendData(Commands::SET_COLOR_TEMPERATURE, $param);
 
               if ($result) {
                 SetValue($cctID, $value);
@@ -303,7 +303,7 @@ trait LightifyControl {
                 'args'  => utf8_encode($UUID.chr((int)$value).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
                 'value' => $value
               ];
-              $result = $this->sendData(classCommand::SET_LIGHT_LEVEL, $param);
+              $result = $this->sendData(Commands::SET_LIGHT_LEVEL, $param);
 
               if ($result) {
                 if ($Light && $stateID) {
@@ -345,7 +345,7 @@ trait LightifyControl {
                   'args'  => utf8_encode($UUID.chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0x00).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
                   'value' => vtNoValue
                 ];
-                $result = $this->sendData(classCommand::SET_LIGHT_SATURATION, $param);
+                $result = $this->sendData(Commands::SET_LIGHT_SATURATION, $param);
 
                 if ($result) {
                   if ($Light) {
@@ -412,23 +412,23 @@ trait LightifyControl {
     }
 
     $module = $this->ReadPropertyString("module");
-    $name = substr(trim($name), 0, classConstant::DATA_NAME_LENGTH);
+    $name = substr(trim($name), 0, Constants::DATA_NAME_LENGTH);
 
     if ($module == "Light" || $module == "Plug" || $module == "Sensor") {
-      $cmd = classCommand::SET_DEVICE_NAME;
+      $cmd = Commands::SET_DEVICE_NAME;
       $flag = chr(0x00);
       $UUID = utf8_encode($this->lightifyBase->UUIDtoChr($this->ReadPropertyString("UUID")));
     }
     elseif ($module == "Group") {
-      $cmd = classCommand::SET_GROUP_NAME;
+      $cmd = Commands::SET_GROUP_NAME;
       $flag = chr(0x02);
-      $UUID = utf8_encode(chr($this->ReadPropertyInteger("ID")-classConstant::GROUP_ITEM_INDEX).chr(0x00));
+      $UUID = utf8_encode(chr($this->ReadPropertyInteger("ID")-Constants::GROUP_ITEM_INDEX).chr(0x00));
     }
 
     //Forward data to splitter
     $param = [
       'flag'  => $flag,
-      'args'  => utf8_decode(($UUID).str_pad($name, classConstant::DATA_NAME_LENGTH).chr(0x00)),
+      'args'  => utf8_decode(($UUID).str_pad($name, Constants::DATA_NAME_LENGTH).chr(0x00)),
       'value' => vtNoValue
     ];
     $result = $this->sendData($cmd, $param);

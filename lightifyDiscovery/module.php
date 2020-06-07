@@ -56,19 +56,19 @@ class LightifyDiscovery extends IPSModule {
           ]
         ],
         [
-          'moduleID' => classConstant::MODULE_GATEWAY,
+          'moduleID' => Constants::MODULE_GATEWAY,
           'configuration' => [
             'cloudAPI'     => false,
-            'update'       => classConstant::TIMER_SYNC,
+            'update'       => Constants::TIMER_UPDATE,
             'serialNumber' => $serialNumber
           ]
         ],
         [
-          'moduleID' => classConstant::CLIENT_SOCKET,
+          'moduleID' => Constants::CLIENT_SOCKET,
           'configuration' => [
             'Open' => true,
             'Host' => $gatewayIP,
-            'Port' => classConstant::GATEWAY_PORT
+            'Port' => Constants::GATEWAY_PORT
           ]
         ]
       ];

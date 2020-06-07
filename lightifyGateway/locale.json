@@ -5,8 +5,8 @@
       "Update interval"                                                    : "Aktualisierungsintervall",
       "seconds"                                                            : "Sekunden",
       "Serial number"                                                      : "Seriennummer",
-      "Register"                                                           : "Registrieren",
       "Update interval < 5s"                                               : "Aktualisierungs Interval < 5s",
+      "Register"                                                           : "Registrieren",
       "Lightify API registration available in cloud connection mode only!" : "Lightify API Registrierung ist nur mit einer Cloud Verbindung verfügbar!",
       "Authorization code expected!"                                       : "Authorisierungs Code erwartet!"
     }

@@ -25,8 +25,8 @@ class LightifyDevice extends IPSModule {
     $this->RegisterPropertyString("module", vtNoString);
     $this->RegisterPropertyInteger("type", vtNoValue);
 
-    $this->RegisterAttributeInteger("transition", classConstant::TIME_MIN);
-    $this->ConnectParent(classConstant::MODULE_GATEWAY);
+    $this->RegisterAttributeInteger("transition", Constants::TIME_MIN);
+    $this->ConnectParent(Constants::MODULE_GATEWAY);
 
   }
 
@@ -46,7 +46,7 @@ class LightifyDevice extends IPSModule {
     $this->SetReceiveDataFilter($filter);
 
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", IPS_GetName($this->InstanceID)."|".$filter);
-    $this->WriteAttributeInteger("transition", classConstant::TIME_MIN);
+    $this->WriteAttributeInteger("transition", Constants::TIME_MIN);
 
   }
 
@@ -81,7 +81,7 @@ class LightifyDevice extends IPSModule {
         $i = 0;
 
         foreach ($this->getDeviceGroups() as $group) {
-          $instanceID = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
+          $instanceID = $this->lightifyBase->getInstanceByID(Constants::MODULE_GROUP, $group);
 
           if ($instanceID) {
             $name = IPS_GetName($instanceID);
@@ -130,7 +130,7 @@ class LightifyDevice extends IPSModule {
         $formJSON['actions'][3]['items'][2]['enabled'] = false;
       }
 
-      if ($type == classConstant::TYPE_ALL_DEVICES) {
+      if ($type == Constants::TYPE_ALL_DEVICES) {
         $stateID = @$this->GetIDForIdent("ALL_DEVICES");
         $formJSON['actions'][3]['items'][2]['enabled'] = false;
       }
@@ -187,7 +187,7 @@ class LightifyDevice extends IPSModule {
       if ($buffer['UUID'] == $this->ReadPropertyString("UUID")) {
         $this->WriteAttributeInteger("ID", $buffer['ID']);
 
-        if ($buffer['type'] == classConstant::TYPE_ALL_DEVICES) {
+        if ($buffer['type'] == Constants::TYPE_ALL_DEVICES) {
           $newState = (bool)$buffer['state'];
 
           if (false === ($stateID  = @$this->GetIDForIdent("ALL_DEVICES"))) {
@@ -219,20 +219,20 @@ class LightifyDevice extends IPSModule {
     $type  = $data['type'];
 
     switch ($type) {
-      case classConstant::TYPE_PLUG_ONOFF:
+      case Constants::TYPE_PLUG_ONOFF:
         $plug = true;
         break;
 
-      case classConstant::TYPE_SENSOR_MOTION:
+      case Constants::TYPE_SENSOR_MOTION:
         $motion = true;
         break;
 
-      case classConstant::TYPE_DIMMER_2WAY:
+      case Constants::TYPE_DIMMER_2WAY:
         $dimmer = true;
         break;
 
-      case classConstant::TYPE_SWITCH_4WAY:
-      case classConstant::TYPE_SWITCH_MINI:
+      case Constants::TYPE_SWITCH_4WAY:
+      case Constants::TYPE_SWITCH_MINI:
         $switch = true;
         break;
 
@@ -464,8 +464,8 @@ class LightifyDevice extends IPSModule {
   protected function getDeviceGroups() : array {
     //Get buffer list
     $data = $this->SendDataToParent(json_encode([
-      'DataID' => classConstant::TX_GATEWAY,
-      'method' => classConstant::GET_BUFFER_DEVICES,
+      'DataID' => Constants::TX_GATEWAY,
+      'method' => Constants::GET_BUFFER_DEVICES,
       'uID'    => $this->ReadAttributeInteger("ID")])
     );
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $data);

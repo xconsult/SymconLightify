@@ -25,7 +25,7 @@ class LightifyGroup extends IPSModule {
     $this->RegisterPropertyInteger("ID", vtNoValue);
     $this->RegisterPropertyString("module", vtNoString);
 
-    $this->ConnectParent(classConstant::MODULE_GATEWAY);
+    $this->ConnectParent(Constants::MODULE_GATEWAY);
 
   }
 
@@ -143,8 +143,8 @@ class LightifyGroup extends IPSModule {
 
     //Get buffer list
     $data = $this->SendDataToParent(json_encode([
-      'DataID' => classConstant::TX_GATEWAY,
-      'method' => classConstant::GET_BUFFER_GROUPS,
+      'DataID' => Constants::TX_GATEWAY,
+      'method' => Constants::GET_BUFFER_GROUPS,
       'uID'    => $this->ReadPropertyInteger("ID")])
     );
     //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $data);
@@ -321,11 +321,11 @@ class LightifyGroup extends IPSModule {
 
       //Decode device info
       switch ($type) {
-        case classConstant::TYPE_FIXED_WHITE:
-        case classConstant::TYPE_LIGHT_CCT:
-        case classConstant::TYPE_LIGHT_DIMABLE:
-        case classConstant::TYPE_LIGHT_COLOR:
-        case classConstant::TYPE_LIGHT_EXT_COLOR:
+        case Constants::TYPE_FIXED_WHITE:
+        case Constants::TYPE_LIGHT_CCT:
+        case Constants::TYPE_LIGHT_DIMABLE:
+        case Constants::TYPE_LIGHT_COLOR:
+        case Constants::TYPE_LIGHT_EXT_COLOR:
           $module = "Light";
 
           $RGB = ($type & 8) ? true: false;
@@ -348,7 +348,7 @@ class LightifyGroup extends IPSModule {
           }
           break;
 
-        case classConstant::TYPE_PLUG_ONOFF:
+        case Constants::TYPE_PLUG_ONOFF:
           $module = "Plug";
           break;
 

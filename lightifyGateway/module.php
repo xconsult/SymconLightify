@@ -102,8 +102,8 @@ class LightifyGateway extends IPSModule {
     $this->RegisterPropertyBoolean("cloudAPI", false);
     $this->RegisterPropertyString("serialNumber", vtNoString);
 
-    $this->RegisterPropertyInteger("update", classConstant::TIMER_SYNC);
-    $this->RegisterTimer("timer", classConstant::TIMER_SYNC*1000, "OSR_GetLightifyData($this->InstanceID, 'load:local');");
+    $this->RegisterPropertyInteger("update", Constants::TIMER_UPDATE);
+    $this->RegisterTimer("update", Constants::TIMER_UPDATE*1000, "OSR_GetLightifyData($this->InstanceID, 'load:local');");
 
     //Cloud Access Token
     $this->RegisterAttributeString("osramToken", vtNoString);
@@ -171,7 +171,7 @@ class LightifyGateway extends IPSModule {
       IPS_SetVariableProfileAssociation("OSR.Scene", 1, $this->Translate("Activate"), vtNoString, 0xFF9200);
     }
 
-    $this->ConnectParent(classConstant::CLIENT_SOCKET);
+    $this->ConnectParent(Constants::CLIENT_SOCKET);
 
   }
 
@@ -180,10 +180,11 @@ class LightifyGateway extends IPSModule {
 
     //Never delete this line!
     parent::ApplyChanges();
-    $parentID = IPS_GetInstance($this->InstanceID)['ConnectionID'];
 
-    $this->RegisterMessage($parentID, IM_CHANGESTATUS);
-    $this->RegisterMessage($parentID, IM_CHANGESETTINGS);
+    if (0 < ($parentID = @$this->getParentInstance($this->InstanceID))) {
+      $this->RegisterMessage($parentID, IM_CHANGESTATUS);
+      $this->RegisterMessage($parentID, IM_CHANGESETTINGS);
+    }
     $this->RegisterMessage(0, IPS_KERNELSTARTED);
 
     if (IPS_GetKernelRunlevel() != KR_READY) {
@@ -199,7 +200,7 @@ class LightifyGateway extends IPSModule {
 
     //Execute
     $this->GetLightifyData(self::METHOD_APPLY_CONFIG);
-    $this->SetTimerInterval("timer", $this->ReadPropertyInteger("update")*1000);
+    $this->SetTimerInterval("update", $this->ReadPropertyInteger("update")*1000);
 
   }
 
@@ -227,7 +228,7 @@ class LightifyGateway extends IPSModule {
     $formJSON = json_decode(file_get_contents(__DIR__."/form.json"), true);
     $formJSON['elements'][0]['items'][0]['objectID'] = IPS_GetInstance($this->InstanceID)['ConnectionID'];
 
-    if ($this->ReadPropertyBoolean("cloudAPI") && strlen($this->ReadPropertyString("serialNumber")) == classConstant::GATEWAY_SERIAL_LENGTH) {
+    if ($this->ReadPropertyBoolean("cloudAPI") && strlen($this->ReadPropertyString("serialNumber")) == Constants::GATEWAY_SERIAL_LENGTH) {
       $formJSON['actions'][0]['enabled'] = true;
     } else {
       $formJSON['actions'][0]['enabled'] = false;
@@ -272,37 +273,37 @@ class LightifyGateway extends IPSModule {
     $method = $data->method;
 
     switch ($method) {
-      case classConstant::GET_DEVICES_LOCAL:
+      case Constants::GET_DEVICES_LOCAL:
         return $this->ReadAttributeString("deviceBuffer");
 
-      case classConstant::GET_DEVICES_CLOUD:
+      case Constants::GET_DEVICES_CLOUD:
         return $this->ReadAttributeString("cloudDevices");
 
-      case classConstant::GET_GROUPS_LOCAL:
+      case Constants::GET_GROUPS_LOCAL:
         return $this->ReadAttributeString("groupBuffer");
 
-      case classConstant::GET_GROUPS_CLOUD:
+      case Constants::GET_GROUPS_CLOUD:
         return $this->ReadAttributeString("cloudGroups");
 
-      case classConstant::GET_SCENES_LOCAL:
+      case Constants::GET_SCENES_LOCAL:
         return $this->ReadAttributeString("sceneBuffer");
 
-      case classConstant::GET_SCENES_CLOUD:
+      case Constants::GET_SCENES_CLOUD:
         return $this->ReadAttributeString("cloudScenes");
 
-      case classConstant::GET_BUFFER_DEVICES:
+      case Constants::GET_BUFFER_DEVICES:
         if ($data->uID != vtNoValue) {
           return $this->GetBuffer("Device-".$data->uID);
         }
         return $this->getBufferDevices();
 
-      case classConstant::GET_BUFFER_GROUPS:
+      case Constants::GET_BUFFER_GROUPS:
         if ($data->uID != vtNoValue) {
           return $this->GetBuffer("Group-".$data->uID);
         }
         return $this->getBufferGroups();
 
-      case classConstant::GET_BUFFER_SCENES:
+      case Constants::GET_BUFFER_SCENES:
         if ($data->uID != vtNoValue) {
           return $this->GetBuffer("Scene-".$data->uID);
         }
@@ -310,24 +311,24 @@ class LightifyGateway extends IPSModule {
     }
 
     switch ($method) {
-      case classConstant::SET_ALL_DEVICES:
-      case classConstant::SET_GROUP_STATE:
-        $cmd = classCommand::SET_DEVICE_STATE;
+      case Constants::SET_ALL_DEVICES:
+      case Constants::SET_GROUP_STATE:
+        $cmd = Commands::SET_DEVICE_STATE;
         break;
 
-      case classCommand::ADD_DEVICE_TO_GROUP:
-      case classCommand::RENOVE_DEVICE_FROM_GROUP:
-      case classCommand::SET_DEVICE_STATE:
-      case classCommand::SAVE_LIGHT_STATE:
-      case classCommand::ACTIVATE_GROUP_SCENE:
-      case classCommand::SET_LIGHT_COLOR:
-      case classCommand::SET_COLOR_TEMPERATURE:
-      case classCommand::SET_LIGHT_LEVEL:
-      case classConstant::SET_LIGHT_SATURATION:
-      case classCommand::SET_GROUP_NAME:
-      case classCommand::SET_DEVICE_NAME:
-      case classCommand::SET_LIGHT_SOFT_ON:
-      case classCommand::SET_LIGHT_SOFT_OFF:
+      case Commands::ADD_DEVICE_TO_GROUP:
+      case Commands::RENOVE_DEVICE_FROM_GROUP:
+      case Commands::SET_DEVICE_STATE:
+      case Commands::SAVE_LIGHT_STATE:
+      case Commands::ACTIVATE_GROUP_SCENE:
+      case Commands::SET_LIGHT_COLOR:
+      case Commands::SET_COLOR_TEMPERATURE:
+      case Commands::SET_LIGHT_LEVEL:
+      case Constants::SET_LIGHT_SATURATION:
+      case Commands::SET_GROUP_NAME:
+      case Commands::SET_DEVICE_NAME:
+      case Commands::SET_LIGHT_SOFT_ON:
+      case Commands::SET_LIGHT_SOFT_OFF:
         $cmd = $method;
         break;
 
@@ -336,7 +337,7 @@ class LightifyGateway extends IPSModule {
     }
 
     //Disable timer
-    $this->SetTimerInterval("timer", vtNoValue);
+    $this->SetTimerInterval("update", vtNoValue);
 
     $buffer = json_decode($data->buffer);
     $status = json_encode($this->sendResult);
@@ -346,19 +347,19 @@ class LightifyGateway extends IPSModule {
       $status = $this->waitReceive();
 
       //Sync devices
-      if ($this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01))) {
+      if ($this->sendRaw(Commands::GET_DEVICE_LIST, chr(0x00), chr(0x01))) {
         $status = $this->waitReceive();
       }
 
       //Sync groups
-      if ($method == classCommand::ADD_DEVICE_TO_GROUP || $method == classCommand::RENOVE_DEVICE_FROM_GROUP || $method == classCommand::SET_GROUP_NAME) {
-        if ($this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00))) {
+      if ($method == Commands::ADD_DEVICE_TO_GROUP || $method == Commands::RENOVE_DEVICE_FROM_GROUP || $method == Commands::SET_GROUP_NAME) {
+        if ($this->sendRaw(Commands::GET_GROUP_LIST, chr(0x00))) {
           $status = $this->waitReceive();
         }
       }
     }
 
-    $this->SetTimerInterval("timer", $this->ReadPropertyInteger("update")*1000);
+    $this->SetTimerInterval("update", $this->ReadPropertyInteger("update")*1000);
     return $status;
 
   }
@@ -388,17 +389,17 @@ class LightifyGateway extends IPSModule {
 
       switch ($cmd) {
         //Gateway WiFi configuration
-        case classCommand::GET_GATEWAY_WIFI:
+        case Commands::GET_GATEWAY_WIFI:
           $this->getGatewayWiFi($data);
           break;
 
         //Gateway firmware version
-        case classCommand::GET_GATEWAY_FIRMWARE:
+        case Commands::GET_GATEWAY_FIRMWARE:
           $this->getGatewayFirmware($data);
           break;
 
         //Gateway devices
-        case classCommand::GET_DEVICE_LIST:
+        case Commands::GET_DEVICE_LIST:
           //Update device informations
           $Devices = $this->getGatewayDevices($cloudAPI, $data);
           $this->WriteAttributeString("deviceBuffer", json_encode($Devices));
@@ -407,7 +408,7 @@ class LightifyGateway extends IPSModule {
             $device = json_decode($this->GetBuffer($line), true);
 
             $this->SendDataToChildren(json_encode([
-              'DataID' => classConstant::TX_DEVICE,
+              'DataID' => Constants::TX_DEVICE,
               'id'     => $this->InstanceID,
               'uID'    => "--".$device['UUID']."--",
               'buffer' => $device])
@@ -416,7 +417,7 @@ class LightifyGateway extends IPSModule {
           break;
 
         //Gateway groups
-        case classCommand::GET_GROUP_LIST:
+        case Commands::GET_GROUP_LIST:
           //Update group informations
           $Groups = $this->getGatewayGroups($cloudAPI, $data);
           $this->WriteAttributeString("groupBuffer", json_encode($Groups));
@@ -425,7 +426,7 @@ class LightifyGateway extends IPSModule {
             $group = json_decode($this->GetBuffer($line), true);
 
             $this->SendDataToChildren(json_encode([
-              'DataID' => classConstant::TX_GROUP,
+              'DataID' => Constants::TX_GROUP,
               'id'     => $this->InstanceID,
               'uID'    => "--".(string)$group['ID']."--",
               'buffer' => $group])
@@ -433,7 +434,7 @@ class LightifyGateway extends IPSModule {
           }
           break;
 
-        case classCommand::GET_SCENE_LIST:
+        case Commands::GET_SCENE_LIST:
           //Get gateway scenes
           $Scenes = $this->getGatewayScenes($cloudAPI, $data);
           $this->WriteAttributeString("sceneBuffer", json_encode($Scenes));
@@ -442,7 +443,7 @@ class LightifyGateway extends IPSModule {
             $scene = json_decode($this->GetBuffer($line), true);
 
             $this->SendDataToChildren(json_encode([
-              'DataID' => classConstant::TX_SCENE,
+              'DataID' => Constants::TX_SCENE,
               'id'     => $this->InstanceID,
               'uID'    => "--".(string)$scene['ID']."--",
               'buffer' => $scene])
@@ -462,7 +463,7 @@ class LightifyGateway extends IPSModule {
 
     //Return everything which will open the browser
     if ($this->ReadPropertyBoolean("cloudAPI")) {
-      if (strlen($this->ReadPropertyString("serialNumber")) == classConstant::GATEWAY_SERIAL_LENGTH) {
+      if (strlen($this->ReadPropertyString("serialNumber")) == Constants::GATEWAY_SERIAL_LENGTH) {
         //echo urlencode(IPS_GetLicensee())."\n";
 
         self::OAUTH_AUTHORIZE.$this->oAuthIdent."?username=".urlencode(IPS_GetLicensee());
@@ -474,6 +475,7 @@ class LightifyGateway extends IPSModule {
     }
 
     echo $this->Translate("Lightify API registration available in cloud connection mode only!")."\n";
+
   }
 
 
@@ -498,7 +500,7 @@ class LightifyGateway extends IPSModule {
       return false;
     }
 
-    //$this->requestID = ($this->requestID == classConstant::REQUESTID_HIGH) ? 1 : $this->requestID+1;
+    //$this->requestID = ($this->requestID == Constants::REQUESTID_HIGH) ? 1 : $this->requestID+1;
     //$data = $flag.chr($command).$this->lightifyBase->getRequestID($this->requestID);
 
     $this->SetBuffer("sendStatus", json_encode($this->sendResult));
@@ -516,7 +518,7 @@ class LightifyGateway extends IPSModule {
     $this->SendDebug("<".__FUNCTION__.">", $info, 0);
 
     $data = json_encode([
-      'DataID' => classConstant::TX_VIRTUAL,
+      'DataID' => Constants::TX_VIRTUAL,
       'Buffer' => $buffer]
     );
 
@@ -546,7 +548,7 @@ class LightifyGateway extends IPSModule {
 
       if (!$portID) {
         if (false !== ($portID = $this->RegisterVariableInteger("PORT", "Port", vtNoString, 303))) {
-          SetValueInteger($portID, classConstant::GATEWAY_PORT);
+          SetValueInteger($portID, Constants::GATEWAY_PORT);
           IPS_SetDisabled($portID, true);
         }
       }
@@ -561,32 +563,32 @@ class LightifyGateway extends IPSModule {
 
     //Get gateway WiFi configuration
     if (empty(GetValueString($ssidID))) {
-      if ($this->sendRaw(classCommand::GET_GATEWAY_WIFI, chr(self::SCAN_WIFI_CONFIG))) {
+      if ($this->sendRaw(Commands::GET_GATEWAY_WIFI, chr(self::SCAN_WIFI_CONFIG))) {
         $this->waitReceive();
       }
     }
 
     //Get gateway firmware version
     if (empty(GetValueString($firmwareID))) {
-      if ($this->sendRaw(classCommand::GET_GATEWAY_FIRMWARE, chr(0x00))) {
+      if ($this->sendRaw(Commands::GET_GATEWAY_FIRMWARE, chr(0x00))) {
         $this->waitReceive();
       }
     }
 
     //Get paired devices
-    if ($this->sendRaw(classCommand::GET_DEVICE_LIST, chr(0x00), chr(0x01))) {
+    if ($this->sendRaw(Commands::GET_DEVICE_LIST, chr(0x00), chr(0x01))) {
       $this->waitReceive();
     }
 
 
     //Get gateway groups
-    if ($this->sendRaw(classCommand::GET_GROUP_LIST, chr(0x00))) {
+    if ($this->sendRaw(Commands::GET_GROUP_LIST, chr(0x00))) {
       $this->waitReceive();
     }
 
 
     //Get gateway scenes
-    if ($this->sendRaw(classCommand::GET_SCENE_LIST, chr(0x00))) {
+    if ($this->sendRaw(Commands::GET_SCENE_LIST, chr(0x00))) {
       $this->waitReceive();
     }
 
@@ -599,7 +601,7 @@ class LightifyGateway extends IPSModule {
 
     //Exchange our Authentication Code for a permanent Refresh Token and a temporary Access Token
     $cURL    = curl_init();
-    $options = [
+    $Options = [
       CURLOPT_URL            => self::OAUTH_ACCESS_TOKEN.$this->oAuthIdent,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_ENCODING       => vtNoString,
@@ -613,7 +615,7 @@ class LightifyGateway extends IPSModule {
       ]
     ];
 
-    curl_setopt_array($cURL, $options);
+    curl_setopt_array($cURL, $Options);
     $result = curl_exec($cURL);
     $error  = curl_error($cURL);
     $data   = json_decode($result);
@@ -657,7 +659,7 @@ class LightifyGateway extends IPSModule {
     }
 
     $cURL    = curl_init();
-    $options = [
+    $Options = [
       CURLOPT_URL            => self::OAUTH_ACCESS_TOKEN.$this->oAuthIdent,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_ENCODING       => vtNoString,
@@ -671,7 +673,7 @@ class LightifyGateway extends IPSModule {
       ]
     ];
 
-    curl_setopt_array($cURL, $options);
+    curl_setopt_array($cURL, $Options);
     $result = curl_exec($cURL);
     $error  = curl_error($cURL);
     $data   = json_decode($result);
@@ -720,7 +722,7 @@ class LightifyGateway extends IPSModule {
     if (empty($accessToken)) return vtNoString;
 
     $cURL    = curl_init();
-    $options = [
+    $Options = [
       CURLOPT_URL            => self::LIGHTIFY_EUROPE.self::LIGHTIFY_VERSION.$ressource,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_ENCODING       => vtNoString,
@@ -734,7 +736,7 @@ class LightifyGateway extends IPSModule {
       ]
     ];
 
-    curl_setopt_array($cURL, $options);
+    curl_setopt_array($cURL, $Options);
     $result = curl_exec($cURL);
     $error  = curl_error($cURL);
     curl_close($cURL);
@@ -823,9 +825,9 @@ class LightifyGateway extends IPSModule {
         $type = ord($data{10});
 
         $zigBee = dechex(ord($data{0})).dechex(ord($data{1}));
-        $UUID   = $this->lightifyBase->chrToUUID(substr($data, 2, classConstant::UUID_OSRAM_LENGTH));
+        $UUID   = $this->lightifyBase->chrToUUID(substr($data, 2, Constants::UUID_OSRAM_LENGTH));
 
-        $name = trim(substr($data, 26, classConstant::DATA_NAME_LENGTH));
+        $name = trim(substr($data, 26, Constants::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
         $firmware = sprintf("%02X%02X%02X%02X", ord($data{11}), ord($data{12}), ord($data{13}), ord($data{14}));
 
@@ -847,10 +849,10 @@ class LightifyGateway extends IPSModule {
         ];
 
         switch ($type) {
-          case classConstant::TYPE_SENSOR_MOTION:
-          case classConstant::TYPE_DIMMER_2WAY:
-          case classConstant::TYPE_SWITCH_4WAY:
-          case classConstant::TYPE_SWITCH_MINI:
+          case Constants::TYPE_SENSOR_MOTION:
+          case Constants::TYPE_DIMMER_2WAY:
+          case Constants::TYPE_SWITCH_4WAY:
+          case Constants::TYPE_SWITCH_MINI:
             $decode = [];
             break;
 
@@ -897,7 +899,7 @@ class LightifyGateway extends IPSModule {
       if (!empty($Devices)) {
         $allDevice = [
           'ID'       => 0,
-          'type'     => classConstant::TYPE_ALL_DEVICES,
+          'type'     => Constants::TYPE_ALL_DEVICES,
           'zigBee'   => vtNoString,
           'UUID'     => "84:18:26:00:00:00:00:00",
           'name'     => "All Devices",
@@ -940,8 +942,8 @@ class LightifyGateway extends IPSModule {
       for ($i = 1; $i <= $ncount; $i++) {
         $buffer = [];
 
-        $UUID = $this->lightifyBase->chrToUUID($data{0}.$data{1}.chr(classConstant::TYPE_DEVICE_GROUP).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
-        $name = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
+        $UUID = $this->lightifyBase->chrToUUID($data{0}.$data{1}.chr(Constants::TYPE_DEVICE_GROUP).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
+        $name = trim(substr($data, 2, Constants::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
 
         //Get Group devices
@@ -962,7 +964,7 @@ class LightifyGateway extends IPSModule {
 
         $group = [
           'ID'      => ord($data{0}),
-          'type'    => classConstant::TYPE_DEVICE_GROUP,
+          'type'    => Constants::TYPE_DEVICE_GROUP,
           'name'    => $name,
         ];
         $Groups[] = $group;
@@ -1001,15 +1003,15 @@ class LightifyGateway extends IPSModule {
       $data   = substr($data, 2);
 
       for ($i = 1; $i <= $ncount; $i++) {
-        $UUID  = $this->lightifyBase->chrToUUID($data{0}.chr(0x00).chr(classConstant::TYPE_GROUP_SCENE).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
+        $UUID  = $this->lightifyBase->chrToUUID($data{0}.chr(0x00).chr(Constants::TYPE_GROUP_SCENE).chr(0x0f).chr(0x0f).chr(0x26).chr(0x18).chr(0x84));
 
-        $name = trim(substr($data, 2, classConstant::DATA_NAME_LENGTH));
+        $name = trim(substr($data, 2, Constants::DATA_NAME_LENGTH));
         $name = (!empty($name)) ? $name : "-Unknown-";
         //IPS_LogMessage("<SymconOSR|".__FUNCTION__.">", $i."|".$name."|".ord($data{18})." ".ord($data{19}));
 
         $scene = [
           'ID'    => ord($data{0}),
-          'type'  => classConstant::TYPE_GROUP_SCENE,
+          'type'  => Constants::TYPE_GROUP_SCENE,
           'name'  => $name,
           'group' => ord($data{18})
         ];
@@ -1042,7 +1044,7 @@ class LightifyGateway extends IPSModule {
 
   private function getGatewayIP() : string {
 
-    if (0 < ($parentID = $this->getParentInstance($this->InstanceID))) {
+    if (0 < ($parentID = @$this->getParentInstance($this->InstanceID))) {
       return IPS_GetProperty($parentID, "Host");
     }
 
@@ -1053,7 +1055,7 @@ class LightifyGateway extends IPSModule {
 
   private function getAllDevices() : void {
 
-    $Instances  = IPS_GetInstanceListByModuleID(classConstant::MODULE_DEVICE);
+    $Instances  = IPS_GetInstanceListByModuleID(Constants::MODULE_DEVICE);
     $allDevices = [];
 
     foreach($Instances as $id) {

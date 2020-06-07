@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 //Commands
-class classCommand {
+class Commands {
 
   # 13 List paired devices (broadcast)
   # 1E List configured groups/zones (broadcast)
@@ -50,7 +50,7 @@ class classCommand {
 
 
 //Constants
-class classConstant {
+class Constants {
 
   public const CLIENT_SOCKET  = "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}";
   public const RX_VIRTUAL     = "{018EF6B5-AB94-40C6-AA53-46943E824ACF}";
@@ -67,7 +67,7 @@ class classConstant {
   public const TX_SCENE       = "{1C913701-904E-4EAD-9A70-702597567A0F}";
 
   public const GATEWAY_PORT           = 4000;
-  public const TIMER_SYNC             = 5;
+  public const TIMER_UPDATE           = 5;    //Minutes
   public const GATEWAY_SERIAL_LENGTH  = 11;
 
   public const UUID_OSRAM_LENGTH      = 8;
@@ -130,14 +130,14 @@ class classConstant {
 }
 
 
-//Base functions  
+//Base functions
 class lightifyBase
 {
 
 
   public function getRequestID(int $uniqueID) : string {
 
-    $arrayID   = str_split(str_pad(dechex($uniqueID), classConstant::UUID_DEVICE_LENGTH, "0", STR_PAD_RIGHT), 2);
+    $arrayID   = str_split(str_pad(dechex($uniqueID), Constants::UUID_DEVICE_LENGTH, "0", STR_PAD_RIGHT), 2);
     $requestID = vtNoString;
 
     foreach ($arrayID as $item) {
@@ -201,7 +201,7 @@ class lightifyBase
     }
 
     $length = strlen($result);
-    $result = ($length == classConstant::UUID_OSRAM_LENGTH) ? $result : $result.str_repeat(chr(00), classConstant::UUID_OSRAM_LENGTH-$length);
+    $result = ($length == Constants::UUID_OSRAM_LENGTH) ? $result : $result.str_repeat(chr(00), Constants::UUID_OSRAM_LENGTH-$length);
 
     return $result;
 
@@ -226,7 +226,7 @@ class lightifyBase
 
     $result = vtNoString;
 
-    for ($i = 0; $i < classConstant::DATA_NAME_LENGTH; ++$i) {
+    for ($i = 0; $i < Constants::DATA_NAME_LENGTH; ++$i) {
       $result .= chr(ord(substr($name, $i, 1)));
     }
 

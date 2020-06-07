@@ -19,7 +19,7 @@ class LightifyScene extends IPSModule {
     $this->RegisterPropertyString("module", vtNoString);
     $this->RegisterAttributeInteger("group", vtNoValue);
 
-    $this->ConnectParent(classConstant::MODULE_GATEWAY);
+    $this->ConnectParent(Constants::MODULE_GATEWAY);
 
   }
 
@@ -66,7 +66,7 @@ class LightifyScene extends IPSModule {
       $formJSON['actions'][0]['items'][1]['value'] = $this->Translate($module);
 
       $group = $this->ReadAttributeInteger("group");
-      $instanceID = $this->lightifyBase->getInstanceByID(classConstant::MODULE_GROUP, $group);
+      $instanceID = $this->lightifyBase->getInstanceByID(Constants::MODULE_GROUP, $group);
 
       if ($instanceID) {
         $name = IPS_GetName($instanceID);
