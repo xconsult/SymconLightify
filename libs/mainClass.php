@@ -195,12 +195,62 @@ if (!defined('vtNoValue')) {
 }
 
 
-trait ParentInstance
-{
+trait DebugHelper {
 
 
-  private function getParentInfo($id)
-  {
+  /**
+  * Ergänzt SendDebug um die Möglichkeit Objekte und Array auszugeben.
+  *
+  * @access protected
+  * @param string $Message Nachricht für Data.
+  * @param WebSocketFrame|mixed $Data Daten für die Ausgabe.
+  * @return int $Format Ausgabeformat für Strings.
+  */
+  protected function SendDebug($Message, $Data, $Format) : void {
+
+    if (is_a($Data, "WebSocketFrame")) {
+      $this->SendDebug($Message." FIN", ($Data->Fin ? "true" : "false"), 0);
+      $this->SendDebug($Message." OpCode", WebSocketOPCode::ToString($Data->OpCode), 0);
+      $this->SendDebug($Message." Mask", ($Data->Mask ? "true" : "false"), 0);
+
+      if ($Data->MaskKey != "") {
+        $this->SendDebug($Message." MaskKey", $Data->MaskKey, 1);
+      }
+
+      if ($Data->Payload != "") {
+        $this->SendDebug($Message." Payload", $Data->Payload, ($Data->OpCode == WebSocketOPCode::text ? (int)$Data->Mask : ($Format)));
+      }
+
+      if ($Data->PayloadRAW != "") {
+        $this->SendDebug($Message." PayloadRAW", $Data->PayloadRAW, ($Data->OpCode == WebSocketOPCode::text ? 0 : 1));
+      }
+    }
+    elseif (is_object($Data)) {
+      foreach ($Data as $Key => $DebugData) {
+        $this->SendDebug($Message.":".$Key, $DebugData, 0);
+      }
+    }
+    elseif (is_array($Data)) {
+      foreach ($Data as $Key => $DebugData) {
+        $this->SendDebug($Message.":".$Key, $DebugData, 0);
+      }
+    } else {
+      if (is_bool($Data)) {
+        parent::SendDebug($Message, ($Data ? "true" : "false"), 0);
+      } else {
+        parent::SendDebug($Message, (string)$Data, $Format);
+      }
+    }
+  }
+
+
+}
+
+
+trait ParentInstance {
+
+
+  private function getParentInfo(int $id) : int {
 
     $parentID = $this->getParentInstance($id);
 
@@ -212,28 +262,24 @@ trait ParentInstance
       }
     }
 
-    return false;
+    return (int)false;
 
   }
 
 
-  private function getParentInstance($id)
-  {
-
-    $parentID = 0;
+  private function getParentInstance(int $id) : int {
 
     if (IPS_InstanceExists($id)) {
       $instanceID = IPS_GetInstance($id);
-      $parentID   = $instanceID['ConnectionID'];
+      return $instanceID['ConnectionID'];
     }
 
-    return $parentID;
+    return 0;
 
   }
 
 
-  private function getParentStatus($id)
-  {
+  private function getParentStatus(int $id) : int {
 
     $instanceID = IPS_GetInstance($id);
     return $instanceID['InstanceStatus'];
@@ -244,12 +290,10 @@ trait ParentInstance
 }
 
 
-trait WebOAuth
-{
+trait WebOAuth {
 
 
-  private function RegisterOAuth($webOAuth)
-  {
+  private function RegisterOAuth($webOAuth) {
 
     $Instances = IPS_GetInstanceListByModuleID('{F99BF07D-CECA-438B-A497-E4B55F139D37}');
 
@@ -260,7 +304,9 @@ trait WebOAuth
       //Search or Update WebHook client to our instanceID
       foreach ($oAuths as $idx => $oAuth) {
         if ($oAuth['ClientID'] == $webOAuth) {
-          if ($oAuth['TargetID'] == $this->InstanceID) return;
+          if ($oAuth['TargetID'] == $this->InstanceID) {
+            return;
+          }
 
           $oAuths[$idx]['TargetID'] = $this->InstanceID;
           $match = true;
@@ -275,21 +321,20 @@ trait WebOAuth
         );
       }
 
-      IPS_SetProperty($Instances[0], 'ClientIDs', json_encode($oAuths));
+      IPS_SetProperty($Instances[0], "ClientIDs", json_encode($oAuths));
       IPS_ApplyChanges($Instances[0]);
     }
+
   }
 
 
 }
 
 
-trait InstanceHelper
-{
+trait InstanceHelper {
 
 
-  private function getObjectByProperty($moduleID, $property, $value)
-  {
+  private function getObjectByProperty($moduleID, $property, $value) : int {
 
     $Instances = IPS_GetInstanceListBymoduleID($moduleID);
 
@@ -299,7 +344,171 @@ trait InstanceHelper
       }
     }
 
+    return (int)false;
+
+  }
+
+
+}
+
+
+/**
+ * Trait mit Hilfsfunktionen für den Datenaustausch.
+ */
+trait InstanceStatus {
+
+
+  /**
+  * Interne Funktion des SDK.
+  *
+  * @access public
+  */
+  protected function MessageSink($TimeStamp, $SenderID, $Message, $Data) {
+
+    switch ($Message) {
+      case FM_CONNECT:
+        $this->RegisterParent();
+
+        if ($this->HasActiveParent()) {
+          $this->IOChangeState(IS_ACTIVE);
+        } else {
+          $this->IOChangeState(IS_INACTIVE);
+        }
+        break;
+
+      case FM_DISCONNECT:
+        $this->RegisterParent();
+        $this->IOChangeState(IS_INACTIVE);
+        break;
+
+      case IM_CHANGESTATUS:
+        if ($SenderID == $this->ParentID) {
+          $this->IOChangeState($Data[0]);
+        }
+        break;
+    }
+
+  }
+
+  /**
+  * Ermittelt den Parent und verwaltet die Einträge des Parent im MessageSink
+  * Ermöglicht es das Statusänderungen des Parent empfangen werden können.
+  *
+  * @access protected
+  * @return int ID des Parent.
+  */
+  protected function RegisterParent() : int {
+
+    $saveID   = $this->ParentID;
+    $parentID = @IPS_GetInstance($this->InstanceID)['ConnectionID'];
+
+    if ($parentID <> $saveID) {
+      if ($saveID > 0) {
+        $this->UnregisterMessage($saveID, IM_CHANGESTATUS);
+      }
+
+      if ($parentID > 0) {
+        $this->RegisterMessage($parentID, IM_CHANGESTATUS);
+      } else {
+        $parentID = 0;
+      }
+
+      $this->ParentID = $parentID;
+    }
+
+    return $parentID;
+
+  }
+
+
+  /**
+  * Prüft den Parent auf vorhandensein und Status.
+  *
+  * @access protected
+  * @return bool True wenn Parent vorhanden und in Status 102, sonst false.
+  */
+  protected function HasActiveParent() : bool {
+
+    $instance = @IPS_GetInstance($this->InstanceID);
+
+    if ($instance['ConnectionID'] > 0) {
+      $parent = IPS_GetInstance($instance['ConnectionID']);
+
+      if ($parent['InstanceStatus'] == 102) {
+        return true;
+      }
+    }
+
     return false;
+  }
+
+
+}
+
+
+trait BufferHelper {
+
+
+  /**
+  * Wert einer Eigenschaft aus den InstanceBuffer lesen.
+  *
+  * @access public
+  * @param string $name Propertyname
+  * @return mixed Value of Name
+  */
+  public function __get($name) {
+
+    if (strpos($name, "Multi_") === 0) {
+      $Lines = vtNoString;
+
+      foreach ($this->{"BufferListe_".$name} as $index) {
+        $Lines .= $this->{"Part_". $name.$index};
+      }
+
+      return unserialize($Lines);
+    }
+
+    return unserialize($this->GetBuffer($name));
+
+  }
+
+
+  /**
+  * Wert einer Eigenschaft in den InstanceBuffer schreiben.
+  *
+  * @access public
+  * @param string $name Propertyname
+  * @param mixed Value of Name
+  */
+  public function __set($name, $value) {
+
+    $data = serialize($value);
+
+    if (strpos($name, "Multi_") === 0) {
+      $OldBuffers = $this->{"BufferListe_".$name};
+
+      if ($OldBuffers == false) {
+        $OldBuffers = array();
+      }
+
+      $Lines = str_split($data, 8000);
+
+      foreach ($Lines as $index => $line) {
+        $this->{"Part_".$name.$index} = $line;
+      }
+
+      $NewBuffers = array_keys($Lines);
+      $this->{"BufferListe_".$name} = $NewBuffers;
+      $DelBuffers = array_diff_key($OldBuffers, $NewBuffers);
+
+      foreach ($DelBuffers as $DelBuffer) {
+        $this->{"Part_".$name.$DelBuffer} = "";
+      }
+
+      return;
+    }
+
+    $this->SetBuffer($name, $data);
 
   }
 
