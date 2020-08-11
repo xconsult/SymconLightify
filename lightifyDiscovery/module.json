@@ -1,0 +1,11 @@
+{
+  "id": "{825E6EA4-6287-4722-AEC3-9B44125935CE}",
+  "name": "Lightify Discovery",
+  "type": 5,
+  "vendor": "OSRAM",
+  "aliases": ["OSRAM Lightify Discovery"],
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "OSR"
+}

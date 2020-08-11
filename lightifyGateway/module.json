@@ -1,11 +1,11 @@
 {
   "id": "{C3859938-D71C-4714-8B02-F2889A62F481}",
-  "name": "lightifyGateway",
+  "name": "Lightify Gateway",
   "type": 2,
   "vendor": "OSRAM",
-  "aliases": [ "OSRAM Lightify Gateway" ],
-  "parentRequirements": [ "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}" ],
-  "childRequirements": [ "{0EC8C035-D581-4DF2-880D-E3C400F41682}", "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}" ],
-  "implemented": [ "{018EF6B5-AB94-40C6-AA53-46943E824ACF}", "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}" ],
+  "aliases": ["OSRAM Lightify Gateway"],
+  "parentRequirements": ["{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"],
+  "childRequirements": ["{3E2E9D12-FE90-4B9E-97D5-45FA05609D17}", "{0EC8C035-D581-4DF2-880D-E3C400F41682}", "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}", "{1C913701-904E-4EAD-9A70-702597567A0F}"],
+  "implemented": ["{018EF6B5-AB94-40C6-AA53-46943E824ACF}", "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}"],
   "prefix": "OSR"
 }

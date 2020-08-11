@@ -1,0 +1,15 @@
+{
+  "translations": {
+    "de": {
+      "Scene can only be configured over the Configurator Instance!" : "Scene kann nur über die Konfigurator Instanz erstellt werden!",
+      "Extended informations"                                        : "Erweiterte Informationen",
+      "Connected to the following group"                             : "Verbunden mit der folgenden Gruppe",
+      "Scene [id]"                                                   : "Szene [id]",
+      "Scene"                                                        : "Szene",
+      "Module"                                                       : "Modul",
+      "Group"                                                        : "Gruppe",
+      "- Unknown -"                                                  : "- Unbekannt -",
+      "Apply"                                                        : "Anwenden"
+    }
+  }
+}

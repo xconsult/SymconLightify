@@ -3,8 +3,7 @@
 declare(strict_types=1);
 
 //Commands
-class classCommand
-{
+class Commands {
 
   # 13 List paired devices (broadcast)
   # 1E List configured groups/zones (broadcast)
@@ -25,282 +24,120 @@ class classCommand
   # DB Set light soft on
   # DC Set light soft off
 
-  const GET_DEVICE_LIST       = 0x13;
-  const GET_GROUP_LIST        = 0x1E;
-  const ADD_DEVICE_TO_GROUP   = 0x20;
-  const DEL_DEVICE_FROM_GROUP = 0x21;
-  const GET_GROUP_INFO        = 0x26;
-  const SET_GROUP_NAME        = 0x27;
-  const SET_DEVICE_NAME       = 0x28;
-  const SET_LIGHT_LEVEL       = 0x31;
-  const SET_DEVICE_STATE      = 0x32;
-  const SET_COLOR_TEMPERATURE = 0x33;
-  const SET_LIGHT_COLOR       = 0x36;
-  const SAVE_LIGHT_STATE      = 0x38;
-  const ACTIVATE_GROUP_SCENE  = 0x52;
-  const GET_DEVICE_INFO       = 0x68;
-  const GET_GATEWAY_FIRMWARE  = 0x6F;
-  const CYCLE_LIGHT_COLOR     = 0xD5;
-  const SET_LIGHT_SOFT_ON     = 0xDB;
-  const SET_LIGHT_SOFT_OFF    = 0xDC;
-  const GET_GATEWAY_WIFI      = 0xE3;
+  public const GET_DEVICE_LIST          = 0x13;
+  public const GET_GROUP_LIST           = 0x1E;
+  public const GET_SCENE_LIST           = 0x1F;
+  public const ADD_DEVICE_TO_GROUP      = 0x20;
+  public const RENOVE_DEVICE_FROM_GROUP = 0x21;
+  public const GET_GROUP_INFO           = 0x26;
+  public const SET_GROUP_NAME           = 0x27;
+  public const SET_DEVICE_NAME          = 0x28;
+  public const SET_LIGHT_LEVEL          = 0x31;
+  public const SET_DEVICE_STATE         = 0x32;
+  public const SET_COLOR_TEMPERATURE    = 0x33;
+  public const SET_LIGHT_COLOR          = 0x36;
+  public const SET_LIGHT_SATURATION     = 0x36;
+  public const SAVE_LIGHT_STATE         = 0x38;
+  public const ACTIVATE_GROUP_SCENE     = 0x52;
+  public const GET_DEVICE_INFO          = 0x68;
+  public const GET_GATEWAY_FIRMWARE     = 0x6F;
+  public const CYCLE_LIGHT_COLOR        = 0xD5;
+  public const SET_LIGHT_SOFT_ON        = 0xDB;
+  public const SET_LIGHT_SOFT_OFF       = 0xDC;
+  public const GET_GATEWAY_WIFI         = 0xE3;
 
 }
 
 
 //Constants
-class classConstant
-{
+class Constants {
 
-  const IPS_BOOLEAN = 0;
-  const IPS_INTEGER = 1;
-  const IPS_FLOAT   = 2;
-  const IPS_STRING  = 3;
+  public const CLIENT_SOCKET  = "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}";
+  public const RX_VIRTUAL     = "{018EF6B5-AB94-40C6-AA53-46943E824ACF}";
+  public const TX_VIRTUAL     = "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}";
 
-  const NO_VALUE    = -1;
-  const NO_STRING   = "";
+  public const MODULE_GATEWAY = "{C3859938-D71C-4714-8B02-F2889A62F481}";
+  public const MODULE_DEVICE  = "{0028DE9E-6155-451A-97E1-7D2D1563F5BA}";
+  public const MODULE_GROUP   = "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}";
+  public const MODULE_SCENE   = "{4C839FA9-6926-4548-8105-DA5B111E39C3}";
 
-  const DEBUG_DISABLED      = 0;
-  const DEBUG_SEND_BUFFER   = 3;
-  const DEBUG_RECV_BUFFER   = 7;
-  const DEBUG_SEND_RECV     = 13;
-  const DEBUG_DETAIL_ERRORS = 17;
+  public const TX_GATEWAY     = "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}";
+  public const TX_DEVICE      = "{0EC8C035-D581-4DF2-880D-E3C400F41682}";
+  public const TX_GROUP       = "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}";
+  public const TX_SCENE       = "{1C913701-904E-4EAD-9A70-702597567A0F}";
 
-  const CLIENT_SOCKET  = "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}";
-  const RX_VIRTUAL     = "{018EF6B5-AB94-40C6-AA53-46943E824ACF}";
-  const TX_VIRTUAL     = "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}";
+  public const GATEWAY_PORT           = 4000;
+  public const TIMER_UPDATE           = 5;    //Minutes
+  public const GATEWAY_SERIAL_LENGTH  = 11;
 
-  const MODULE_GATEWAY = "{C3859938-D71C-4714-8B02-F2889A62F481}";
-  const MODULE_DEVICE  = "{0028DE9E-6155-451A-97E1-7D2D1563F5BA}";
-  const MODULE_GROUP   = "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}";
+  public const UUID_OSRAM_LENGTH      = 8;
+  public const DATA_NAME_LENGTH       = 15;
 
-  const TX_GATEWAY     = "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}";
-  const TX_DEVICE      = "{0EC8C035-D581-4DF2-880D-E3C400F41682}";
-  const TX_GROUP       = "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}";
+  public const GET_DEVICES_LOCAL      = 1001;
+  public const GET_DEVICES_CLOUD      = 1002;
+  public const GET_GROUPS_LOCAL       = 1003;
+  public const GET_GROUPS_CLOUD       = 1004;
+  public const GET_SCENES_LOCAL       = 1005;
+  public const GET_SCENES_CLOUD       = 1006;
 
-  const GATEWAY_PORT            = 4000;
+  public const GET_BUFFER_DEVICES     = 1007;
+  public const GET_BUFFER_GROUPS      = 1008;
+  public const GET_BUFFER_SCENES      = 1009;
 
-  const STATE_ONLINE            = 2;
-  const STATE_UNKNOWN           = 1;
-  const STATE_OFFLINE           = 0;
+  public const SET_ALL_DEVICES        = 1010;
+  public const SET_GROUP_STATE        = 1011;
+  public const SET_LIGHT_SATURATION   = 1012;
 
-  const CONNECT_LOCAL_ONLY      = 1001;
-  const CONNECT_LOCAL_CLOUD     = 1002;
+  public const TYPE_FIXED_WHITE       = 1;   //Fixed White
+  public const TYPE_LIGHT_CCT         = 2;   //Tuneable White
+  public const TYPE_LIGHT_DIMABLE     = 4;   //Can only control level
+  public const TYPE_LIGHT_COLOR       = 8;   //Fixed White and RGB
+  public const TYPE_LIGHT_EXT_COLOR   = 10;  //Tuneable White and RGBW
+  public const TYPE_PLUG_ONOFF        = 16;  //Only On/off capable lamp/device
+  public const TYPE_SENSOR_CONTACT    = 31;  //Contact sensor
+  public const TYPE_SENSOR_MOTION     = 32;  //Motion sensor
+  public const TYPE_DIMMER_2WAY       = 64;  //2 button dimmer
+  public const TYPE_SWITCH_4WAY       = 65;  //4 butten switch
+  public const TYPE_SWITCH_MINI       = 66;  //Switch Mini
+  public const TYPE_SWITCH_UKNOWN     = 67;  //Unknown switch
+  public const TYPE_LIGHT_CCT_TRADFRI = 128; //Tradfri Tuneable White
 
-  const METHOD_PARENT_CONFIG    = 1201;
-  const METHOD_LOAD_LOCAL       = 1202;
-  const METHOD_APPLY_LOCAL      = 1203;
-  const METHOD_LOAD_CHILD       = 1204;
-  const METHOD_APPLY_CHILD      = 1205;
-  const METHOD_CREATE_CHILD     = 1206;
-  const METHOD_UPDATE_CHILD     = 1207;
-  const METHOD_LOAD_CLOUD       = 1208;
-  const METHOD_WRITE_CLOUD      = 1209;
-  const METHOD_LOAD_INSTANCE    = 1210;
-  const METHOD_STATE_DEVICE     = 1211;
-  const METHOD_STATE_GROUP      = 1212;
-  const METHOD_STATE_ALL_SWITCH = 1213;
-  const METHOD_ALL_DEVICES      = 1214;
+  public const TYPE_DEVICE            = 0;   // 0x00
+  public const TYPE_DEVICE_GROUP      = 240; // 0xF0
+  public const TYPE_GROUP_SCENE       = 241; // 0xF1
+  public const TYPE_ALL_DEVICES       = 255; // 0xFF
 
-  const MODE_GATEWAY_LOCAL      = 1401;
-  const MODE_DEVICE_LOCAL       = 1402;
-  const MODE_DEVICE_GROUP       = 1403;
-  const MODE_DEVICE_CLOUD       = 1404;
-  const MODE_GROUP_LOCAL        = 1405;
-  const MODE_GROUP_CLOUD        = 1406;
-  const MODE_GROUP_SCENE        = 1407;
-  const MODE_SCENE_CLOUD        = 1408;
-  const MODE_ALL_SWITCH         = 1409;
+  public const CTEMP_DIMABLE_MIN      = 2700;
+  public const CTEMP_DIMABLE_MAX      = 6500;
+  public const CTEMP_CCT_MIN          = 2700;
+  public const CTEMP_CCT_MAX          = 6500;
+  public const CTEMP_COLOR_MIN        = 2000;
+  public const CTEMP_COLOR_MAX        = 8000;
 
-  const MODE_CREATE_DEVICE      = 1410;
-  const MODE_CREATE_GROUP       = 1411;
-  const MODE_CREATE_SCENE       = 1412;
-  const MODE_CREATE_ALL_SWITCH  = 1413;
+  public const SCENE_PLANT_LIGHT      = "ff2a6D";
+  public const SCENE_RELAX            = 2700;
+  public const SCENE_ACTIVE           = 6500;
 
-  const MODE_DEVICE_INFO        = 1414;
-  const MODE_MAINTAIN_ACTION    = 1415;
-  const MODE_DELETE_VARIABLE    = 1416;
-  const MODE_STATE_DEVICE       = 1417;
-  const MODE_STATE_GROUP        = 1418;
-  const MODE_STATE_ALL_SWITCH   = 1419;
+  public const COLOR_SPEED_MIN        = 5;
+  public const COLOR_SPEED_MAX        = 65535;
 
-  const GET_GATEWAY_LOCAL       = 1604;
-  const GET_DEVICE_LOCAL        = 1605;
-  const GET_GROUP_LOCAL         = 1606;
-  const GET_DEVICE_CLOUD        = 1607;
-  const GET_GROUP_CLOUD         = 1608;
-  const GET_GROUP_SCENE         = 1609;
-  const GET_SCENE_CLOUD         = 1610;
+  public const TIME_MIN               = 0;    //0.0 sec
+  public const TIME_MAX               = 8000; //8.0 sec
 
-  const SET_ALL_DEVICES         = 1701;
-  const SET_STATE               = 1702;
-  const SET_DEVICE_NAME         = 1703;
-  const SET_GROUP_NAME          = 1704;
-  const SET_COLOR               = 1705;
-  const SET_COLOR_TEMPERATURE   = 1706;
-  const SET_LEVEL               = 1707;
-  const SET_SATURATION          = 1708;
-  const SAVE_LIGHT_STATE        = 1709;
-  const SET_SOFT_TIME           = 1710;
-  const GET_PAIRED_DEVICES      = 1711;
-  const GET_GROUP_LIST          = 1712;
-  const ACTIVATE_GROUP_SCENE    = 1713;
-  const GET_DEVICE_INFO         = 1714;
-  const GET_GROUP_INFO          = 1715;
-  const SCENE_LIGHTIFY_LOOP     = 1716;
-  const GET_GATEWAY_FIRMWARE    = 1717;
-  const GET_GATEWAY_WIFI        = 1718;
-
-  const SET_BUFFER_SYNC         = 1801;
-  const SET_BUFFER_DEVICE       = 1802;
-  const SET_BUFFER_GROUP        = 1803;
-  const SET_LIGHT_DATA          = 1809;
-
-  const SET_STATE_ON            = 1;
-  const SET_STATE_OFF           = 0;
-  const SET_SOFT_ON             = 1;
-  const SET_SOFT_OFF            = 0;
-
-  const MODE_DEVICE_STATE       = 2003;
-  const MODE_GROUP_STATE        = 2007;
-  const MODE_LIGHTIFY_STATE     = 2013;
-
-  const OSRAM_ZIGBEE_LENGTH     = 2;
-  const OSRAM_GROUP_LENGTH      = 2;
-
-  const ITEM_FILTER_LENGTH      = 2;
-  const UUID_OSRAM_LIGHTIFY     = "84:18:26";
-  const UUID_OSRAM_LENGTH       = 8;
-  const UUID_DEVICE_LENGTH      = 8;
-  const UUID_GROUP_LENGTH       = 2;
-  const UUID_SCENE_LENGTH       = 1;
-  const UUID_STRING_LENGTH      = 23;
-
-  const BUFFER_HEADER_LENGTH    = 8;
-  const BUFFER_TOKEN_LENGTH     = 4;
-  const BUFFER_REPLY_LENGTH     = 11;
-  const BUFFER_ONLINE_LENGTH    = 23;
-
-  const DATA_DEVICE_LOADED      = 50;
-  const DATA_DEVICE_LENGTH      = 41;
-  const DATA_GROUP_LENGTH       = 18;
-  const DATA_SCENE_LENGTH       = 17;
-  const DATA_NAME_LENGTH        = 15;
-  const DATA_WIFI_LENGTH        = 97;
-  const DATA_CLASS_INFO         = 10;
-  const DATA_DEVICE_LIST        = 33;
-  const DATA_GROUP_LIST         = 19;
-  const DATA_SCENE_LIST         = 32;
-  const DATA_GROUP_DEVICE       = 10;
-
-  const WIFI_PROFILE_LENGTH     = 31;
-  const WIFI_SSID_LENGTH        = 32;
-  const WIFI_BSSID_LENGTH       = 5;
-  const WIFI_CHANNEL_LENGTH     = 3;
-
-  const CLOUD_ZIGBEE_LENGTH     = 4;
-  const CLOUD_OSRAM_LENGTH      = 5;  
-  const CLOUD_FIRMWARE_LENGTH   = 8;
-
-  const CLASS_LIGHTIFY_LIGHT    = 2001;
-  const CLASS_LIGHTIFY_PLUG     = 2002;
-  const CLASS_LIGHTIFY_SENSOR   = 2003;
-  const CLASS_LIGHTIFY_DIMMER   = 2004;
-  const CLASS_LIGHTIFY_SWITCH   = 2005;
-  const CLASS_LIGHTIFY_GROUP    = 2006;
-  const CLASS_LIGHTIFY_SCENE    = 2007;
-  const CLASS_ALL_DEVICES       = 2008;
-  const CLASS_UNKNOWN           = 2050;
-
-  const TYPE_FIXED_WHITE        = 1;   //Fixed White
-  const TYPE_LIGHT_CCT          = 2;   //Tuneable White
-  const TYPE_LIGHT_DIMABLE      = 4;   //Can only control level
-  const TYPE_LIGHT_COLOR        = 8;   //Fixed White and RGB
-  const TYPE_LIGHT_EXT_COLOR    = 10;  //Tuneable White and RGBW
-  const TYPE_PLUG_ONOFF         = 16;  //Only On/off capable lamp/device
-  const TYPE_SENSOR_CONTACT     = 31;  //Contact sensor
-  const TYPE_SENSOR_MOTION      = 32;  //Motion sensor
-  const TYPE_DIMMER_2WAY        = 64;  //2 button dimmer
-  const TYPE_SWITCH_4WAY        = 65;  //4 butten switch
-  const TYPE_SWITCH_3WAY        = 66;  //3 butten switch
-  const TYPE_SWITCH_UKNOWN      = 67;  //Unknown switch
-  const TYPE_SWITCH_MINI        = 66;  //Switch Mini
-  const TYPE_LIGHT_CCT_TRADFRI  = 128; //Tradfri Tuneable White
-
-  const TYPE_DEVICE             = 0;   // 0x00
-  const TYPE_DEVICE_GROUP       = 240; // 0xF0
-  const TYPE_GROUP_SCENE        = 241; // 0xF1
-  const TYPE_ALL_DEVICES        = 255; // 0xFF
-  const GROUP_ALL_DEVICES       = 255; // 0xFF
-
-  const MODEL_MANUFACTURER      = "OSRAM";
-  const MODEL_PLUG_ONOFF        = "PLUG";
-  const MODEL_UNKNOWN           = "UNKNOWN";
-
-  const LABEL_FIXED_WHITE       = "On|Off";
-  const LABEL_LIGHT_CCT         = "On|Off Level Temperature";
-  const LABEL_LIGHT_DIMABLE     = "On|Off Level";
-  const LABEL_LIGHT_COLOR       = "On|Off Level Colour";
-  const LABEL_LIGHT_EXT_COLOR   = "On|Off Level Colour Temperature";
-  const LABEL_PLUG_ONOFF        = "On|Off";
-  const LABEL_SENSOR_MOTION     = "Active|Inactive";
-  const LABEL_SENSOR_CONTACT    = "Active|Inactive";
-  const LABEL_DIMMER_2WAY       = "-";
-  const LABEL_SWITCH_4WAY       = "-";
-  const LABEL_SWITCH_3WAY       = "-";
-  const LABEL_SWITCH_UNKNOWN    = "-";
-  const LABEL_SWITCH_MINI       = "-";
-  const LABEL_UNKNOWN           = "-Unknown-";
-
-  const CTEMP_DIMABLE_MIN       = 2700;
-  const CTEMP_DIMABLE_MAX       = 6500;
-  const CTEMP_CCT_MIN           = 2700;
-  const CTEMP_CCT_MAX           = 6500;
-  const CTEMP_COLOR_MIN         = 2000;
-  const CTEMP_COLOR_MAX         = 8000;
-
-  const HUE_MIN                 = 0;
-  const HUE_MAX                 = 360;
-  const COLOR_MIN               = "0000ff";
-  const COLOR_MAX               = "ffffff";
-  const LEVEL_MIN               = 0;
-  const LEVEL_MAX               = 100;
-  const SATURATION_MIN          = 0;
-  const SATURATION_MAX          = 100;
-  const INTENSITY_MIN           = 0;
-  const INTENSITY_MAX           = 100;
-
-  const TIME_MIN                = 0;    //0.0 sec
-  const TIME_MAX                = 8000; //8.0 sec
-
-  const COLOR_SPEED_MIN         = 5;
-  const COLOR_SPEED_MAX         = 65535;
-
-  const SCENE_RELAX             = 2700;
-  const SCENE_ACTIVE            = 6500;
-  const SCENE_PLANT_LIGHT       = "ff2a6D";
-
-  const GET_WIFI_CONFIG         = 0x00;
-  const SET_WIFI_CONFIG         = 0x01;
-  const SCAN_WIFI_CONFIG        = 0x03;
-
-  const REQUESTID_HIGH     = 4294967295;
-  const INFO_NOT_AVAILABLE = "---- Information nicht verfügbar ----";
-
-  const WRITE_KEY_VALUES   = "ALL_DEVICES,SAVE,SCENE,DEFAULT,SOFT_ON,SOFT_OFF,TRANSITION,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,BRIGHTNESS,LEVEL,SATURATION";
-  const LIST_KEY_IDENTS    = "HUE,COLOR,COLOR_TEMPERATURE,BRIGHTNESS,LEVEL,SATURATION,MOTION,SCENE,ZIGBEE,FIRMWARE";
+  public const WRITE_KEY_VALUES       = "ALL_DEVICES,NAME,SAVE,SCENE,MOOD,SOFT_ON,SOFT_OFF,FADE,RELAX,ACTIVE,PLANT_LIGHT,STATE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION";
+  public const LIST_KEY_IDENTS        = "HUE,COLOR,COLOR_TEMPERATURE,LEVEL,SATURATION,MOTION,SCENE,MOOD,ZIGBEE,FIRMWARE";
 
 }
 
 
-//Base functions  
+//Base functions
 class lightifyBase
 {
 
 
   public function getRequestID(int $uniqueID) : string {
 
-    $arrayID   = str_split(str_pad(dechex($uniqueID), classConstant::UUID_DEVICE_LENGTH, "0", STR_PAD_RIGHT), 2);
+    $arrayID   = str_split(str_pad(dechex($uniqueID), Constants::UUID_DEVICE_LENGTH, "0", STR_PAD_RIGHT), 2);
     $requestID = vtNoString;
 
     foreach ($arrayID as $item) {
@@ -317,7 +154,7 @@ class lightifyBase
     $decode = vtNoString;
 
     for ($i = 0; $i < strlen($data); $i++) {
-      $decode = $decode.(($space) ? " " : "").sprintf("%02d", ord($data{$i}));
+      $decode = $decode.(($space) ? " " : "").sprintf("%02d", ord($data[$i]));
     }
 
     return $decode;
@@ -330,7 +167,7 @@ class lightifyBase
     $decode = vtNoString;
 
     for ($i = 0; $i < strlen($data); $i++) {
-      $decode = $decode.(($space) ? " " : "").sprintf("%02x", ord($data{$i}));
+      $decode = $decode.(($space) ? " " : "").sprintf("%02x", ord($data[$i]));
     }
 
     return $decode;
@@ -364,7 +201,7 @@ class lightifyBase
     }
 
     $length = strlen($result);
-    $result = ($length == classConstant::UUID_OSRAM_LENGTH) ? $result : $result.str_repeat(chr(00), classConstant::UUID_OSRAM_LENGTH-$length);
+    $result = ($length == Constants::UUID_OSRAM_LENGTH) ? $result : $result.str_repeat(chr(00), Constants::UUID_OSRAM_LENGTH-$length);
 
     return $result;
 
@@ -389,7 +226,7 @@ class lightifyBase
 
     $result = vtNoString;
 
-    for ($i = 0; $i < classConstant::DATA_NAME_LENGTH; ++$i) {
+    for ($i = 0; $i < Constants::DATA_NAME_LENGTH; ++$i) {
       $result .= chr(ord(substr($name, $i, 1)));
     }
 
@@ -538,6 +375,38 @@ class lightifyBase
     }
 
     return ['r' => $r, 'g' => $g, 'b' => $b];
+
+  }
+
+
+  public function getInstanceByUUID(string $moduleID, string $UUID) : int {
+
+    //Get Instances
+    $List = IPS_GetInstanceListByModuleID($moduleID);
+
+    foreach ($List as $id) {
+      if (@IPS_GetProperty($id, "UUID") == $UUID) {
+        return $id;
+      }
+    }
+
+    return 0;
+
+  }
+
+
+  public function getInstanceByID(string $moduleID, int $ID) : int {
+
+    //Get Instances
+    $List = IPS_GetInstanceListByModuleID($moduleID);
+
+    foreach ($List as $id) {
+      if (@IPS_GetProperty($id, "ID") == $ID) {
+        return $id;
+      }
+    }
+
+    return 0;
 
   }
 

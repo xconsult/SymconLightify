@@ -1,11 +1,11 @@
 {
 	"id": "{7B315B21-10A7-466B-8F86-8CF069C3F7A2}",
-	"name": "lightifyGroup",
+	"name": "Lightify Group",
 	"type": 3,
 	"vendor": "OSRAM",
-	"aliases": [ "OSRAM Lightify Gruppe" ],
-	"parentRequirements": [ "{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}" ],
+	"aliases": ["OSRAM Lightify Group"],
+	"parentRequirements": ["{6C85A599-D9A5-4478-89F2-7907BB3E5E0E}"],
 	"childRequirements": [],
-	"implemented": [ "{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}" ],
+	"implemented": ["{C74EF90E-1D24-4085-9A3B-7929F47FF6FA}"],
 	"prefix": "OSR"
 }

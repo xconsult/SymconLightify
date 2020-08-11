@@ -1,7 +1,6 @@
 {
   "elements": [
-    {
-      "type": "RowLayout",
+    { "type": "RowLayout",
       "items": [
         { 
           "type": "Image",
@@ -19,81 +18,32 @@
     }
   ],
   "actions": [
-    {
+    { 
       "type": "RowLayout",
       "items": [
+        {
+          "type": "ValidationTextBox",
+          "name": "ID",
+          "enabled": false,
+          "value": "",
+          "caption": "ID",
+          "width": "25px"
+        },
         {
           "type": "ValidationTextBox",
           "name": "module",
           "enabled": false,
           "value": "",
           "caption": "Module",
-          "width": "314px"
-        },
-        {
-          "type": "Image",
-          "name": "deviceOn",
-          "visible": false,
-          "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAAATgAAAAAAAACQAAAAAQAAAJAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAABigAwAEAAAAAQAAABgAAAAAMLjNDAAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAzxJREFUSA21lttrHFUcxz9nLmeu2dI2SWk11SVqxShYH9SI4OVJChJFiyAWwRv4IPpv+CBUQYS+qPhYVFAQBUFRVAj6okWpgqUm2sZEN812092dmTP+JtvAbmZ2k0I9yzDnN+f8vt/fnVW5LIasEUcDGkqpAblfcPqFrftRilvvDpOtYQdX6/uOCYbGcRtLRoaoX9dkOX8t/0GepUyOX4vvef3HQ/fbEiwuLXDi/eP8tnCaIAqxbYuLzXX27d7Pi4+/xKH6rUPBiwM1rIqMyfjomw94+5M3manPMLXnOgF3RSWnOPunucz8L/PM3fMYTz70vHjkVxIpY0xeVS0ff3uSNz58ldmZe4mjGsqUs5ClGV/9+AVzs0/wwsOvoOxBjqLMKwnO/b3As68/ysED0+yJ94qfhqLSlerVRJ6bwhHENDrdS3z/63ccf+497rj5zgGGgqCyit75/C1a9iq2NlxIlmmlq6ybNVrmwsazuV9LV2irFrrmcuKz1wbAN4VSktNuwk9L87iBxWq2TOj6GMvBtmysyx1rxLIiD4lKaacJls441z7LwtIZpvbVN7E33iWCpeZ5urqD4zh0rKYAd8EJJL4S4D6CRMq1Y7q0rQ52LIGQqJ1t/L49QZZnYr2Lj8bzNYEjb9dGW6540MtiLncSAbQ8g0kNWUdjJxaZ/Laukgfj4QSR62EcmyjURNojEFnbPo6EqljGFNZ3sBJFLg6mTge3rbkmntqKT4kgDCOmd9/GqfRLdOTheQGxhCiwA+mD3vVMCNzMJU8V3bZEkHUm8gNcPzldIqisoqOHn8GWIFmhQocucRxTq8XsGouoXX7GpKu172GHkEnS5255GkfrnRHcsP8QRw4eo9lqknkpdiR0kS8NFxDJE4YhTuhgfMNF6YO7dh1h9sYHSuDFB6eqiyWbPDLzFObnjK8bJwnFsliGm3Z6A66hLtHoNllZW+F2+0GOHX4Z7ZWtL7CHzqKCPZMJemrxBz79813acYMxHUoD5xtWq2bI/XuPcnf9vkrwQr9YIwl6V2QqJHDm39Ocby2SqZwJPUl9/CYpgOoBt6m3Y4J+hSvdV1bRlYKMuv+/E5Qard+aq/G35T9dgC3vIaArpAAAAABJRU5ErkJggg=="
-        },
-        {
-          "type": "Image",
-          "name": "deviceOff",
-          "visible": false,
-          "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAAATgAAAAAAAACQAAAAAQAAAJAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAABigAwAEAAAAAQAAABgAAAAAMLjNDAAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAzRJREFUSA21VFtrE0EU/jZ7SdJN0rQpSi9JJZZepK+F/gUvf6DYihSKPhRB/AOKRV/6YgX9D+KLSkFfpKD0SV+KUIptFErRpLknm73veiYaSLObUIodGGbOzJnzzfnON8O51NCl9dg6cYLjuBN2uyG0G53zXgc7fbvZgW4b/2v93AF6UtSehWXbMI6P4ToOpMEExFCwfbvrnOtVZHbKyOZQ23wHHBxAUDXYmg7F0GEMj+DC0iKik5Ndg7ONrgDspvXtbZgf3iPSH4MQDsHVDQRKZVi5HMr5PI7KZUQXFjC+uAQhFPIFEpgU/dRS//wJ9uYm4tNTCIwMw5UEcA0NyGUh8iL6HRearuPo2XMYlNn06qonDovtWwP9dxbG2zcYuJxGIDkKjI0BQQlcvU4500WVBsRKCWG6dSQew+HLF4jPzWF4ft6Tha+KSq9fIcILCERjQCQKDAzCTVyE2x8HomSH+wApBJ58eJ6HYJr49vQJ/F6sB8AkZ2d3F8QdQHNQQaGqRE8DIEqatmkBjg3XZd1tBlb291HMZDwZeCjSqYCOohAVxEWlDDdfACeK4CSJqFGBfBFupQK7ocAwTLqDCduyYFgmygffkUinT4B4AGymd5KiRqP8K0uU803OIZCrRkUuFKnQx9CqVTQoM43WWLeIKlDhO5sHIJRIQCE5VpQ6eAoqGSTNYgEQKACtOxRYrVZQpbFWq0GhbBuMvvgA5GSqM75XRUFZhpFKovj1C1yiSaZbBksloixAtNvQNZVE1GgCMBDWVcpgcPwSEj6PzpMBu0JqZQU7Wx+JY4ME0weJ+GclcYgCnQqtEmidJFsi4ArVQwiGMPXgPkRGY0fzrpDD0Owshm4v43B9HZFY9B8AB1YfVlTGOaOGgXC0lly+hYmr1zpC/zUFv1fM3tLMnbtNOjIbGxBJJWyNSdKkuUlZWPSVBPtkjN5cxNyjhxCYyjoai931L2K+DgX8ubWFnbXHUOizcygwR7WQwmHIqXGk761i4voNiD7BW1g9AVpONk0Ke3uo/cg06yCPJTF0ZQaSD+etM63xVAAt57OMnq/iLEF6nTl3AF+Ztm7EVHOa5qfE1rk/qwyDGGzEX0MAAAAASUVORK5CYII="
+          "width": "282px"
         }
       ]
     },
     {
-      "type": "Label",
-      "caption": "Set the fade duration for On/Off. This duration set for fading represents the time taken by the light to turn fully On/Off."
-    },
-    {
-      "type": "RowLayout",
-      "items": [
-        {
-          "type": "Label",
-          "width": "5px"
-        },
-        {
-          "type": "HorizontalSlider",
-          "name": "deviceFade",
-          "enabled": false,
-          "caption": "Fade On/Off [Duration 0.5s]",
-          "minimum": 0,
-          "maximum": 8,
-          "onChange": "OSR_GlobalDeviceModule($id, ['method' => 'set:device:fading', 'value' => $deviceFade]);",
-          "stepSize": 0.1,
-          "value": 0.5,
-          "width": "318px"
-        }
-      ]
-    },
-    {
-      "type": "RowLayout",
-      "items": [
-        {
-          "type": "Button",
-          "enabled ": true,
-          "caption": "On",
-          "onClick": "OSR_GlobalDeviceModule($id, ['method' => 'set:state', 'value' => true]);",
-          "width": "100px"
-        },
-        {
-          "type": "Button",
-          "enabled ": true,
-          "caption": "Off",
-          "onClick": "OSR_GlobalDeviceModule($id, ['method' => 'set:state', 'value' => false]);",
-          "width": "100px"
-        },
-        {
-          "type": "Button",
-          "enabled ": true,
-          "caption": "Save",
-          "onClick": "OSR_GlobalDeviceModule($id, ['method' => 'set:save', 'values' => [1, $deviceFade]]);",
-          "width": "100px"
-        }
-      ]
+      "type": "Button",
+      "caption": "Apply",
+      "width": "110px",
+      "onClick": ""
     },
     {
       "type": "Label"
@@ -104,39 +54,17 @@
       "items": [
         {
           "type": "Label",
-          "caption": ""
+          "caption": "Connected to the following group"
         },
-        { "type": "RowLayout",
-          "items": [
-          ]
+        {
+          "type": "OpenObjectButton",
+          "enabled": true,
+          "caption": "",
+          "objectID": "",
+          "width": "auto"
         }
       ],
       "expanded": false
-    },
-    {
-      "type": "PopupAlert",
-      "name": "popupAlert",
-      "visible": false,
-      "popup": {
-        "closeCaption": "Close",
-        "items": [
-          {
-            "type": "ProgressBar",
-            "name": "alertProgress",
-            "width": "560px",
-            "visible": false,
-            "indeterminate": true,
-            "caption": "Synchronisation in progress, please wait ..."
-          },
-          {
-            "type": "Label",
-            "name": "alertMessage",
-            "visible": false,
-            "width": "560px",
-            "caption": ""
-          }
-        ]
-      }
     }
   ]
 }

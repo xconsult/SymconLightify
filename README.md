@@ -12,11 +12,12 @@
 
 ## 1. Funktionsumfang
 
-Das Modul ermöglicht das Ansteuern von OSRAM Lightify Lampen,Steckosen, Sensoren, Schalter, Gruppen und Szenen über das interne Netzwerk. Manche Geräte spezifischen Informationen (eg. Geräte Typ, ...) sind nur über die OSRAM Lightify Public API möglich.
+Das Modul ermöglicht das Ansteuern von OSRAM Lightly Geräten über das interne Netzwerk.
+Manche Geräte spezifischen Informationen (eg. Geräte Typ, Software version, ...) sowie das Anlegen und Steuern von Szenen sind nur über die OSRAM Lightify Public API möglich.
 
 ## 2. Voraussetzungen
 
- - IP-Symcon ab Version 5.3
+ - IP-Symcon ab Version 5.0
  - OSRAM Lightify Home Gateway. Das PRO Gateway wird derzeit nicht unterstützt
  - Optional: Cloud-Zurgiff mit einem gültigen OSRAM Benutzer-Account
  - Optional: Symcon Connect. Bei Nutzung des Cloud-Zugriffs zwingend erforderlich
@@ -33,7 +34,7 @@ In dem sich öffnenden Fenster folgende URL hinzufügen und mit _OK_ bestätigen
 
 `https://github.com/xconsult/SymconLightify`
 
- Den Zweig auf "beta-5.3" umstellen (Modul-Eintrag editieren, _Zweig_ auswählen).
+ Den Zweig auf "beta-5.0" umstellen (Modul-Eintrag editieren, _Zweig_ auswählen).
 
 Anschließend erscheint ein Eintrag für das Modul in der Liste der Instanz _Modules_
 
