@@ -231,7 +231,7 @@ trait LightifyControl {
 
               $param = [
                 'flag'  => $flag,
-                'args'  => utf8_encode($UUID.chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0xff).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
+                'args'  => utf8_encode($UUID.chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0xff).chr((int)dechex($this->fade)).chr(0x00).chr(0x00)),
                 'value' => vtNoValue
               ];
               $result = $this->sendData(Commands::SET_LIGHT_COLOR, $param);
@@ -276,7 +276,7 @@ trait LightifyControl {
 
               $param = [
                 'flag'  => $flag,
-                'args'  => utf8_encode($UUID.chr(hexdec(substr($hex, 2, 2))).chr(hexdec(substr($hex, 0, 2))).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
+                'args'  => utf8_encode($UUID.chr((int)hexdec(substr($hex, 2, 2))).chr((int)hexdec(substr($hex, 0, 2))).chr((int)dechex($this->fade)).chr(0x00).chr(0x00)),
                 'value' => vtNoValue
               ];
               $result = $this->sendData(Commands::SET_COLOR_TEMPERATURE, $param);
@@ -300,7 +300,7 @@ trait LightifyControl {
             if ($value != $level) {
               $param = [
                 'flag'  => $flag,
-                'args'  => utf8_encode($UUID.chr((int)$value).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
+                'args'  => utf8_encode($UUID.chr((int)$value).chr((int)dechex($this->fade)).chr(0x00).chr(0x00)),
                 'value' => $value
               ];
               $result = $this->sendData(Commands::SET_LIGHT_LEVEL, $param);
@@ -342,7 +342,7 @@ trait LightifyControl {
 
                 $param = [
                   'flag'  => $flag,
-                  'args'  => utf8_encode($UUID.chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0x00).chr(dechex($this->fade)).chr(0x00).chr(0x00)),
+                  'args'  => utf8_encode($UUID.chr($rgb['r']).chr($rgb['g']).chr($rgb['b']).chr(0x00).chr((int)dechex($this->fade)).chr(0x00).chr(0x00)),
                   'value' => vtNoValue
                 ];
                 $result = $this->sendData(Commands::SET_LIGHT_SATURATION, $param);
